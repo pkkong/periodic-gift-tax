@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=6";
-import { renderDocumentPack } from "./documents.js?v=6";
+} from "./tax.js?v=7";
+import { renderDocumentPack } from "./documents.js?v=7";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -22,7 +22,12 @@ const toast = document.querySelector("#toast");
 const importFile = document.querySelector("#importFile");
 const ruleOverlay = document.querySelector("#ruleOverlay");
 const dataOverlay = document.querySelector("#dataOverlay");
+const ruleButton = document.querySelector("#ruleButton");
 const stepElements = Array.from(document.querySelectorAll(".wizard-step"));
+const progressiveFields = Array.from(document.querySelectorAll("[data-reveal-after]"));
+const wizardProgress = document.querySelector(".wizard-progress");
+const wizardNav = document.querySelector(".wizard-nav");
+const utilityActions = document.querySelector(".utility-actions");
 const stepCount = document.querySelector("#stepCount");
 const stepTitle = document.querySelector("#stepTitle");
 const progressBar = document.querySelector("#progressBar");
@@ -33,6 +38,7 @@ const accountCta = document.querySelector("#accountCta");
 const accountCreateButton = document.querySelector("#accountCreateButton");
 
 const STEPS = [
+  { key: "intro", title: "시작" },
   { key: "donor", title: "증여자 정보" },
   { key: "recipient", title: "수증자 정보" },
   { key: "account", title: "수증자 계좌가 있나요?" },
@@ -43,8 +49,8 @@ const STEPS = [
 const defaultInput = normalizeInput({
   giftDate: formatDate(new Date()),
   firstPaymentDate: formatDate(new Date()),
-  monthlyAmount: 200_000,
-  totalMonths: 120,
+  monthlyAmount: 0,
+  totalMonths: 0,
   recipientHasAccount: "yes",
   accountReady: false,
   relationshipType: "parent_minor_child"
@@ -67,6 +73,7 @@ function bootstrap() {
 function bindEvents() {
   form.addEventListener("input", () => {
     syncFirstPaymentDate();
+    updateProgressiveFields();
     recalculate();
     updateAccountCta();
   });
@@ -75,7 +82,7 @@ function bindEvents() {
   document.querySelector("#printButtonDocuments").addEventListener("click", printDocuments);
   backButton.addEventListener("click", previousStep);
   nextButton.addEventListener("click", nextStep);
-  document.querySelector("#ruleButton").addEventListener("click", () => openOverlay(ruleOverlay));
+  ruleButton.addEventListener("click", () => openOverlay(ruleOverlay));
   document.querySelector("#dataButton").addEventListener("click", () => openOverlay(dataOverlay));
   accountCreateButton.addEventListener("click", markAccountReady);
   document.querySelector("#saveButton").addEventListener("click", saveLocal);
@@ -241,10 +248,13 @@ function fillForm(input) {
     if (!element) continue;
     if (element instanceof HTMLInputElement && element.type === "checkbox") {
       element.checked = Boolean(value);
+    } else if (element instanceof HTMLInputElement && element.type === "number" && Number(value) <= 0) {
+      element.value = "";
     } else {
       element.value = value;
     }
   }
+  updateProgressiveFields();
 }
 
 function printDocuments() {
@@ -275,11 +285,20 @@ function renderStep() {
   stepElements.forEach((element) => {
     element.classList.toggle("is-active", element.dataset.step === step.key);
   });
-  stepCount.textContent = `${currentStepIndex + 1} / ${STEPS.length}`;
+  const progressTotal = STEPS.length - 1;
+  const progressIndex = Math.max(1, currentStepIndex);
+  const isIntro = step.key === "intro";
+  wizardProgress.hidden = isIntro;
+  utilityActions.hidden = isIntro;
+  ruleButton.hidden = step.key !== "result";
+  wizardNav.classList.toggle("is-intro", isIntro);
+  stepCount.textContent = `${progressIndex} / ${progressTotal}`;
   stepTitle.textContent = step.title;
-  progressBar.style.width = `${((currentStepIndex + 1) / STEPS.length) * 100}%`;
-  backButton.disabled = currentStepIndex === 0;
-  nextButton.textContent = step.key === "amount" ? "결과 보기" : step.key === "result" ? "PDF 저장" : "다음";
+  progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;
+  backButton.hidden = isIntro;
+  backButton.disabled = isIntro;
+  nextButton.textContent = isIntro ? "계속 하시겠습니까" : step.key === "amount" ? "결과 보기" : step.key === "result" ? "PDF 저장" : "다음";
+  updateProgressiveFields();
 }
 
 function currentStep() {
@@ -288,15 +307,29 @@ function currentStep() {
 
 function validateCurrentStep() {
   const step = currentStep().key;
-  if (step === "donor" && !form.elements.donorName.value.trim()) {
-    showToast("증여자 성명을 입력하세요.");
-    form.elements.donorName.focus();
-    return false;
+  if (step === "donor") {
+    return validatePersonStep({
+      nameElement: form.elements.donorName,
+      idElement: form.elements.donorId,
+      addressElement: form.elements.donorAddress,
+      phoneElement: form.elements.donorPhone,
+      nameLabel: "증여자"
+    });
   }
-  if (step === "recipient" && !form.elements.recipientName.value.trim()) {
-    showToast("수증자 성명을 입력하세요.");
-    form.elements.recipientName.focus();
-    return false;
+  if (step === "recipient") {
+    if (!validatePersonStep({
+      nameElement: form.elements.recipientName,
+      idElement: form.elements.recipientId,
+      addressElement: form.elements.recipientAddress,
+      nameLabel: "수증자"
+    })) {
+      return false;
+    }
+    if (!isPlausibleName(form.elements.guardianName.value) && form.elements.guardianName.value.trim()) {
+      showToast("법정대리인 성명을 다시 확인하세요.");
+      form.elements.guardianName.focus();
+      return false;
+    }
   }
   if (step === "account" && form.elements.recipientHasAccount.value === "no" && !form.elements.accountReady.checked) {
     showToast("수증자 명의 계좌를 준비한 뒤 진행하세요.");
@@ -318,6 +351,61 @@ function validateCurrentStep() {
     }
   }
   return true;
+}
+
+function validatePersonStep({ nameElement, idElement, addressElement, phoneElement, nameLabel }) {
+  if (!isPlausibleName(nameElement.value)) {
+    showToast(`${nameLabel} 성명을 두 글자 이상 정확히 입력하세요.`);
+    nameElement.focus();
+    return false;
+  }
+  if (!isValidResidentIdInput(idElement.value)) {
+    showToast(`${nameLabel} 주민등록번호는 생년월일 6자리와 뒤 첫 자리 또는 전체 번호로 입력하세요.`);
+    idElement.focus();
+    return false;
+  }
+  if (addressElement && addressElement.value.trim().length < 5) {
+    showToast(`${nameLabel} 주소를 조금 더 구체적으로 입력하세요.`);
+    addressElement.focus();
+    return false;
+  }
+  if (phoneElement && !isValidPhoneInput(phoneElement.value)) {
+    showToast(`${nameLabel} 연락처를 다시 확인하세요.`);
+    phoneElement.focus();
+    return false;
+  }
+  return true;
+}
+
+function updateProgressiveFields() {
+  progressiveFields.forEach((field) => {
+    const dependency = field.dataset.revealAfter;
+    const element = form.elements[dependency];
+    field.hidden = !getFormControlValue(element);
+  });
+}
+
+function getFormControlValue(element) {
+  if (!element) return "";
+  if (element instanceof RadioNodeList) return element.value.trim();
+  if (element instanceof HTMLInputElement && element.type === "checkbox") return element.checked ? "checked" : "";
+  if (element instanceof HTMLInputElement && element.type === "number" && Number(element.value) <= 0) return "";
+  return String(element.value ?? "").trim();
+}
+
+function isPlausibleName(value) {
+  const name = value.trim();
+  return name.length >= 2 && /^[가-힣a-zA-Z\s.·-]+$/.test(name);
+}
+
+function isValidResidentIdInput(value) {
+  const digits = value.replace(/\D/g, "");
+  return /^\d{6}[1-8]$/.test(digits) || /^\d{6}[1-8]\d{6}$/.test(digits);
+}
+
+function isValidPhoneInput(value) {
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 8 && digits.length <= 12;
 }
 
 function updateAccountCta() {
@@ -365,6 +453,7 @@ function loadLocal() {
     fillForm(JSON.parse(saved));
     recalculate();
     updateAccountCta();
+    updateProgressiveFields();
     renderStep();
     storageStatus.textContent = "저장본 불러옴";
     showToast("이 브라우저에 저장된 입력값을 불러왔습니다.");
@@ -395,6 +484,7 @@ function importJson(event) {
       fillForm(JSON.parse(String(reader.result)));
       recalculate();
       updateAccountCta();
+      updateProgressiveFields();
       renderStep();
       storageStatus.textContent = "백업 불러옴";
       closeOverlay(dataOverlay);

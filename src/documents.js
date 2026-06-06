@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=6";
+} from "./tax.js?v=7";
 
 /**
  * @typedef {Object} DocumentContext
@@ -203,6 +203,7 @@ function renderHometaxChecklist(input, valuation, tax, errors, warnings) {
       <ol class="checklist">
         <li>홈택스에서 증여세 정기신고 메뉴를 선택한다.</li>
         <li>증여자, 수증자, 법정대리인, 관할세무서 정보를 입력한다.</li>
+        <li>앱에는 주민등록번호 일부만 입력했더라도 홈택스와 법정 신고서에는 증여자ㆍ수증자 전체 주민등록번호를 확인해 입력한다.</li>
         <li>증여일은 ${formatKoreanDate(input.giftDate) || blank()}로 입력한다.</li>
         <li>증여재산은 유기정기금 수급권으로 기재하고 평가액 ${formatWon(valuation.assessedValue)}를 입력한다.</li>
         <li>최근 10년 동일인 증여가산액 ${formatWon(tax.aggregatedPriorGiftValue)}와 공제 ${formatWon(tax.deductionApplied)}를 확인한다.</li>

@@ -168,6 +168,12 @@ h3 {
   color: var(--accent-strong);
 }
 
+.wizard-progress[hidden],
+.utility-actions[hidden],
+[data-reveal-after][hidden] {
+  display: none !important;
+}
+
 .wizard-progress {
   display: grid;
   gap: 10px;
@@ -219,6 +225,65 @@ h3 {
 .wizard-step.is-active {
   display: grid;
   gap: 14px;
+}
+
+.landing-step {
+  min-height: 560px;
+  align-content: space-between;
+}
+
+.landing-hero {
+  display: grid;
+  gap: 12px;
+  padding: 26px 4px 8px;
+}
+
+.landing-hero h2 {
+  max-width: 11em;
+  margin-bottom: 0;
+  font-size: 2rem;
+  line-height: 1.18;
+}
+
+.landing-hero p:not(.question-kicker) {
+  margin-bottom: 0;
+  color: #4e5968;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.landing-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.landing-copy div {
+  padding: 15px;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.landing-copy strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+.landing-copy p,
+.landing-note {
+  margin-bottom: 0;
+  color: #4e5968;
+  font-size: 0.9rem;
+}
+
+.landing-note {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #eef8f3;
+  color: #176445;
+  font-weight: 800;
 }
 
 .question-block {
@@ -277,6 +342,12 @@ label {
   color: #4e5968;
   font-size: 0.9rem;
   font-weight: 800;
+}
+
+label small {
+  color: #6b7684;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 input,
@@ -393,6 +464,14 @@ input::placeholder {
   background: linear-gradient(rgba(242, 244, 246, 0), var(--bg) 20%);
 }
 
+.wizard-nav.is-intro {
+  grid-template-columns: 1fr;
+}
+
+.wizard-nav.is-intro #backButton {
+  display: none;
+}
+
 .utility-actions {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -406,6 +485,13 @@ input::placeholder {
 .utility-actions button {
   padding-inline: 8px;
   font-size: 0.88rem;
+}
+
+.utility-actions strong {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
 }
 
 .result-hero {
@@ -436,6 +522,26 @@ input::placeholder {
   font-size: 0.9rem;
   font-weight: 800;
   opacity: 0.88;
+}
+
+.result-basis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.result-basis span {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #e9edf2;
+  color: #4e5968;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.result-basis span:last-child {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .result-grid {
@@ -714,6 +820,7 @@ th {
   .wizard-progress,
   .question-block,
   .result-hero,
+  .result-basis,
   .result-grid,
   .notice-list,
   .result-detail,
