@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=8";
-import { renderDocumentPack } from "./documents.js?v=8";
+} from "./tax.js?v=9";
+import { renderDocumentPack } from "./documents.js?v=9";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -110,6 +110,7 @@ function bindEvents() {
     updateProgressiveFields();
     recalculate();
   });
+  form.addEventListener("keydown", handleFormEnterKey);
 
   introStartButton.addEventListener("click", () => {
     currentStepIndex = 1;
@@ -164,6 +165,42 @@ function bindEvents() {
       closeOverlay(dataOverlay);
     }
   });
+}
+
+function handleFormEnterKey(event) {
+  if (event.key !== "Enter") return;
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+  event.preventDefault();
+
+  const field = target.closest("[data-field]");
+  const fieldName = field?.dataset.field;
+  if (fieldName && !field.hidden && !confirmedFields.has(fieldName)) {
+    confirmField(fieldName);
+    if (shouldAdvanceAfterEnterConfirm(fieldName)) {
+      nextStep();
+    }
+    return;
+  }
+
+  if (canAdvanceCurrentStep()) {
+    nextStep();
+    return;
+  }
+
+  const confirmButton = field?.querySelector("[data-confirm-field]");
+  if (confirmButton instanceof HTMLButtonElement) {
+    confirmButton.click();
+  }
+}
+
+function shouldAdvanceAfterEnterConfirm(fieldName) {
+  const step = currentStep().key;
+  if (!canAdvanceCurrentStep()) return false;
+  if (step === "donor") return fieldName === "donorId";
+  if (step === "recipient") return fieldName === "recipientId";
+  if (step === "amount") return fieldName === "totalMonths" || fieldName === "lumpSumAmount";
+  return false;
 }
 
 function syncFirstPaymentDate() {
