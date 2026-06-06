@@ -7,14 +7,21 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=9";
-import { renderDocumentPack } from "./documents.js?v=9";
+} from "./tax.js?v=11";
+import { renderDocumentPack } from "./documents.js?v=11";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
 const storageStatus = document.querySelector("#storageStatus");
 const resultCards = document.querySelector("#resultCards");
 const resultBasis = document.querySelector("#resultBasis");
+const resultStatus = document.querySelector("#resultStatus");
+const resultStatusLabel = document.querySelector("#resultStatusLabel");
+const resultTaxAmount = document.querySelector("#resultTaxAmount");
+const resultLead = document.querySelector("#resultLead");
+const resultNextSteps = document.querySelector("#resultNextSteps");
+const resultFilingMeta = document.querySelector("#resultFilingMeta");
+const resultDocsSummary = document.querySelector("#resultDocsSummary");
 const scheduleRows = document.querySelector("#scheduleRows");
 const validationList = document.querySelector("#validationList");
 const deadlineSummary = document.querySelector("#deadlineSummary");
@@ -299,25 +306,31 @@ function renderModeHints(input) {
 
 function renderResults(input, valuation, tax, errors, warnings) {
   renderResultBasis(input);
+  const safeLimit = getSafeAssessmentLimit(input);
+  const hasErrors = errors.length > 0;
+  const hasTax = tax.payableTax > 0;
+
+  resultStatus.classList.toggle("has-tax", hasTax);
+  resultStatus.classList.toggle("has-error", hasErrors);
+  resultStatusLabel.textContent = hasErrors ? "입력 확인 필요" : hasTax ? "납부세액 발생" : "증여세 0원 예상";
+  resultTaxAmount.textContent = hasErrors ? "계산값 확인 필요" : hasTax ? `납부세액 ${formatWon(tax.payableTax)}` : "납부세액 0원";
+  resultLead.textContent = hasErrors
+    ? "필수 입력값을 보완한 뒤 홈택스 신고 준비팩을 저장하세요."
+    : `${tax.relationshipLabel} 기준 평가액 ${formatWon(valuation.assessedValue)}, 과세표준 ${formatWon(tax.taxBase)}으로 계산했습니다.`;
   deadlineSummary.textContent = tax.filingDeadline
     ? `신고기한 ${formatKoreanDate(tax.filingDeadline)}`
     : "신고기한 산정 전";
 
   const metrics = [
     {
-      label: "증여 관계",
-      value: tax.relationshipLabel,
-      sub: tax.generationSkippingTax > 0 ? `세대생략 할증 ${formatWon(tax.generationSkippingTax)}` : "일반 관계"
-    },
-    {
-      label: "증여재산 평가액",
+      label: "평가액",
       value: formatWon(valuation.assessedValue),
       sub: valuation.capApplied ? "20배 상한 적용" : "현재가치 합계 적용"
     },
     {
-      label: "증여재산공제",
-      value: formatWon(tax.deductionApplied),
-      sub: `잔여 공제 ${formatWon(tax.availableDeduction)}`
+      label: "무세금 안전 기준",
+      value: formatWon(safeLimit),
+      sub: `사용 가능 공제 ${formatWon(tax.availableDeduction)}`
     },
     {
       label: "과세표준",
@@ -344,6 +357,32 @@ function renderResults(input, valuation, tax, errors, warnings) {
       `
     )
     .join("");
+
+  resultNextSteps.innerHTML = [
+    input.recipientHasAccount === "yes" || input.accountReady
+      ? "수증자 명의 계좌로 증여금을 이체하고 이체내역을 보관하세요."
+      : "수증자 명의 계좌를 먼저 준비한 뒤 증여금을 이체하세요.",
+    input.giftMode === "periodic"
+      ? `약정서에 매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 지급 조건을 기재하세요.`
+      : `현금 증여 확인서에 ${formatWon(input.lumpSumAmount)} 증여 사실을 기재하세요.`,
+    `${formatKoreanDate(tax.filingDeadline)}까지 홈택스 증여세 신고 화면에 계산값을 옮겨 적으세요.`,
+    "가족관계증명서, 이체계획 또는 이체내역, PDF 서류팩을 첨부자료로 준비하세요."
+  ]
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join("");
+
+  resultFilingMeta.innerHTML = [
+    ["증여 관계", tax.relationshipLabel],
+    ["평가 방식", input.giftMode === "periodic" ? "유기정기금 현재가치 평가" : "현금 일시증여 평가"],
+    ["신고 기준일", "2026.06.06 확인 기준"],
+    ["세대생략 할증", tax.generationSkippingRate > 0 ? `${(tax.generationSkippingRate * 100).toFixed(0)}% 반영` : "해당 없음"]
+  ]
+    .map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`)
+    .join("");
+
+  resultDocsSummary.textContent = input.giftMode === "periodic"
+    ? "유기정기금 평가명세서, 증여세 신고서 초안, 증여약정서, 홈택스 체크리스트를 인쇄합니다."
+    : "현금 증여 명세서, 증여세 신고서 초안, 현금 증여 확인서, 홈택스 체크리스트를 인쇄합니다.";
 
   scheduleRows.innerHTML = valuation.schedule
     .map(
@@ -372,14 +411,6 @@ function renderResultBasis(input) {
 
 function renderValidation(input, errors, warnings, tax) {
   const notices = [];
-  notices.push({
-    type: "info",
-    text: "상증세법 시행령 제62조, 시행규칙 제19조의2, 국세청 증여세 신고 안내를 2026-06-06 기준으로 반영했습니다."
-  });
-  notices.push({
-    type: "info",
-    text: `신고세액공제는 ${formatKoreanDate(tax.filingDeadline)}까지 신고하는 경우로 계산했습니다.`
-  });
   if (input.priorSameDonorGiftValue > 0) {
     notices.push({
       type: "warning",
@@ -394,6 +425,11 @@ function renderValidation(input, errors, warnings, tax) {
   }
   errors.forEach((text) => notices.push({ type: "error", text }));
   warnings.forEach((text) => notices.push({ type: "warning", text }));
+
+  if (!notices.length) {
+    validationList.innerHTML = "";
+    return;
+  }
 
   validationList.innerHTML = notices
     .map((notice) => `<div class="notice ${notice.type === "info" ? "" : notice.type}">${escapeHtml(notice.text)}</div>`)
@@ -467,12 +503,13 @@ function renderStep() {
   const progressTotal = STEPS.length - 1;
   const progressIndex = Math.max(1, currentStepIndex);
   const isIntro = step.key === "intro";
+  const isResult = step.key === "result";
   topbar.hidden = step.key !== "result";
   wizardProgress.hidden = true;
   utilityActions.hidden = isIntro;
   ruleButton.hidden = step.key !== "result";
   wizardNav.classList.toggle("is-intro", isIntro);
-  wizardNav.hidden = isIntro;
+  wizardNav.hidden = isIntro || isResult;
   stepCount.textContent = `${progressIndex} / ${progressTotal}`;
   stepTitle.textContent = step.title;
   progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;

@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=8";
+} from "./tax.js?v=11";
 
 /**
  * @typedef {Object} DocumentContext
@@ -72,9 +72,9 @@ function renderValuationStatement(input, valuation) {
     .join("");
 
   return `
-    <section class="print-page">
+    <section class="print-page valuation-page">
       <h2>유기정기금 평가명세서</h2>
-      <table class="doc-table">
+      <table class="doc-table valuation-summary">
         <tbody>
           <tr><th>평가대상 권리</th><td>매월 고정액을 받을 유기정기금 권리</td></tr>
           <tr><th>월 납입액</th><td>${formatWon(input.monthlyAmount)}</td></tr>
@@ -86,7 +86,7 @@ function renderValuationStatement(input, valuation) {
           <tr><th>증여재산 평가액</th><td><strong>${formatWon(valuation.assessedValue)}</strong>${valuation.capApplied ? " (상한 적용)" : ""}</td></tr>
         </tbody>
       </table>
-      <table class="doc-table">
+      <table class="doc-table valuation-schedule">
         <thead>
           <tr>
             <th>수령연도</th>
