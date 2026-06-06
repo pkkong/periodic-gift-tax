@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=5";
-import { renderDocumentPack } from "./documents.js?v=5";
+} from "./tax.js?v=6";
+import { renderDocumentPack } from "./documents.js?v=6";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -172,11 +172,11 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .map(
       (row) => `
         <tr>
-          <td>${row.yearOffset}년차</td>
+          <td>${row.paymentYear}년</td>
           <td>${formatKoreanDate(row.periodStartDate)} ~ ${formatKoreanDate(row.periodEndDate)}</td>
           <td>${row.months.toLocaleString("ko-KR")}</td>
           <td>${formatWon(row.periodPayment)}</td>
-          <td>${row.yearOffset}년 (${row.discountFactor.toFixed(6)})</td>
+          <td>${formatDiscount(row)}</td>
           <td>${formatWon(row.presentValue)}</td>
         </tr>
       `
@@ -214,6 +214,11 @@ function renderValidation(input, errors, warnings, tax) {
   validationList.innerHTML = notices
     .map((notice) => `<div class="notice ${notice.type === "info" ? "" : notice.type}">${escapeHtml(notice.text)}</div>`)
     .join("");
+}
+
+function formatDiscount(row) {
+  if (row.yearOffset === 0) return "0년 (할인 없음)";
+  return `${row.yearOffset}년 (${row.discountFactor.toFixed(6)})`;
 }
 
 function renderDocuments(input, valuation, tax, errors, warnings) {

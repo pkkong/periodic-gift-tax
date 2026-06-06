@@ -20,13 +20,15 @@ describe("유기정기금 평가", () => {
       totalMonths: 120
     });
 
-    assert.equal(valuation.assessedValue, 20_472_486);
+    assert.equal(valuation.assessedValue, 20_830_755);
     assert.equal(valuation.capApplied, false);
-    assert.equal(valuation.schedule.length, 10);
-    assert.equal(valuation.schedule[0].yearOffset, 1);
-    assert.equal(valuation.schedule[0].months, 12);
+    assert.equal(valuation.schedule.length, 11);
+    assert.equal(valuation.schedule[0].paymentYear, 2026);
+    assert.equal(valuation.schedule[0].yearOffset, 0);
+    assert.equal(valuation.schedule[0].months, 7);
+    assert.equal(valuation.schedule.at(-1).paymentYear, 2036);
     assert.equal(valuation.schedule.at(-1).yearOffset, 10);
-    assert.equal(valuation.schedule.at(-1).months, 12);
+    assert.equal(valuation.schedule.at(-1).months, 5);
   });
 
   it("월 250,000원씩 120개월 평가액을 계산한다", () => {
@@ -37,7 +39,7 @@ describe("유기정기금 평가", () => {
       totalMonths: 120
     });
 
-    assert.equal(valuation.assessedValue, 25_590_608);
+    assert.equal(valuation.assessedValue, 26_038_444);
   });
 
   it("장기 계약은 1년분 정기금액의 20배 상한을 적용한다", () => {
@@ -52,7 +54,7 @@ describe("유기정기금 평가", () => {
     assert.equal(valuation.capApplied, true);
   });
 
-  it("수령액을 평가기준일부터 1년 단위로 묶는다", () => {
+  it("수령액을 수령연도별로 묶고 첫해 잔여기간은 할인하지 않는다", () => {
     const valuation = calculateValuation({
       giftDate: "2026-06-01",
       firstPaymentDate: "2026-06-01",
@@ -61,15 +63,18 @@ describe("유기정기금 평가", () => {
     });
 
     assert.equal(valuation.schedule.length, 2);
-    assert.equal(valuation.schedule[0].yearOffset, 1);
+    assert.equal(valuation.schedule[0].paymentYear, 2026);
+    assert.equal(valuation.schedule[0].yearOffset, 0);
     assert.equal(valuation.schedule[0].periodStartDate, "2026-06-01");
-    assert.equal(valuation.schedule[0].periodEndDate, "2027-05-31");
-    assert.equal(valuation.schedule[0].months, 12);
-    assert.equal(valuation.schedule[1].yearOffset, 2);
-    assert.equal(valuation.schedule[1].months, 2);
+    assert.equal(valuation.schedule[0].periodEndDate, "2026-12-01");
+    assert.equal(valuation.schedule[0].months, 7);
+    assert.equal(valuation.schedule[0].presentValue, 700_000);
+    assert.equal(valuation.schedule[1].paymentYear, 2027);
+    assert.equal(valuation.schedule[1].yearOffset, 1);
+    assert.equal(valuation.schedule[1].months, 7);
   });
 
-  it("첫 이체일이 늦으면 평가기준일 기준 구간에 맞춰 나눈다", () => {
+  it("첫 이체일이 늦어도 같은 수령연도 금액은 할인하지 않는다", () => {
     const valuation = calculateValuation({
       giftDate: "2026-06-01",
       firstPaymentDate: "2026-12-01",
@@ -78,11 +83,15 @@ describe("유기정기금 평가", () => {
     });
 
     assert.equal(valuation.schedule.length, 2);
-    assert.equal(valuation.schedule[0].yearOffset, 1);
-    assert.equal(valuation.schedule[0].months, 6);
-    assert.equal(valuation.schedule[1].yearOffset, 2);
-    assert.equal(valuation.schedule[1].months, 6);
-    assert.equal(getValuationYearOffset("2026-06-01", "2027-06-01"), 2);
+    assert.equal(valuation.schedule[0].paymentYear, 2026);
+    assert.equal(valuation.schedule[0].yearOffset, 0);
+    assert.equal(valuation.schedule[0].months, 1);
+    assert.equal(valuation.schedule[1].paymentYear, 2027);
+    assert.equal(valuation.schedule[1].yearOffset, 1);
+    assert.equal(valuation.schedule[1].months, 11);
+    assert.equal(getValuationYearOffset("2026-06-01", "2026-12-01"), 0);
+    assert.equal(getValuationYearOffset("2026-06-01", "2027-01-01"), 1);
+    assert.equal(getValuationYearOffset("2026-06-01", "2028-01-01"), 2);
   });
 });
 

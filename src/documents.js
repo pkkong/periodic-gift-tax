@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=5";
+} from "./tax.js?v=6";
 
 /**
  * @typedef {Object} DocumentContext
@@ -60,11 +60,11 @@ function renderValuationStatement(input, valuation) {
     .map(
       (row) => `
         <tr>
-          <td>${row.yearOffset}년차</td>
+          <td>${row.paymentYear}년</td>
           <td>${formatKoreanDate(row.periodStartDate)} ~ ${formatKoreanDate(row.periodEndDate)}</td>
           <td>${row.months}개월</td>
           <td>${formatWon(row.periodPayment)}</td>
-          <td>${row.yearOffset}년 (${row.discountFactor.toFixed(6)})</td>
+          <td>${formatDiscount(row)}</td>
           <td>${formatWon(row.presentValue)}</td>
         </tr>
       `
@@ -89,22 +89,28 @@ function renderValuationStatement(input, valuation) {
       <table class="doc-table">
         <thead>
           <tr>
-            <th>평가연차</th>
-            <th>평가기간</th>
+            <th>수령연도</th>
+            <th>수령기간</th>
             <th>개월</th>
             <th>수령액</th>
-            <th>할인연수</th>
+            <th>경과연수</th>
             <th>현재가치</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
       <p class="doc-footnote">
-        산식: 평가기준일부터 매 1년 구간별 수령금액 / (1 + ${(ANNUAL_DISCOUNT_RATE * 100).toFixed(1)}%)^평가기준일로부터 경과연수.
+        산식: 수령연도별 수령금액 / (1 + ${(ANNUAL_DISCOUNT_RATE * 100).toFixed(1)}%)^평가기준일부터의 경과연수.
+        1년 미만 경과기간에 지급받는 금액은 경과연수 0년으로 보아 할인하지 않습니다.
         현재가치 합계와 1년분 정기금액의 20배 중 작은 금액을 평가액으로 기재합니다.
       </p>
     </section>
   `;
+}
+
+function formatDiscount(row) {
+  if (row.yearOffset === 0) return "0년 (할인 없음)";
+  return `${row.yearOffset}년 (${row.discountFactor.toFixed(6)})`;
 }
 
 function renderGiftTaxDraft(input, valuation, tax) {

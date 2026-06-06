@@ -23,6 +23,7 @@
 
 /**
  * @typedef {Object} GiftScheduleRow
+ * @property {number} paymentYear
  * @property {number} yearOffset
  * @property {string} periodStartDate
  * @property {string} periodEndDate
@@ -183,24 +184,29 @@ export function calculateValuation(rawInput) {
     for (let monthIndex = 0; monthIndex < input.totalMonths; monthIndex += 1) {
       const paymentDate = addMonths(input.firstPaymentDate, monthIndex);
       const yearOffset = getValuationYearOffset(input.giftDate, paymentDate);
-      const current = yearlyPayments.get(yearOffset) ?? {
+      const paymentYear = splitDate(paymentDate).year;
+      const current = yearlyPayments.get(paymentYear) ?? {
+        paymentYear,
         yearOffset,
-        periodStartDate: addMonths(input.giftDate, (yearOffset - 1) * 12),
-        periodEndDate: addDays(addMonths(input.giftDate, yearOffset * 12), -1),
+        periodStartDate: paymentDate,
+        periodEndDate: paymentDate,
         months: 0,
         periodPayment: 0
       };
       current.months += 1;
       current.periodPayment += input.monthlyAmount;
-      yearlyPayments.set(yearOffset, current);
+      current.periodStartDate = compareDateStrings(paymentDate, current.periodStartDate) < 0 ? paymentDate : current.periodStartDate;
+      current.periodEndDate = compareDateStrings(paymentDate, current.periodEndDate) > 0 ? paymentDate : current.periodEndDate;
+      yearlyPayments.set(paymentYear, current);
     }
 
-    for (const row of Array.from(yearlyPayments.values()).sort((left, right) => left.yearOffset - right.yearOffset)) {
+    for (const row of Array.from(yearlyPayments.values()).sort((left, right) => left.paymentYear - right.paymentYear)) {
       const discountFactor = Math.pow(1 + ANNUAL_DISCOUNT_RATE, row.yearOffset);
       const rowPresentValue = row.periodPayment / discountFactor;
       presentValue += rowPresentValue;
 
       schedule.push({
+        paymentYear: row.paymentYear,
         yearOffset: row.yearOffset,
         periodStartDate: row.periodStartDate,
         periodEndDate: row.periodEndDate,
@@ -306,14 +312,9 @@ export function findBracket(taxBase) {
 }
 
 export function getValuationYearOffset(giftDate, paymentDate) {
-  if (!isValidDateString(giftDate) || !isValidDateString(paymentDate)) return 1;
-  if (compareDateStrings(paymentDate, giftDate) < 0) return 1;
-
-  let yearOffset = 1;
-  while (compareDateStrings(paymentDate, addMonths(giftDate, yearOffset * 12)) >= 0) {
-    yearOffset += 1;
-  }
-  return yearOffset;
+  if (!isValidDateString(giftDate) || !isValidDateString(paymentDate)) return 0;
+  if (compareDateStrings(paymentDate, giftDate) < 0) return 0;
+  return Math.max(0, splitDate(paymentDate).year - splitDate(giftDate).year);
 }
 
 export function formatDate(date) {
