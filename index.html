@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0064ff" />
+    <title>유기정기금 증여 신고 보조</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=4" />
+    <script>
+      window.__PROJECT_TAX_VERSION__ = "4";
+      if ("caches" in window) {
+        caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
+      }
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()));
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">유기정기금 증여</p>
+          <h1>증여세 신고 보조</h1>
+        </div>
+        <button class="text-button" id="ruleButton" type="button">적용 규정</button>
+      </header>
+
+      <div class="app-meta" aria-label="적용 범위">
+        <span>현금</span>
+        <span>매월 고정액</span>
+          <span>2026.06.06 기준</span>
+        <strong id="storageStatus">저장 안 됨</strong>
+      </div>
+
+      <div class="wizard-progress" aria-label="진행 단계">
+        <div class="progress-copy">
+          <span id="stepCount">1 / 5</span>
+          <strong id="stepTitle">증여자 정보</strong>
+        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+      </div>
+
+      <main>
+        <form id="giftForm" class="wizard-form" novalidate>
+          <input name="priorSameDonorGiftValue" type="hidden" value="0" />
+          <input name="priorDeductionUsed" type="hidden" value="0" />
+          <input name="priorGiftTaxPaid" type="hidden" value="0" />
+
+          <section class="wizard-step is-active" data-step="donor">
+            <div class="question-block">
+              <p class="question-kicker">1. 증여자</p>
+              <h2>돈을 보내는 분의 정보를 입력하세요.</h2>
+              <p>관계에 따라 공제와 할증 계산이 달라집니다.</p>
+            </div>
+            <fieldset class="panel step-panel">
+              <legend>증여자 정보</legend>
+              <label>
+                증여 관계
+                <select name="relationshipType">
+                  <option value="parent_minor_child">부모 -> 미성년 자녀</option>
+                  <option value="parent_adult_child">부모 -> 성년 자녀</option>
+                  <option value="adult_child_parent">성년 자녀 -> 부모</option>
+                  <option value="grandparent_minor_grandchild">조부모 -> 미성년 손자녀</option>
+                  <option value="grandparent_adult_grandchild">조부모 -> 성년 손자녀</option>
+                </select>
+              </label>
+              <label>
+                성명
+                <input autocomplete="name" name="donorName" required />
+              </label>
+              <label>
+                주민등록번호
+                <input inputmode="numeric" name="donorId" placeholder="000000-0000000" />
+              </label>
+              <label>
+                주소
+                <input autocomplete="street-address" name="donorAddress" />
+              </label>
+              <label>
+                연락처
+                <input autocomplete="tel" inputmode="tel" name="donorPhone" />
+              </label>
+            </fieldset>
+          </section>
+
+          <section class="wizard-step" data-step="recipient">
+            <div class="question-block">
+              <p class="question-kicker">2. 수증자</p>
+              <h2>돈을 받는 분의 정보를 입력하세요.</h2>
+              <p>수증자 명의 계좌와 신고서에 들어갈 정보입니다.</p>
+            </div>
+            <fieldset class="panel step-panel">
+              <legend>수증자 정보</legend>
+              <label>
+                성명
+                <input autocomplete="off" name="recipientName" required />
+              </label>
+              <label>
+                주민등록번호
+                <input inputmode="numeric" name="recipientId" placeholder="000000-0000000" />
+              </label>
+              <label>
+                주소
+                <input autocomplete="street-address" name="recipientAddress" />
+              </label>
+              <label>
+                법정대리인
+                <input autocomplete="name" name="guardianName" />
+              </label>
+            </fieldset>
+          </section>
+
+          <section class="wizard-step" data-step="account">
+            <div class="question-block">
+              <p class="question-kicker">3. 수증자 계좌</p>
+              <h2>수증자 명의 계좌가 있나요?</h2>
+              <p>정기 이체 기록이 증여 약정의 핵심 증빙이 됩니다.</p>
+            </div>
+            <div class="choice-group" role="radiogroup" aria-label="수증자 계좌 보유 여부">
+              <label class="choice-card">
+                <input checked name="recipientHasAccount" type="radio" value="yes" />
+                <span>네, 있어요</span>
+                <small>바로 증여액을 입력합니다.</small>
+              </label>
+              <label class="choice-card">
+                <input name="recipientHasAccount" type="radio" value="no" />
+                <span>아직 없어요</span>
+                <small>먼저 수증자 명의 계좌를 준비합니다.</small>
+              </label>
+            </div>
+            <div class="account-cta" hidden id="accountCta">
+              <strong>수증자 계좌를 먼저 만들면 신고가 쉬워집니다.</strong>
+              <p>아이 명의 계좌로 매월 이체하면 지급 내역, 약정, 신고 서류가 한 흐름으로 이어집니다.</p>
+              <button class="primary" id="accountCreateButton" type="button">수증자 계좌 만들기</button>
+              <label class="ready-check">
+                <input name="accountReady" type="checkbox" />
+                계좌를 만들었거나 준비했습니다.
+              </label>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="amount">
+            <div class="question-block">
+              <p class="question-kicker">4. 증여액</p>
+              <h2>매월 얼마를 증여할까요?</h2>
+              <p>월 납입액과 기간을 넣으면 3% 할인 평가액을 바로 계산합니다.</p>
+            </div>
+            <fieldset class="panel step-panel">
+              <legend>증여 조건</legend>
+              <label>
+                증여일
+                <input name="giftDate" type="date" required />
+              </label>
+              <label>
+                첫 이체일
+                <input name="firstPaymentDate" type="date" required />
+              </label>
+              <label>
+                월 납입액
+                <input inputmode="numeric" min="1" name="monthlyAmount" required type="number" value="200000" />
+              </label>
+              <label>
+                총 납입개월
+                <input inputmode="numeric" min="1" name="totalMonths" required type="number" value="120" />
+              </label>
+              <label>
+                관할세무서
+                <input name="taxOffice" placeholder="예: 강남세무서" />
+              </label>
+            </fieldset>
+            <div class="inline-alert" hidden id="amountGuard"></div>
+          </section>
+
+          <section class="wizard-step" data-step="result">
+            <div class="result-hero">
+              <p>계산 완료</p>
+              <h2>신고 준비 결과</h2>
+              <span id="deadlineSummary">신고기한 산정 전</span>
+            </div>
+            <div class="result-grid" id="resultCards"></div>
+            <div class="notice-list" id="validationList"></div>
+            <div class="panel result-detail">
+              <h3>수령연도별 평가</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>수령연도</th>
+                      <th>개월</th>
+                      <th>연 수령액</th>
+                      <th>할인연수</th>
+                      <th>현재가치</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scheduleRows"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="document-actions">
+              <button class="primary" type="button" id="printButton">PDF 저장</button>
+              <button type="button" id="printButtonDocuments">인쇄</button>
+            </div>
+            <div id="documentPreview" class="document-preview"></div>
+          </section>
+        </form>
+
+        <div class="wizard-nav" aria-label="단계 이동">
+          <button type="button" id="backButton">이전</button>
+          <button class="primary" type="button" id="nextButton">다음</button>
+        </div>
+
+        <div class="utility-actions" aria-label="데이터 작업">
+          <button type="button" id="saveButton">임시저장</button>
+          <button type="button" id="loadButton">저장본</button>
+          <button type="button" id="dataButton">백업</button>
+          <button class="danger" type="button" id="clearButton">초기화</button>
+          <input accept="application/json" hidden id="importFile" type="file" />
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div class="overlay" hidden id="ruleOverlay" role="dialog" aria-modal="true" aria-labelledby="ruleOverlayTitle">
+      <div class="overlay-card">
+        <div class="overlay-header">
+          <h2 id="ruleOverlayTitle">적용 규정</h2>
+          <button class="text-button" type="button" data-close-overlay="ruleOverlay">닫기</button>
+        </div>
+        <div class="rule-list">
+          <article>
+            <strong>상증세법 시행령 제62조</strong>
+            <p>유기정기금은 연도별 수령금액을 현재가치로 할인하고, 1년분 정기금액의 20배 상한을 비교합니다.</p>
+          </article>
+          <article>
+            <strong>상증세법 시행규칙 제19조의2</strong>
+            <p>정기금 평가에 적용하는 이자율은 3.0%로 반영했습니다.</p>
+          </article>
+          <article>
+            <strong>국세청 신고납부기한</strong>
+            <p>증여받은 달의 말일부터 3개월 이내 신고를 기준으로 신고기한을 계산합니다.</p>
+          </article>
+          <article>
+            <strong>국세청 세액계산 흐름도</strong>
+            <p>관계별 증여재산공제, 기본세율, 과세최저한, 신고세액공제, 세대생략 할증을 계산에 반영했습니다.</p>
+          </article>
+          <article>
+            <strong>국세청 주요서식 안내</strong>
+            <p>신고서 초안, 평가명세, 약정서, 홈택스 입력 체크리스트를 PDF 저장용으로 만듭니다.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" hidden id="dataOverlay" role="dialog" aria-modal="true" aria-labelledby="dataOverlayTitle">
+      <div class="overlay-card">
+        <div class="overlay-header">
+          <h2 id="dataOverlayTitle">백업</h2>
+          <button class="text-button" type="button" data-close-overlay="dataOverlay">닫기</button>
+        </div>
+        <p class="overlay-copy">
+          백업 파일 저장은 현재 입력값을 JSON 파일로 저장하는 기능입니다. 백업 파일 불러오기는 그 파일을 다시 읽어 입력칸을 채웁니다.
+        </p>
+        <div class="sheet-actions">
+          <button class="primary" type="button" id="exportButton">백업 파일 저장</button>
+          <button type="button" id="importButton">백업 파일 불러오기</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/app.js?v=4"></script>
+  </body>
+</html>

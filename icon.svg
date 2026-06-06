@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="유기정기금 증여 신고 보조 아이콘">
+  <rect width="192" height="192" rx="24" fill="#0064ff" />
+  <path d="M48 46h96c6.6 0 12 5.4 12 12v84c0 6.6-5.4 12-12 12H48c-6.6 0-12-5.4-12-12V58c0-6.6 5.4-12 12-12Z" fill="#ffffff" />
+  <path d="M58 70h72v12H58Zm0 28h72v12H58Zm0 28h48v12H58Z" fill="#191f28" />
+  <circle cx="137" cy="128" r="20" fill="#f0bd38" />
+  <path d="M128 128h18M137 119v18" stroke="#191f28" stroke-width="7" stroke-linecap="round" />
+</svg>

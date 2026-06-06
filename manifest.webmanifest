@@ -1,0 +1,18 @@
+{
+  "name": "유기정기금 증여 신고 보조",
+  "short_name": "증여신고 보조",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f4f6",
+  "theme_color": "#0064ff",
+  "description": "부모가 미성년 자녀에게 매월 고정액 유기정기금을 증여하는 경우의 신고 서류 작성 보조 PWA",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
