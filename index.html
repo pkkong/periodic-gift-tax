@@ -7,9 +7,9 @@
     <title>2세 증여 도우미</title>
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=7" />
+    <link rel="stylesheet" href="./styles.css?v=8" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "7";
+      window.__PROJECT_TAX_VERSION__ = "8";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -20,7 +20,7 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
+      <header class="topbar" hidden>
         <div>
           <p class="eyebrow">증여 실행부터 신고 준비까지</p>
           <h1>2세 증여 도우미</h1>
@@ -28,7 +28,7 @@
         <button class="text-button" hidden id="ruleButton" type="button">적용 규정</button>
       </header>
 
-      <div class="wizard-progress" aria-label="진행 단계">
+      <div class="wizard-progress" hidden aria-label="진행 단계">
         <div class="progress-copy">
           <span id="stepCount">1 / 5</span>
           <strong id="stepTitle">증여자 정보</strong>
@@ -43,60 +43,111 @@
           <input name="priorGiftTaxPaid" type="hidden" value="0" />
 
           <section class="wizard-step landing-step is-active" data-step="intro">
-            <div class="landing-hero">
-              <p class="question-kicker">2세 증여 도우미</p>
-              <h2>증여세가 나오지 않는 범위 안에서 실행하고, 신고 준비까지 이어갑니다.</h2>
+            <div class="landing-nav">
+              <strong>2세 증여 도우미</strong>
+              <span>내 기기에서만 처리</span>
+            </div>
+            <section class="landing-band landing-hero">
+              <div class="hero-copy">
+                <p class="landing-kicker">증여 실행부터 신고 준비까지</p>
+                <h2>아이에게 줄 돈, 세금이 나오지 않게 설계하세요.</h2>
+                <p>
+                  증여자와 수증자 정보를 확인하고, 계좌 준비와 증여 방식 선택을 거쳐
+                  홈택스 신고 서류까지 한 번에 정리합니다.
+                </p>
+              </div>
+              <div class="phone-preview" aria-label="증여 도우미 미리보기">
+                <div class="preview-top"></div>
+                <div class="preview-line strong"></div>
+                <div class="preview-line"></div>
+                <div class="preview-pill">10년간 2,050만원 범위</div>
+                <div class="preview-row"><span>공제</span><strong>2,000만원</strong></div>
+                <div class="preview-row"><span>과세최저한</span><strong>50만원</strong></div>
+                <div class="preview-button"></div>
+              </div>
+            </section>
+
+            <section class="landing-band">
+              <p class="landing-kicker">어떻게 도와주나요</p>
+              <h2>증여 실행 전에 필요한 판단을 먼저 정리합니다.</h2>
+              <div class="landing-stack">
+                <article>
+                  <span>01</span>
+                  <strong>누가 누구에게 주는지 확인</strong>
+                  <p>부모, 자녀, 조부모 관계에 따라 공제와 세대생략 할증이 달라집니다.</p>
+                </article>
+                <article>
+                  <span>02</span>
+                  <strong>아이 명의 계좌 준비</strong>
+                  <p>정기 이체 내역이 약정과 신고 서류의 핵심 증빙이 되도록 흐름을 잡습니다.</p>
+                </article>
+                <article>
+                  <span>03</span>
+                  <strong>신고 서류 생성</strong>
+                  <p>유기정기금 평가명세, 증여약정서, 홈택스 입력 체크리스트를 만듭니다.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="landing-band landing-highlight">
+              <p class="landing-kicker">세금이 나오지 않는 범위</p>
+              <h2>미성년 자녀라면 보통 10년 기준 2,050만원부터 확인합니다.</h2>
               <p>
-                매월 얼마를 얼마나 보낼지 정하면 유기정기금 평가액, 증여재산공제, 신고기한,
-                홈택스 입력 체크리스트를 순서대로 정리합니다.
+                직계존속이 미성년 자녀에게 증여하면 증여재산공제 2,000만원을 먼저 보고,
+                과세표준 50만원 미만 부과 제외까지 함께 확인합니다.
               </p>
-            </div>
-            <div class="landing-copy">
-              <div>
-                <strong>순서대로 입력</strong>
-                <p>돈을 보내는 사람, 받는 사람, 계좌, 금액을 한 번에 하나씩 입력합니다.</p>
-              </div>
-              <div>
-                <strong>세금 발생 범위 차단</strong>
-                <p>공제와 과세최저한을 넘는 금액이면 결과 단계로 넘어가기 전에 알려줍니다.</p>
-              </div>
-              <div>
-                <strong>내 기기에서만 처리</strong>
-                <p>입력값은 서버로 전송하지 않습니다. 임시저장은 선택할 때만 이 브라우저에 남습니다.</p>
-              </div>
-            </div>
-            <p class="landing-note">
-              실제 홈택스 제출 화면에서는 주민등록번호 등 법정 서식 항목을 다시 확인해야 합니다.
-            </p>
+            </section>
+
+            <section class="landing-band">
+              <p class="landing-kicker">저장 방식</p>
+              <h2>입력값은 서버로 보내지 않습니다.</h2>
+              <p class="landing-plain">
+                계산은 브라우저 안에서 끝납니다. 임시저장이나 백업 파일 저장을 누른 경우에만
+                현재 기기 또는 사용자가 저장한 JSON 파일에 남습니다.
+              </p>
+            </section>
+
+            <section class="landing-band landing-final">
+              <h2>이제 증여 설계를 시작할까요?</h2>
+              <p>단계별로 입력하고, 마지막에 계산 근거와 신고 준비 서류를 확인합니다.</p>
+              <button class="primary landing-start" id="introStartButton" type="button">증여 도우미 시작하기</button>
+            </section>
           </section>
 
           <section class="wizard-step" data-step="donor">
-            <div class="question-block">
-              <p class="question-kicker">돈을 보내는 사람</p>
-              <h2>돈을 보내는 분의 정보를 입력하세요.</h2>
-              <p>한 항목을 입력하면 다음 항목이 열립니다.</p>
-            </div>
-            <fieldset class="panel step-panel">
-              <legend>증여자 정보</legend>
-              <label>
-                성명
-                <input autocomplete="name" name="donorName" required />
+            <div class="entry-step">
+              <h2>돈을 보내는 분의 정보를 입력하세요</h2>
+              <label class="flow-field" data-field="donorName">
+                <span>성명</span>
+                <div class="input-action">
+                  <input autocomplete="name" name="donorName" required />
+                  <button class="field-next" type="button" data-confirm-field="donorName" aria-label="성명 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="donorName">
-                주민등록번호
-                <input inputmode="numeric" name="donorId" placeholder="생년월일 6자리 + 뒤 첫 자리" />
-                <small>앱에서는 신고 준비용으로 일부만 입력해도 진행됩니다.</small>
+              <label class="flow-field" data-field="donorAddress" data-reveal-after="donorName">
+                <span>주소</span>
+                <div class="input-action">
+                  <input autocomplete="street-address" name="donorAddress" />
+                  <button class="field-next" type="button" data-confirm-field="donorAddress" aria-label="주소 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="donorId">
-                주소
-                <input autocomplete="street-address" name="donorAddress" />
+              <label class="flow-field" data-field="donorPhone" data-reveal-after="donorAddress">
+                <span>연락처</span>
+                <div class="input-action">
+                  <input autocomplete="tel" inputmode="tel" name="donorPhone" />
+                  <button class="field-next" type="button" data-confirm-field="donorPhone" aria-label="연락처 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="donorAddress">
-                연락처
-                <input autocomplete="tel" inputmode="tel" name="donorPhone" />
+              <label class="flow-field" data-field="donorId" data-reveal-after="donorPhone">
+                <span>주민등록번호</span>
+                <div class="input-action">
+                  <input inputmode="numeric" name="donorId" placeholder="생년월일 6자리 + 뒤 첫 자리" />
+                  <button class="field-next" type="button" data-confirm-field="donorId" aria-label="주민등록번호 확인">→</button>
+                </div>
+                <small>앱에서는 일부만 입력해도 진행됩니다. 홈택스 제출 때 전체 번호를 확인하세요.</small>
               </label>
-              <label data-reveal-after="donorPhone">
-                증여 관계
+              <label class="flow-field" data-field="relationshipType" data-reveal-after="donorId">
+                <span>증여 관계</span>
                 <select name="relationshipType">
                   <option value="parent_minor_child">부모 -> 미성년 자녀</option>
                   <option value="parent_adult_child">부모 -> 성년 자녀</option>
@@ -105,59 +156,72 @@
                   <option value="grandparent_adult_grandchild">조부모 -> 성년 손자녀</option>
                 </select>
               </label>
-            </fieldset>
+            </div>
           </section>
 
           <section class="wizard-step" data-step="recipient">
-            <div class="question-block">
-              <p class="question-kicker">돈을 받는 사람</p>
-              <h2>돈을 받는 분의 정보를 입력하세요.</h2>
-              <p>수증자 명의 계좌와 신고서에 들어갈 정보입니다.</p>
+            <div class="entry-step">
+              <h2>돈을 받는 분의 정보를 입력하세요</h2>
+              <label class="flow-field" data-field="recipientName">
+                <span>성명</span>
+                <div class="input-action">
+                  <input autocomplete="off" name="recipientName" required />
+                  <button class="field-next" type="button" data-confirm-field="recipientName" aria-label="성명 확인">→</button>
+                </div>
+              </label>
+              <div class="flow-field" data-field="recipientAddress" data-reveal-after="recipientName">
+                <label class="same-check">
+                  <input checked name="sameAddressAsDonor" type="checkbox" />
+                  증여자 주소와 같아요
+                </label>
+                <label>
+                  <span>주소</span>
+                  <div class="input-action">
+                    <input autocomplete="street-address" name="recipientAddress" />
+                    <button class="field-next" type="button" data-confirm-field="recipientAddress" aria-label="주소 확인">→</button>
+                  </div>
+                </label>
+              </div>
+              <label class="flow-field" data-field="guardianName" data-reveal-after="recipientAddress">
+                <span>법정대리인</span>
+                <div class="input-action">
+                  <input autocomplete="name" name="guardianName" />
+                  <button class="field-next" type="button" data-confirm-field="guardianName" aria-label="법정대리인 확인">→</button>
+                </div>
+              </label>
+              <label class="flow-field" data-field="recipientId" data-reveal-after="guardianName">
+                <span>주민등록번호</span>
+                <div class="input-action">
+                  <input inputmode="numeric" name="recipientId" placeholder="생년월일 6자리 + 뒤 첫 자리" />
+                  <button class="field-next" type="button" data-confirm-field="recipientId" aria-label="주민등록번호 확인">→</button>
+                </div>
+                <small>홈택스 제출 때 전체 번호를 확인하세요.</small>
+              </label>
             </div>
-            <fieldset class="panel step-panel">
-              <legend>수증자 정보</legend>
-              <label>
-                성명
-                <input autocomplete="off" name="recipientName" required />
-              </label>
-              <label data-reveal-after="recipientName">
-                주민등록번호
-                <input inputmode="numeric" name="recipientId" placeholder="생년월일 6자리 + 뒤 첫 자리" />
-                <small>미성년 자녀도 앱에는 일부만 입력하고, 홈택스 제출 때 전체 번호를 확인할 수 있습니다.</small>
-              </label>
-              <label data-reveal-after="recipientId">
-                주소
-                <input autocomplete="street-address" name="recipientAddress" />
-              </label>
-              <label data-reveal-after="recipientAddress">
-                법정대리인
-                <input autocomplete="name" name="guardianName" />
-              </label>
-            </fieldset>
           </section>
 
           <section class="wizard-step" data-step="account">
-            <div class="question-block">
-              <p class="question-kicker">수증자 계좌</p>
-              <h2>수증자 명의 계좌가 있나요?</h2>
-              <p>정기 이체 기록이 증여 약정의 핵심 증빙이 됩니다.</p>
-            </div>
-            <div class="choice-group" role="radiogroup" aria-label="수증자 계좌 보유 여부">
-              <label class="choice-card">
-                <input checked name="recipientHasAccount" type="radio" value="yes" />
-                <span>네, 있어요</span>
-                <small>바로 증여액을 입력합니다.</small>
-              </label>
-              <label class="choice-card">
-                <input name="recipientHasAccount" type="radio" value="no" />
-                <span>아직 없어요</span>
-                <small>먼저 수증자 명의 계좌를 준비합니다.</small>
-              </label>
-            </div>
-            <div class="account-cta" hidden id="accountCta">
-              <strong>수증자 계좌를 먼저 만들면 신고가 쉬워집니다.</strong>
-              <p>아이 명의 계좌로 매월 이체하면 지급 내역, 약정, 신고 서류가 한 흐름으로 이어집니다.</p>
-              <button class="primary" id="accountCreateButton" type="button">수증자 계좌 만들기</button>
+            <div class="entry-step account-step">
+              <h2>아이 명의 계좌를 준비해주세요</h2>
+              <p>증여금은 수증자 명의 계좌로 보내야 이체 내역, 약정서, 신고 서류가 한 흐름으로 이어집니다.</p>
+              <article class="account-product">
+                <span>추천 준비</span>
+                <strong>토스증권 아이 계좌</strong>
+                <p>아이 명의 계좌를 만들고, 매월 이체 기록을 남기는 흐름으로 설계합니다.</p>
+                <button class="primary" id="accountCreateButton" type="button">토스증권 아이 계좌 만들기</button>
+              </article>
+              <div class="choice-group" role="radiogroup" aria-label="수증자 계좌 보유 여부">
+                <label class="choice-card">
+                  <input checked name="recipientHasAccount" type="radio" value="yes" />
+                  <span>이미 계좌가 있어요</span>
+                  <small>증여 설계로 넘어갑니다.</small>
+                </label>
+                <label class="choice-card">
+                  <input name="recipientHasAccount" type="radio" value="no" />
+                  <span>계좌를 만들고 진행할게요</span>
+                  <small>계좌 준비를 완료로 표시해야 다음으로 넘어갑니다.</small>
+                </label>
+              </div>
               <label class="ready-check">
                 <input name="accountReady" type="checkbox" />
                 계좌를 만들었거나 준비했습니다.
@@ -165,35 +229,81 @@
             </div>
           </section>
 
-          <section class="wizard-step" data-step="amount">
-            <div class="question-block">
-              <p class="question-kicker">증여 조건</p>
-              <h2>매월 얼마를 증여할까요?</h2>
-              <p>월 납입액과 기간을 넣으면 3% 할인 평가액을 바로 계산합니다.</p>
+          <section class="wizard-step" data-step="safe">
+            <div class="entry-step safe-step">
+              <h2 id="safeTitle">증여세 없이 가능한 범위를 먼저 볼게요</h2>
+              <div class="safe-number" id="safeLimitText">계산 준비 중</div>
+              <div class="safe-breakdown" id="safeBreakdown"></div>
+              <p id="safeNote"></p>
             </div>
-            <fieldset class="panel step-panel">
-              <legend>증여 조건</legend>
-              <label>
-                증여일
-                <input name="giftDate" type="date" required />
+          </section>
+
+          <section class="wizard-step" data-step="giftMode">
+            <div class="entry-step">
+              <h2>어떤 방식으로 증여할까요?</h2>
+              <div class="choice-group gift-mode-group" role="radiogroup" aria-label="증여 방식">
+                <label class="choice-card">
+                  <input name="giftMode" type="radio" value="lump_sum" />
+                  <span>한번에 증여하기</span>
+                  <small>현금을 한 번에 보내고 신고합니다.</small>
+                </label>
+                <label class="choice-card">
+                  <input checked name="giftMode" type="radio" value="periodic" />
+                  <span>10년간 주기적으로 증여하기</span>
+                  <small>매월 일정 금액을 보내는 유기정기금 방식입니다.</small>
+                </label>
+              </div>
+              <p class="mode-hint" id="modeHint"></p>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="amount">
+            <div class="entry-step">
+              <h2 id="amountTitle">증여 조건을 입력하세요</h2>
+              <p class="mode-hint" id="amountHint"></p>
+              <label class="flow-field" data-field="giftDate">
+                <span>증여일</span>
+                <div class="input-action">
+                  <input name="giftDate" type="date" required />
+                  <button class="field-next" type="button" data-confirm-field="giftDate" aria-label="증여일 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="giftDate">
-                첫 이체일
-                <input name="firstPaymentDate" type="date" required />
+              <label class="flow-field periodic-only" data-field="firstPaymentDate" data-reveal-after="giftDate">
+                <span>첫 이체일</span>
+                <div class="input-action">
+                  <input name="firstPaymentDate" type="date" required />
+                  <button class="field-next" type="button" data-confirm-field="firstPaymentDate" aria-label="첫 이체일 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="firstPaymentDate">
-                월 납입액
-                <input inputmode="numeric" min="1" name="monthlyAmount" required type="number" />
+              <label class="flow-field lump-only" data-field="lumpSumAmount" data-reveal-after="giftDate">
+                <span>증여금액</span>
+                <div class="input-action">
+                  <input inputmode="numeric" min="1" name="lumpSumAmount" type="number" />
+                  <button class="field-next" type="button" data-confirm-field="lumpSumAmount" aria-label="증여금액 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="monthlyAmount">
-                총 납입개월
-                <input inputmode="numeric" min="1" name="totalMonths" required type="number" />
+              <label class="flow-field periodic-only" data-field="monthlyAmount" data-reveal-after="firstPaymentDate">
+                <span>월 납입액</span>
+                <div class="input-action">
+                  <input inputmode="numeric" min="1" name="monthlyAmount" required type="number" />
+                  <button class="field-next" type="button" data-confirm-field="monthlyAmount" aria-label="월 납입액 확인">→</button>
+                </div>
               </label>
-              <label data-reveal-after="totalMonths">
-                관할세무서
-                <input name="taxOffice" placeholder="예: 강남세무서" />
+              <label class="flow-field periodic-only" data-field="totalMonths" data-reveal-after="monthlyAmount">
+                <span>총 납입개월</span>
+                <div class="input-action">
+                  <input inputmode="numeric" min="1" name="totalMonths" required type="number" value="120" />
+                  <button class="field-next" type="button" data-confirm-field="totalMonths" aria-label="총 납입개월 확인">→</button>
+                </div>
               </label>
-            </fieldset>
+              <label class="flow-field" data-field="taxOffice" data-reveal-after="amountComplete">
+                <span>관할세무서</span>
+                <div class="input-action">
+                  <input name="taxOffice" placeholder="예: 강남세무서" />
+                  <button class="field-next" type="button" data-confirm-field="taxOffice" aria-label="관할세무서 확인">→</button>
+                </div>
+              </label>
+            </div>
             <div class="inline-alert" hidden id="amountGuard"></div>
           </section>
 
@@ -203,7 +313,7 @@
               <h2>신고 준비 결과</h2>
               <span id="deadlineSummary">신고기한 산정 전</span>
             </div>
-            <div class="result-basis" aria-label="계산 기준">
+            <div class="result-basis" id="resultBasis" aria-label="계산 기준">
               <span>현금</span>
               <span>매월 고정액</span>
               <span>유기정기금</span>
@@ -302,6 +412,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=7"></script>
+    <script type="module" src="./src/app.js?v=8"></script>
   </body>
 </html>

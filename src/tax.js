@@ -11,6 +11,8 @@
  * @property {string} taxOffice
  * @property {string} giftDate
  * @property {string} firstPaymentDate
+ * @property {string} giftMode
+ * @property {number} lumpSumAmount
  * @property {number} monthlyAmount
  * @property {number} totalMonths
  * @property {number} priorSameDonorGiftValue
@@ -132,6 +134,8 @@ export function normalizeInput(raw = {}) {
     taxOffice: stringValue(raw.taxOffice),
     giftDate: stringValue(raw.giftDate) || today,
     firstPaymentDate: stringValue(raw.firstPaymentDate) || stringValue(raw.giftDate) || today,
+    giftMode: stringValue(raw.giftMode) === "lump_sum" ? "lump_sum" : "periodic",
+    lumpSumAmount: positiveInteger(raw.lumpSumAmount),
     monthlyAmount: positiveInteger(raw.monthlyAmount),
     totalMonths: positiveInteger(raw.totalMonths),
     priorSameDonorGiftValue: nonNegativeInteger(raw.priorSameDonorGiftValue),
@@ -153,14 +157,19 @@ export function validateGiftInput(input) {
   if (!isValidDateString(normalized.giftDate)) errors.push("증여일을 올바르게 입력하세요.");
   if (!isValidDateString(normalized.firstPaymentDate)) errors.push("첫 이체일을 올바르게 입력하세요.");
   if (
+    normalized.giftMode === "periodic" &&
     isValidDateString(normalized.giftDate) &&
     isValidDateString(normalized.firstPaymentDate) &&
     compareDateStrings(normalized.firstPaymentDate, normalized.giftDate) < 0
   ) {
     errors.push("첫 이체일은 증여일과 같거나 이후여야 합니다.");
   }
-  if (normalized.monthlyAmount <= 0) errors.push("월 납입액은 1원 이상이어야 합니다.");
-  if (normalized.totalMonths <= 0) errors.push("총 납입개월은 1개월 이상이어야 합니다.");
+  if (normalized.giftMode === "lump_sum") {
+    if (normalized.lumpSumAmount <= 0) errors.push("한번에 증여할 금액은 1원 이상이어야 합니다.");
+  } else {
+    if (normalized.monthlyAmount <= 0) errors.push("월 납입액은 1원 이상이어야 합니다.");
+    if (normalized.totalMonths <= 0) errors.push("총 납입개월은 1개월 이상이어야 합니다.");
+  }
   if (normalized.totalMonths > 600) warnings.push("총 납입기간이 50년을 초과합니다. 약정 기간을 다시 확인하세요.");
   if (normalized.priorDeductionUsed > MINOR_CHILD_DEDUCTION) warnings.push("이미 사용한 공제액이 미성년 자녀 공제한도 2천만원을 초과합니다.");
   if (normalized.priorSameDonorGiftValue > 0 && normalized.priorSameDonorGiftValue < PRIOR_GIFT_AGGREGATION_THRESHOLD) {
@@ -172,6 +181,33 @@ export function validateGiftInput(input) {
 
 export function calculateValuation(rawInput) {
   const input = normalizeInput(rawInput);
+  if (input.giftMode === "lump_sum") {
+    const amount = input.lumpSumAmount;
+    const schedule = amount > 0 && isValidDateString(input.giftDate)
+      ? [{
+        paymentYear: splitDate(input.giftDate).year,
+        yearOffset: 0,
+        periodStartDate: input.giftDate,
+        periodEndDate: input.giftDate,
+        months: 1,
+        periodPayment: amount,
+        discountFactor: 1,
+        presentValue: amount
+      }]
+      : [];
+
+    return {
+      schedule,
+      presentValue: amount,
+      presentValueRounded: amount,
+      capValue: amount,
+      assessedValue: amount,
+      capApplied: false,
+      totalPayments: amount,
+      paymentEndDate: input.giftDate
+    };
+  }
+
   const schedule = [];
   let presentValue = 0;
   const paymentEndDate = input.totalMonths > 0 && isValidDateString(input.firstPaymentDate)
@@ -288,7 +324,7 @@ export function getRelationshipConfig(relationshipType) {
 export function getSafeAssessmentLimit(rawInput) {
   const input = normalizeInput(rawInput);
   const relationship = getRelationshipConfig(input.relationshipType);
-  return Math.max(0, relationship.deduction - input.priorDeductionUsed) + TAXABLE_MINIMUM;
+  return Math.max(0, relationship.deduction - input.priorDeductionUsed) + TAXABLE_MINIMUM - 1;
 }
 
 function getGenerationSkippingRate(relationship, taxableGiftValue) {

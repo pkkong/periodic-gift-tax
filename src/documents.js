@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=7";
+} from "./tax.js?v=8";
 
 /**
  * @typedef {Object} DocumentContext
@@ -23,10 +23,10 @@ export function renderDocumentPack(context) {
   return `
     <article class="print-pack" aria-label="증여세 신고 서류팩">
       ${renderCover(input, tax, hasIssues)}
-      ${renderValuationStatement(input, valuation)}
+      ${input.giftMode === "lump_sum" ? renderCashStatement(input, valuation) : renderValuationStatement(input, valuation)}
       ${renderGiftTaxDraft(input, valuation, tax)}
       ${renderPropertyStatement(input, valuation, tax)}
-      ${renderAgreement(input, valuation)}
+      ${input.giftMode === "lump_sum" ? renderCashAgreement(input, valuation) : renderAgreement(input, valuation)}
       ${renderHometaxChecklist(input, valuation, tax, errors, warnings)}
     </article>
   `;
@@ -35,7 +35,7 @@ export function renderDocumentPack(context) {
 function renderCover(input, tax, hasIssues) {
   return `
     <section class="print-page">
-      <h2>유기정기금 증여 신고 서류팩</h2>
+      <h2>${input.giftMode === "lump_sum" ? "현금 증여 신고 서류팩" : "유기정기금 증여 신고 서류팩"}</h2>
       <table class="doc-table">
         <tbody>
           <tr><th>증여자</th><td>${escapeHtml(input.donorName) || blank()}</td></tr>
@@ -108,6 +108,25 @@ function renderValuationStatement(input, valuation) {
   `;
 }
 
+function renderCashStatement(input, valuation) {
+  return `
+    <section class="print-page">
+      <h2>현금 증여 명세서</h2>
+      <table class="doc-table">
+        <tbody>
+          <tr><th>증여재산</th><td>현금</td></tr>
+          <tr><th>증여일</th><td>${formatKoreanDate(input.giftDate) || blank()}</td></tr>
+          <tr><th>증여금액</th><td>${formatWon(input.lumpSumAmount)}</td></tr>
+          <tr><th>증여재산 평가액</th><td><strong>${formatWon(valuation.assessedValue)}</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="doc-footnote">
+        현금 일시증여는 현재가치 할인 대상 유기정기금이 아니므로 증여일의 현금 증여금액을 평가액으로 정리합니다.
+      </p>
+    </section>
+  `;
+}
+
 function formatDiscount(row) {
   if (row.yearOffset === 0) return "0년 (할인 없음)";
   return `${row.yearOffset}년 (${row.discountFactor.toFixed(6)})`;
@@ -151,8 +170,8 @@ function renderPropertyStatement(input, valuation, tax) {
       <h2>증여재산 및 평가명세서 초안</h2>
       <table class="doc-table">
         <tbody>
-          <tr><th>재산 종류</th><td>그 밖의 재산권 - 유기정기금 수급권</td></tr>
-          <tr><th>소재지/내용</th><td>매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 지급받을 권리</td></tr>
+          <tr><th>재산 종류</th><td>${input.giftMode === "lump_sum" ? "현금" : "그 밖의 재산권 - 유기정기금 수급권"}</td></tr>
+          <tr><th>소재지/내용</th><td>${input.giftMode === "lump_sum" ? `${formatWon(input.lumpSumAmount)} 현금 증여` : `매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 지급받을 권리`}</td></tr>
           <tr><th>취득 원인</th><td>증여</td></tr>
           <tr><th>평가기준일</th><td>${formatKoreanDate(input.giftDate) || blank()}</td></tr>
           <tr><th>평가방법</th><td>유기정기금 현재가치 평가</td></tr>
@@ -194,6 +213,30 @@ function renderAgreement(input, valuation) {
   `;
 }
 
+function renderCashAgreement(input, valuation) {
+  return `
+    <section class="print-page">
+      <h2>현금 증여 확인서</h2>
+      <table class="doc-table">
+        <tbody>
+          <tr><th>증여자</th><td>${personLine(input.donorName, input.donorId)}</td></tr>
+          <tr><th>수증자</th><td>${personLine(input.recipientName, input.recipientId)}</td></tr>
+          <tr><th>법정대리인</th><td>${escapeHtml(input.guardianName || input.donorName) || blank()}</td></tr>
+          <tr><th>증여일</th><td>${formatKoreanDate(input.giftDate) || blank()}</td></tr>
+          <tr><th>증여금액</th><td>${formatWon(valuation.assessedValue)}</td></tr>
+        </tbody>
+      </table>
+      <p>
+        증여자는 위 현금을 수증자에게 증여하고, 수증자는 이를 수락한다. 이체 내역은 증여세 신고 및 사후 소명자료로 보관한다.
+      </p>
+      <div class="signature-line">
+        <span>증여자: ${escapeHtml(input.donorName) || blank()} (서명)</span>
+        <span>법정대리인: ${escapeHtml(input.guardianName || input.donorName) || blank()} (서명)</span>
+      </div>
+    </section>
+  `;
+}
+
 function renderHometaxChecklist(input, valuation, tax, errors, warnings) {
   const issueItems = [...errors, ...warnings].map((item) => `<li>${escapeHtml(item)}</li>`).join("");
 
@@ -205,10 +248,10 @@ function renderHometaxChecklist(input, valuation, tax, errors, warnings) {
         <li>증여자, 수증자, 법정대리인, 관할세무서 정보를 입력한다.</li>
         <li>앱에는 주민등록번호 일부만 입력했더라도 홈택스와 법정 신고서에는 증여자ㆍ수증자 전체 주민등록번호를 확인해 입력한다.</li>
         <li>증여일은 ${formatKoreanDate(input.giftDate) || blank()}로 입력한다.</li>
-        <li>증여재산은 유기정기금 수급권으로 기재하고 평가액 ${formatWon(valuation.assessedValue)}를 입력한다.</li>
+        <li>증여재산은 ${input.giftMode === "lump_sum" ? "현금" : "유기정기금 수급권"}으로 기재하고 평가액 ${formatWon(valuation.assessedValue)}를 입력한다.</li>
         <li>최근 10년 동일인 증여가산액 ${formatWon(tax.aggregatedPriorGiftValue)}와 공제 ${formatWon(tax.deductionApplied)}를 확인한다.</li>
         <li>산출세액 ${formatWon(tax.calculatedTax)}, 신고세액공제 ${formatWon(tax.filingCredit)}, 납부할 세액 ${formatWon(tax.payableTax)}를 화면 계산값과 대조한다.</li>
-        <li>유기정기금 평가명세서, 증여약정서, 가족관계증명서, 이체계획 또는 이체내역을 첨부자료로 준비한다.</li>
+        <li>${input.giftMode === "lump_sum" ? "현금 증여 확인서, 가족관계증명서, 이체내역" : "유기정기금 평가명세서, 증여약정서, 가족관계증명서, 이체계획 또는 이체내역"}을 첨부자료로 준비한다.</li>
         <li>신고기한 ${formatKoreanDate(tax.filingDeadline) || blank()}까지 신고와 납부를 완료한다.</li>
       </ol>
       ${

@@ -7,13 +7,14 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=7";
-import { renderDocumentPack } from "./documents.js?v=7";
+} from "./tax.js?v=8";
+import { renderDocumentPack } from "./documents.js?v=8";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
 const storageStatus = document.querySelector("#storageStatus");
 const resultCards = document.querySelector("#resultCards");
+const resultBasis = document.querySelector("#resultBasis");
 const scheduleRows = document.querySelector("#scheduleRows");
 const validationList = document.querySelector("#validationList");
 const deadlineSummary = document.querySelector("#deadlineSummary");
@@ -23,8 +24,10 @@ const importFile = document.querySelector("#importFile");
 const ruleOverlay = document.querySelector("#ruleOverlay");
 const dataOverlay = document.querySelector("#dataOverlay");
 const ruleButton = document.querySelector("#ruleButton");
+const topbar = document.querySelector(".topbar");
 const stepElements = Array.from(document.querySelectorAll(".wizard-step"));
 const progressiveFields = Array.from(document.querySelectorAll("[data-reveal-after]"));
+const fieldConfirmButtons = Array.from(document.querySelectorAll("[data-confirm-field]"));
 const wizardProgress = document.querySelector(".wizard-progress");
 const wizardNav = document.querySelector(".wizard-nav");
 const utilityActions = document.querySelector(".utility-actions");
@@ -36,12 +39,22 @@ const nextButton = document.querySelector("#nextButton");
 const amountGuard = document.querySelector("#amountGuard");
 const accountCta = document.querySelector("#accountCta");
 const accountCreateButton = document.querySelector("#accountCreateButton");
+const introStartButton = document.querySelector("#introStartButton");
+const safeTitle = document.querySelector("#safeTitle");
+const safeLimitText = document.querySelector("#safeLimitText");
+const safeBreakdown = document.querySelector("#safeBreakdown");
+const safeNote = document.querySelector("#safeNote");
+const modeHint = document.querySelector("#modeHint");
+const amountTitle = document.querySelector("#amountTitle");
+const amountHint = document.querySelector("#amountHint");
 
 const STEPS = [
   { key: "intro", title: "시작" },
   { key: "donor", title: "증여자 정보" },
   { key: "recipient", title: "수증자 정보" },
   { key: "account", title: "수증자 계좌가 있나요?" },
+  { key: "safe", title: "무세금 범위" },
+  { key: "giftMode", title: "증여 방식" },
   { key: "amount", title: "얼마를 증여할까요?" },
   { key: "result", title: "신고 준비 결과" }
 ];
@@ -49,8 +62,10 @@ const STEPS = [
 const defaultInput = normalizeInput({
   giftDate: formatDate(new Date()),
   firstPaymentDate: formatDate(new Date()),
+  giftMode: "periodic",
+  lumpSumAmount: 0,
   monthlyAmount: 0,
-  totalMonths: 0,
+  totalMonths: 120,
   recipientHasAccount: "yes",
   accountReady: false,
   relationshipType: "parent_minor_child"
@@ -58,6 +73,22 @@ const defaultInput = normalizeInput({
 
 let toastTimer = 0;
 let currentStepIndex = 0;
+const confirmedFields = new Set();
+const confirmedValues = new Map();
+const flowDependencies = {
+  donorName: ["donorAddress", "donorPhone", "donorId", "relationshipType"],
+  donorAddress: ["donorPhone", "donorId", "relationshipType"],
+  donorPhone: ["donorId", "relationshipType"],
+  donorId: ["relationshipType"],
+  recipientName: ["recipientAddress", "guardianName", "recipientId"],
+  recipientAddress: ["guardianName", "recipientId"],
+  guardianName: ["recipientId"],
+  giftDate: ["firstPaymentDate", "lumpSumAmount", "monthlyAmount", "totalMonths", "amountComplete", "taxOffice"],
+  firstPaymentDate: ["monthlyAmount", "totalMonths", "amountComplete", "taxOffice"],
+  lumpSumAmount: ["amountComplete", "taxOffice"],
+  monthlyAmount: ["totalMonths", "amountComplete", "taxOffice"],
+  totalMonths: ["amountComplete", "taxOffice"]
+};
 
 bootstrap();
 
@@ -65,7 +96,7 @@ function bootstrap() {
   fillForm(defaultInput);
   bindEvents();
   recalculate();
-  updateAccountCta();
+  updateModeUi();
   renderStep();
   cleanupBrowserCache();
 }
@@ -73,11 +104,21 @@ function bootstrap() {
 function bindEvents() {
   form.addEventListener("input", () => {
     syncFirstPaymentDate();
+    handleConfirmedValueChanges();
+    syncRecipientDefaults();
+    updateModeUi();
     updateProgressiveFields();
     recalculate();
-    updateAccountCta();
   });
 
+  introStartButton.addEventListener("click", () => {
+    currentStepIndex = 1;
+    renderStep();
+    scrollToTop();
+  });
+  fieldConfirmButtons.forEach((button) => {
+    button.addEventListener("click", () => confirmField(button.dataset.confirmField));
+  });
   document.querySelector("#printButton").addEventListener("click", printDocuments);
   document.querySelector("#printButtonDocuments").addEventListener("click", printDocuments);
   backButton.addEventListener("click", previousStep);
@@ -85,6 +126,21 @@ function bindEvents() {
   ruleButton.addEventListener("click", () => openOverlay(ruleOverlay));
   document.querySelector("#dataButton").addEventListener("click", () => openOverlay(dataOverlay));
   accountCreateButton.addEventListener("click", markAccountReady);
+  Array.from(form.elements.recipientHasAccount).forEach((radio) => {
+    radio.addEventListener("change", () => {
+      if (form.elements.recipientHasAccount.value === "yes") {
+        form.elements.accountReady.checked = true;
+      }
+    });
+  });
+  Array.from(form.elements.giftMode).forEach((radio) => {
+    radio.addEventListener("change", () => {
+      resetAmountConfirmations();
+      setRecommendedAmountDefaults();
+      updateModeUi();
+      recalculate();
+    });
+  });
   document.querySelector("#saveButton").addEventListener("click", saveLocal);
   document.querySelector("#loadButton").addEventListener("click", loadLocal);
   document.querySelector("#exportButton").addEventListener("click", exportJson);
@@ -118,17 +174,94 @@ function syncFirstPaymentDate() {
   }
 }
 
+function syncRecipientDefaults() {
+  const sameAddress = form.elements.sameAddressAsDonor?.checked;
+  if (sameAddress && form.elements.donorAddress.value) {
+    form.elements.recipientAddress.value = form.elements.donorAddress.value;
+  }
+  if (!form.elements.guardianName.value && form.elements.donorName.value) {
+    form.elements.guardianName.value = form.elements.donorName.value;
+  }
+}
+
+function updateModeUi() {
+  const input = readForm();
+  document.body.dataset.giftMode = input.giftMode;
+  form.elements.firstPaymentDate.required = input.giftMode === "periodic";
+  form.elements.monthlyAmount.required = input.giftMode === "periodic";
+  form.elements.totalMonths.required = input.giftMode === "periodic";
+  form.elements.lumpSumAmount.required = input.giftMode === "lump_sum";
+  updateProgressiveFields();
+}
+
+function setRecommendedAmountDefaults() {
+  const input = readForm();
+  if (input.giftMode === "periodic" && !form.elements.totalMonths.value) {
+    form.elements.totalMonths.value = "120";
+  }
+}
+
+function calculateRecommendedMonthly(input, safeLimit) {
+  const baseInput = { ...input, giftMode: "periodic", totalMonths: 120 };
+  let low = 0;
+  let high = Math.max(1, Math.ceil(safeLimit / 120));
+  while (calculateValuation({ ...baseInput, monthlyAmount: high }).assessedValue <= safeLimit) {
+    high *= 2;
+  }
+  while (low + 1 < high) {
+    const mid = Math.floor((low + high) / 2);
+    if (calculateValuation({ ...baseInput, monthlyAmount: mid }).assessedValue <= safeLimit) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return Math.floor(low / 1000) * 1000;
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function recalculate() {
   const input = readForm();
   const validation = validateGiftInput(input);
   const valuation = calculateValuation(validation.input);
   const tax = calculateGiftTax(validation.input, valuation);
+  renderSafeBriefing(validation.input, tax);
+  renderModeHints(validation.input);
   renderResults(validation.input, valuation, tax, validation.errors, validation.warnings);
   renderDocuments(validation.input, valuation, tax, validation.errors, validation.warnings);
   renderAmountGuard(valuation);
 }
 
+function renderSafeBriefing(input, tax) {
+  const safeLimit = getSafeAssessmentLimit(input);
+  safeTitle.textContent = `${tax.relationshipLabel} 기준으로 먼저 볼게요`;
+  safeLimitText.textContent = `10년간 ${formatLimit(safeLimit)}은 증여세 없이 설계할 수 있어요.`;
+  safeBreakdown.innerHTML = `
+    <div><span>증여재산공제</span><strong>${formatWon(tax.availableDeduction)}</strong></div>
+    <div><span>과세표준 50만원 미만</span><strong>부과 제외</strong></div>
+  `;
+  safeNote.textContent = tax.generationSkippingRate > 0
+    ? "조부모가 손자녀에게 증여하는 경우 세대생략 할증이 붙을 수 있어 한도를 넘기지 않는 설계가 더 중요합니다."
+    : "최근 10년 내 같은 증여자로부터 받은 증여가 있으면 이 범위가 줄어들 수 있습니다.";
+}
+
+function renderModeHints(input) {
+  const safeLimit = getSafeAssessmentLimit(input);
+  const recommendedMonthly = calculateRecommendedMonthly(input, safeLimit);
+  modeHint.textContent = input.giftMode === "lump_sum"
+    ? `${formatLimit(safeLimit)} 현금 일시증여를 기준으로 계산합니다.`
+    : `10년 정기증여라면 현재 조건에서 매월 약 ${formatWon(recommendedMonthly)}까지 설계할 수 있습니다.`;
+  amountTitle.textContent = input.giftMode === "lump_sum" ? "한번에 증여할 조건을 입력하세요" : "정기증여 조건을 입력하세요";
+  amountHint.textContent = input.giftMode === "lump_sum"
+    ? `이번 증여금액이 ${formatLimit(safeLimit)}을 넘으면 증여세가 나올 수 있습니다.`
+    : `10년 기준 추천 월 납입액은 약 ${formatWon(recommendedMonthly)}입니다.`;
+}
+
 function renderResults(input, valuation, tax, errors, warnings) {
+  renderResultBasis(input);
   deadlineSummary.textContent = tax.filingDeadline
     ? `신고기한 ${formatKoreanDate(tax.filingDeadline)}`
     : "신고기한 산정 전";
@@ -191,6 +324,13 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .join("");
 
   renderValidation(input, errors, warnings, tax);
+}
+
+function renderResultBasis(input) {
+  const items = input.giftMode === "lump_sum"
+    ? ["현금", "일시증여", "홈택스 신고 준비", "2026.06.06 기준"]
+    : ["현금", "매월 고정액", "유기정기금", "2026.06.06 기준"];
+  resultBasis.innerHTML = items.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
 }
 
 function renderValidation(input, errors, warnings, tax) {
@@ -272,12 +412,14 @@ function nextStep() {
   hideToast();
   currentStepIndex = Math.min(STEPS.length - 1, currentStepIndex + 1);
   renderStep();
+  scrollToTop();
 }
 
 function previousStep() {
   hideToast();
   currentStepIndex = Math.max(0, currentStepIndex - 1);
   renderStep();
+  scrollToTop();
 }
 
 function renderStep() {
@@ -288,17 +430,35 @@ function renderStep() {
   const progressTotal = STEPS.length - 1;
   const progressIndex = Math.max(1, currentStepIndex);
   const isIntro = step.key === "intro";
-  wizardProgress.hidden = isIntro;
+  topbar.hidden = step.key !== "result";
+  wizardProgress.hidden = true;
   utilityActions.hidden = isIntro;
   ruleButton.hidden = step.key !== "result";
   wizardNav.classList.toggle("is-intro", isIntro);
+  wizardNav.hidden = isIntro;
   stepCount.textContent = `${progressIndex} / ${progressTotal}`;
   stepTitle.textContent = step.title;
   progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;
   backButton.hidden = isIntro;
   backButton.disabled = isIntro;
-  nextButton.textContent = isIntro ? "계속 하시겠습니까" : step.key === "amount" ? "결과 보기" : step.key === "result" ? "PDF 저장" : "다음";
+  nextButton.disabled = !canAdvanceCurrentStep();
+  nextButton.textContent = getNextButtonText(step.key);
+  if (step.key === "recipient") syncRecipientDefaults();
+  if (step.key === "safe") renderSafeBriefing(readForm(), calculateGiftTax(readForm()));
+  if (step.key === "giftMode" || step.key === "amount") {
+    setRecommendedAmountDefaults();
+    updateModeUi();
+  }
   updateProgressiveFields();
+}
+
+function getNextButtonText(stepKey) {
+  if (stepKey === "account") return "증여 가능 범위 보기";
+  if (stepKey === "safe") return "증여 방식 고르기";
+  if (stepKey === "giftMode") return "조건 입력하기";
+  if (stepKey === "amount") return "결과 보기";
+  if (stepKey === "result") return "PDF 저장";
+  return "다음";
 }
 
 function currentStep() {
@@ -308,38 +468,19 @@ function currentStep() {
 function validateCurrentStep() {
   const step = currentStep().key;
   if (step === "donor") {
-    return validatePersonStep({
-      nameElement: form.elements.donorName,
-      idElement: form.elements.donorId,
-      addressElement: form.elements.donorAddress,
-      phoneElement: form.elements.donorPhone,
-      nameLabel: "증여자"
-    });
+    if (!isDonorComplete()) return requireConfirmedFields(["donorName", "donorAddress", "donorPhone", "donorId"], "증여자 정보를 순서대로 확인하세요.");
   }
   if (step === "recipient") {
-    if (!validatePersonStep({
-      nameElement: form.elements.recipientName,
-      idElement: form.elements.recipientId,
-      addressElement: form.elements.recipientAddress,
-      nameLabel: "수증자"
-    })) {
-      return false;
-    }
-    if (!isPlausibleName(form.elements.guardianName.value) && form.elements.guardianName.value.trim()) {
-      showToast("법정대리인 성명을 다시 확인하세요.");
-      form.elements.guardianName.focus();
-      return false;
-    }
+    if (!isRecipientComplete()) return requireConfirmedFields(["recipientName", "recipientAddress", "guardianName", "recipientId"], "수증자 정보를 순서대로 확인하세요.");
   }
   if (step === "account" && form.elements.recipientHasAccount.value === "no" && !form.elements.accountReady.checked) {
     showToast("수증자 명의 계좌를 준비한 뒤 진행하세요.");
-    accountCta.scrollIntoView({ block: "nearest" });
     return false;
   }
   if (step === "amount") {
     const validation = validateGiftInput(readForm());
-    if (validation.input.monthlyAmount <= 0 || validation.input.totalMonths <= 0) {
-      showToast("월 납입액과 총 납입개월을 입력하세요.");
+    if (!isAmountComplete()) {
+      showToast("증여 조건을 순서대로 확인하세요.");
       return false;
     }
     const valuation = calculateValuation(validation.input);
@@ -353,44 +494,184 @@ function validateCurrentStep() {
   return true;
 }
 
-function validatePersonStep({ nameElement, idElement, addressElement, phoneElement, nameLabel }) {
-  if (!isPlausibleName(nameElement.value)) {
-    showToast(`${nameLabel} 성명을 두 글자 이상 정확히 입력하세요.`);
-    nameElement.focus();
-    return false;
-  }
-  if (!isValidResidentIdInput(idElement.value)) {
-    showToast(`${nameLabel} 주민등록번호는 생년월일 6자리와 뒤 첫 자리 또는 전체 번호로 입력하세요.`);
-    idElement.focus();
-    return false;
-  }
-  if (addressElement && addressElement.value.trim().length < 5) {
-    showToast(`${nameLabel} 주소를 조금 더 구체적으로 입력하세요.`);
-    addressElement.focus();
-    return false;
-  }
-  if (phoneElement && !isValidPhoneInput(phoneElement.value)) {
-    showToast(`${nameLabel} 연락처를 다시 확인하세요.`);
-    phoneElement.focus();
-    return false;
-  }
+function canAdvanceCurrentStep() {
+  const step = currentStep().key;
+  if (step === "intro") return true;
+  if (step === "donor") return isDonorComplete();
+  if (step === "recipient") return isRecipientComplete();
+  if (step === "account") return form.elements.recipientHasAccount.value === "yes" || form.elements.accountReady.checked;
+  if (step === "amount") return isAmountComplete();
   return true;
 }
 
+function isDonorComplete() {
+  return ["donorName", "donorAddress", "donorPhone", "donorId"].every((field) => confirmedFields.has(field));
+}
+
+function isRecipientComplete() {
+  return ["recipientName", "recipientAddress", "guardianName", "recipientId"].every((field) => confirmedFields.has(field));
+}
+
+function isAmountComplete() {
+  const input = readForm();
+  if (input.giftMode === "lump_sum") return confirmedFields.has("giftDate") && confirmedFields.has("lumpSumAmount");
+  return ["giftDate", "firstPaymentDate", "monthlyAmount", "totalMonths"].every((field) => confirmedFields.has(field));
+}
+
+function requireConfirmedFields(fields, message) {
+  const missing = fields.find((field) => !confirmedFields.has(field));
+  showToast(message);
+  focusField(missing);
+  return false;
+}
+
 function updateProgressiveFields() {
+  const input = readForm();
+  if (input.giftMode === "lump_sum") {
+    confirmedFields.delete("firstPaymentDate");
+    confirmedFields.delete("monthlyAmount");
+    confirmedFields.delete("totalMonths");
+  } else {
+    confirmedFields.delete("lumpSumAmount");
+  }
+
   progressiveFields.forEach((field) => {
     const dependency = field.dataset.revealAfter;
-    const element = form.elements[dependency];
-    field.hidden = !getFormControlValue(element);
+    const modeHidden =
+      (field.classList.contains("lump-only") && input.giftMode !== "lump_sum") ||
+      (field.classList.contains("periodic-only") && input.giftMode !== "periodic");
+    if (dependency === "amountComplete") {
+      field.hidden = modeHidden || !isAmountComplete();
+    } else {
+      field.hidden = modeHidden || !confirmedFields.has(dependency);
+    }
+  });
+  fieldConfirmButtons.forEach((button) => {
+    const field = button.dataset.confirmField;
+    button.classList.toggle("is-confirmed", confirmedFields.has(field));
+    button.textContent = confirmedFields.has(field) ? "✓" : "→";
+  });
+  nextButton.disabled = !canAdvanceCurrentStep();
+}
+
+function confirmField(fieldName) {
+  if (!validateField(fieldName)) return;
+  if (fieldName === "recipientAddress" && form.elements.sameAddressAsDonor.checked) {
+    form.elements.recipientAddress.value = form.elements.donorAddress.value;
+  }
+  confirmedFields.add(fieldName);
+  confirmedValues.set(fieldName, getFieldValue(fieldName));
+  if (fieldName === "lumpSumAmount" || fieldName === "totalMonths") {
+    confirmedFields.add("amountComplete");
+  }
+  syncRecipientDefaults();
+  updateProgressiveFields();
+  recalculate();
+  focusNextField(fieldName);
+}
+
+function validateField(fieldName) {
+  const element = form.elements[fieldName];
+  if (fieldName === "donorName" || fieldName === "recipientName" || fieldName === "guardianName") {
+    if (!isPlausibleName(element.value)) {
+      showToast("성명을 두 글자 이상 정확히 입력하세요.");
+      element.focus();
+      return false;
+    }
+  }
+  if (fieldName === "donorAddress" || fieldName === "recipientAddress") {
+    if (element.value.trim().length < 5) {
+      showToast("주소를 조금 더 구체적으로 입력하세요.");
+      element.focus();
+      return false;
+    }
+  }
+  if (fieldName === "donorPhone") {
+    if (!isValidPhoneInput(element.value)) {
+      showToast("연락처를 다시 확인하세요.");
+      element.focus();
+      return false;
+    }
+  }
+  if (fieldName === "donorId" || fieldName === "recipientId") {
+    if (!isValidResidentIdInput(element.value)) {
+      showToast("주민등록번호는 생년월일 6자리와 뒤 첫 자리 또는 전체 번호로 입력하세요.");
+      element.focus();
+      return false;
+    }
+  }
+  if (fieldName === "giftDate" || fieldName === "firstPaymentDate") {
+    const validation = validateGiftInput(readForm());
+    if (validation.errors.some((error) => error.includes("증여일") || error.includes("첫 이체일"))) {
+      showToast(validation.errors.find((error) => error.includes("증여일") || error.includes("첫 이체일")));
+      element.focus();
+      return false;
+    }
+  }
+  if (fieldName === "lumpSumAmount" || fieldName === "monthlyAmount" || fieldName === "totalMonths") {
+    if (Number(element.value) <= 0) {
+      showToast("1 이상의 금액이나 기간을 입력하세요.");
+      element.focus();
+      return false;
+    }
+  }
+  if (fieldName === "taxOffice" && element.value.trim().length > 0 && element.value.trim().length < 2) {
+    showToast("관할세무서를 다시 확인하세요.");
+    element.focus();
+    return false;
+  }
+  hideToast();
+  return true;
+}
+
+function handleConfirmedValueChanges() {
+  for (const fieldName of Array.from(confirmedFields)) {
+    if (fieldName === "amountComplete") continue;
+    const previous = confirmedValues.get(fieldName);
+    const current = getFieldValue(fieldName);
+    if (previous !== undefined && previous !== current) {
+      clearConfirmedField(fieldName);
+    }
+  }
+}
+
+function clearConfirmedField(fieldName) {
+  confirmedFields.delete(fieldName);
+  confirmedValues.delete(fieldName);
+  for (const child of flowDependencies[fieldName] ?? []) {
+    clearConfirmedField(child);
+  }
+}
+
+function resetAmountConfirmations() {
+  ["giftDate", "firstPaymentDate", "lumpSumAmount", "monthlyAmount", "totalMonths", "amountComplete", "taxOffice"].forEach((field) => {
+    confirmedFields.delete(field);
+    confirmedValues.delete(field);
   });
 }
 
-function getFormControlValue(element) {
+function getFieldValue(fieldName) {
+  const element = form.elements[fieldName];
   if (!element) return "";
   if (element instanceof RadioNodeList) return element.value.trim();
   if (element instanceof HTMLInputElement && element.type === "checkbox") return element.checked ? "checked" : "";
-  if (element instanceof HTMLInputElement && element.type === "number" && Number(element.value) <= 0) return "";
   return String(element.value ?? "").trim();
+}
+
+function focusNextField(fieldName) {
+  const visibleFields = progressiveFields.filter((field) => !field.hidden);
+  const current = document.querySelector(`[data-field="${fieldName}"]`);
+  const index = visibleFields.indexOf(current);
+  const nextField = visibleFields[index + 1];
+  const nextInput = nextField?.querySelector("input, select");
+  if (nextInput) {
+    requestAnimationFrame(() => nextInput.focus());
+  }
+}
+
+function focusField(fieldName) {
+  const element = form.elements[fieldName];
+  if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement) element.focus();
 }
 
 function isPlausibleName(value) {
@@ -409,11 +690,13 @@ function isValidPhoneInput(value) {
 }
 
 function updateAccountCta() {
-  accountCta.hidden = form.elements.recipientHasAccount.value !== "no";
+  form.elements.accountReady.checked = form.elements.accountReady.checked || form.elements.recipientHasAccount.value === "yes";
 }
 
 function markAccountReady() {
   form.elements.accountReady.checked = true;
+  form.elements.recipientHasAccount.value = "yes";
+  updateProgressiveFields();
   showToast("계좌 준비 완료로 표시했습니다.");
 }
 
@@ -433,6 +716,7 @@ function renderAmountGuard(valuation) {
 }
 
 function formatLimit(value) {
+  if (value % 10_000 === 9_999) return `약 ${Math.ceil(value / 10_000).toLocaleString("ko-KR")}만원 미만`;
   if (value % 10_000 === 0) return `${(value / 10_000).toLocaleString("ko-KR")}만원`;
   return formatWon(value);
 }

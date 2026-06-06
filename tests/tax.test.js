@@ -93,6 +93,19 @@ describe("유기정기금 평가", () => {
     assert.equal(getValuationYearOffset("2026-06-01", "2027-01-01"), 1);
     assert.equal(getValuationYearOffset("2026-06-01", "2028-01-01"), 2);
   });
+
+  it("현금 일시증여는 할인 없이 증여금액을 평가액으로 본다", () => {
+    const valuation = calculateValuation({
+      giftMode: "lump_sum",
+      giftDate: "2026-06-01",
+      lumpSumAmount: 20_500_000
+    });
+
+    assert.equal(valuation.assessedValue, 20_500_000);
+    assert.equal(valuation.capApplied, false);
+    assert.equal(valuation.schedule.length, 1);
+    assert.equal(valuation.schedule[0].yearOffset, 0);
+  });
 });
 
 describe("증여세 계산", () => {
@@ -204,8 +217,8 @@ describe("증여세 계산", () => {
   });
 
   it("관계별 안전 기준 금액을 계산한다", () => {
-    assert.equal(getSafeAssessmentLimit({ relationshipType: "parent_minor_child" }), 20_500_000);
-    assert.equal(getSafeAssessmentLimit({ relationshipType: "adult_child_parent" }), 50_500_000);
+    assert.equal(getSafeAssessmentLimit({ relationshipType: "parent_minor_child" }), 20_499_999);
+    assert.equal(getSafeAssessmentLimit({ relationshipType: "adult_child_parent" }), 50_499_999);
   });
 });
 
@@ -241,5 +254,17 @@ describe("신고기한과 검증", () => {
     });
 
     assert.equal(validation.errors.includes("첫 이체일은 증여일과 같거나 이후여야 합니다."), true);
+  });
+
+  it("현금 일시증여는 일시증여 금액을 검증한다", () => {
+    const validation = validateGiftInput({
+      giftMode: "lump_sum",
+      giftDate: "2026-06-01",
+      donorName: "증여자",
+      recipientName: "수증자"
+    });
+
+    assert.equal(validation.errors.includes("한번에 증여할 금액은 1원 이상이어야 합니다."), true);
+    assert.equal(validation.errors.includes("월 납입액은 1원 이상이어야 합니다."), false);
   });
 });
