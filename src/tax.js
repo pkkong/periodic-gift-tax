@@ -23,10 +23,11 @@
 
 /**
  * @typedef {Object} GiftScheduleRow
- * @property {number} paymentYear
  * @property {number} yearOffset
+ * @property {string} periodStartDate
+ * @property {string} periodEndDate
  * @property {number} months
- * @property {number} annualPayment
+ * @property {number} periodPayment
  * @property {number} discountFactor
  * @property {number} presentValue
  */
@@ -150,6 +151,13 @@ export function validateGiftInput(input) {
   if (!normalized.recipientName) errors.push("수증자 성명을 입력하세요.");
   if (!isValidDateString(normalized.giftDate)) errors.push("증여일을 올바르게 입력하세요.");
   if (!isValidDateString(normalized.firstPaymentDate)) errors.push("첫 이체일을 올바르게 입력하세요.");
+  if (
+    isValidDateString(normalized.giftDate) &&
+    isValidDateString(normalized.firstPaymentDate) &&
+    compareDateStrings(normalized.firstPaymentDate, normalized.giftDate) < 0
+  ) {
+    errors.push("첫 이체일은 증여일과 같거나 이후여야 합니다.");
+  }
   if (normalized.monthlyAmount <= 0) errors.push("월 납입액은 1원 이상이어야 합니다.");
   if (normalized.totalMonths <= 0) errors.push("총 납입개월은 1개월 이상이어야 합니다.");
   if (normalized.totalMonths > 600) warnings.push("총 납입기간이 50년을 초과합니다. 약정 기간을 다시 확인하세요.");
@@ -170,29 +178,34 @@ export function calculateValuation(rawInput) {
     : "";
 
   if (input.totalMonths > 0 && isValidDateString(input.firstPaymentDate) && isValidDateString(input.giftDate)) {
-    const giftYear = splitDate(input.giftDate).year;
     const yearlyPayments = new Map();
 
     for (let monthIndex = 0; monthIndex < input.totalMonths; monthIndex += 1) {
       const paymentDate = addMonths(input.firstPaymentDate, monthIndex);
-      const paymentYear = splitDate(paymentDate).year;
-      const current = yearlyPayments.get(paymentYear) ?? { paymentYear, months: 0, annualPayment: 0 };
+      const yearOffset = getValuationYearOffset(input.giftDate, paymentDate);
+      const current = yearlyPayments.get(yearOffset) ?? {
+        yearOffset,
+        periodStartDate: addMonths(input.giftDate, (yearOffset - 1) * 12),
+        periodEndDate: addDays(addMonths(input.giftDate, yearOffset * 12), -1),
+        months: 0,
+        periodPayment: 0
+      };
       current.months += 1;
-      current.annualPayment += input.monthlyAmount;
-      yearlyPayments.set(paymentYear, current);
+      current.periodPayment += input.monthlyAmount;
+      yearlyPayments.set(yearOffset, current);
     }
 
-    for (const row of Array.from(yearlyPayments.values()).sort((left, right) => left.paymentYear - right.paymentYear)) {
-      const yearOffset = Math.max(1, row.paymentYear - giftYear + 1);
-      const discountFactor = Math.pow(1 + ANNUAL_DISCOUNT_RATE, yearOffset);
-      const rowPresentValue = row.annualPayment / discountFactor;
+    for (const row of Array.from(yearlyPayments.values()).sort((left, right) => left.yearOffset - right.yearOffset)) {
+      const discountFactor = Math.pow(1 + ANNUAL_DISCOUNT_RATE, row.yearOffset);
+      const rowPresentValue = row.periodPayment / discountFactor;
       presentValue += rowPresentValue;
 
       schedule.push({
-        paymentYear: row.paymentYear,
-        yearOffset,
+        yearOffset: row.yearOffset,
+        periodStartDate: row.periodStartDate,
+        periodEndDate: row.periodEndDate,
         months: row.months,
-        annualPayment: row.annualPayment,
+        periodPayment: row.periodPayment,
         discountFactor,
         presentValue: rowPresentValue
       });
@@ -290,6 +303,17 @@ export function calculateFilingDeadline(giftDate) {
 
 export function findBracket(taxBase) {
   return TAX_BRACKETS.find((bracket) => taxBase <= bracket.limit) ?? TAX_BRACKETS.at(-1);
+}
+
+export function getValuationYearOffset(giftDate, paymentDate) {
+  if (!isValidDateString(giftDate) || !isValidDateString(paymentDate)) return 1;
+  if (compareDateStrings(paymentDate, giftDate) < 0) return 1;
+
+  let yearOffset = 1;
+  while (compareDateStrings(paymentDate, addMonths(giftDate, yearOffset * 12)) >= 0) {
+    yearOffset += 1;
+  }
+  return yearOffset;
 }
 
 export function formatDate(date) {

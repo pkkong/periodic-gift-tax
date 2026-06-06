@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js";
-import { renderDocumentPack } from "./documents.js";
+} from "./tax.js?v=5";
+import { renderDocumentPack } from "./documents.js?v=5";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -172,9 +172,10 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .map(
       (row) => `
         <tr>
-          <td>${row.paymentYear}년</td>
+          <td>${row.yearOffset}년차</td>
+          <td>${formatKoreanDate(row.periodStartDate)} ~ ${formatKoreanDate(row.periodEndDate)}</td>
           <td>${row.months.toLocaleString("ko-KR")}</td>
-          <td>${formatWon(row.annualPayment)}</td>
+          <td>${formatWon(row.periodPayment)}</td>
           <td>${row.yearOffset}년 (${row.discountFactor.toFixed(6)})</td>
           <td>${formatWon(row.presentValue)}</td>
         </tr>

@@ -4,6 +4,7 @@ import {
   calculateFilingDeadline,
   calculateGiftTax,
   calculateValuation,
+  getValuationYearOffset,
   getSafeAssessmentLimit,
   validateGiftInput
 } from "../src/tax.js";
@@ -19,12 +20,13 @@ describe("유기정기금 평가", () => {
       totalMonths: 120
     });
 
-    assert.equal(valuation.assessedValue, 20_224_034);
+    assert.equal(valuation.assessedValue, 20_472_486);
     assert.equal(valuation.capApplied, false);
-    assert.equal(valuation.schedule[0].paymentYear, 2026);
-    assert.equal(valuation.schedule[0].months, 7);
-    assert.equal(valuation.schedule.at(-1).paymentYear, 2036);
-    assert.equal(valuation.schedule.at(-1).months, 5);
+    assert.equal(valuation.schedule.length, 10);
+    assert.equal(valuation.schedule[0].yearOffset, 1);
+    assert.equal(valuation.schedule[0].months, 12);
+    assert.equal(valuation.schedule.at(-1).yearOffset, 10);
+    assert.equal(valuation.schedule.at(-1).months, 12);
   });
 
   it("월 250,000원씩 120개월 평가액을 계산한다", () => {
@@ -35,7 +37,7 @@ describe("유기정기금 평가", () => {
       totalMonths: 120
     });
 
-    assert.equal(valuation.assessedValue, 25_280_042);
+    assert.equal(valuation.assessedValue, 25_590_608);
   });
 
   it("장기 계약은 1년분 정기금액의 20배 상한을 적용한다", () => {
@@ -50,7 +52,7 @@ describe("유기정기금 평가", () => {
     assert.equal(valuation.capApplied, true);
   });
 
-  it("수령액을 달력상 각 연도별로 묶는다", () => {
+  it("수령액을 평가기준일부터 1년 단위로 묶는다", () => {
     const valuation = calculateValuation({
       giftDate: "2026-06-01",
       firstPaymentDate: "2026-06-01",
@@ -59,10 +61,28 @@ describe("유기정기금 평가", () => {
     });
 
     assert.equal(valuation.schedule.length, 2);
-    assert.equal(valuation.schedule[0].paymentYear, 2026);
-    assert.equal(valuation.schedule[0].months, 7);
-    assert.equal(valuation.schedule[1].paymentYear, 2027);
-    assert.equal(valuation.schedule[1].months, 7);
+    assert.equal(valuation.schedule[0].yearOffset, 1);
+    assert.equal(valuation.schedule[0].periodStartDate, "2026-06-01");
+    assert.equal(valuation.schedule[0].periodEndDate, "2027-05-31");
+    assert.equal(valuation.schedule[0].months, 12);
+    assert.equal(valuation.schedule[1].yearOffset, 2);
+    assert.equal(valuation.schedule[1].months, 2);
+  });
+
+  it("첫 이체일이 늦으면 평가기준일 기준 구간에 맞춰 나눈다", () => {
+    const valuation = calculateValuation({
+      giftDate: "2026-06-01",
+      firstPaymentDate: "2026-12-01",
+      monthlyAmount: 100_000,
+      totalMonths: 12
+    });
+
+    assert.equal(valuation.schedule.length, 2);
+    assert.equal(valuation.schedule[0].yearOffset, 1);
+    assert.equal(valuation.schedule[0].months, 6);
+    assert.equal(valuation.schedule[1].yearOffset, 2);
+    assert.equal(valuation.schedule[1].months, 6);
+    assert.equal(getValuationYearOffset("2026-06-01", "2027-06-01"), 2);
   });
 });
 
@@ -199,5 +219,18 @@ describe("신고기한과 검증", () => {
 
     assert.equal(validation.errors.includes("증여자 성명을 입력하세요."), true);
     assert.equal(validation.errors.includes("수증자 성명을 입력하세요."), true);
+  });
+
+  it("첫 이체일이 증여일보다 앞선 입력을 막는다", () => {
+    const validation = validateGiftInput({
+      giftDate: "2026-06-01",
+      firstPaymentDate: "2026-05-31",
+      monthlyAmount: 200_000,
+      totalMonths: 120,
+      donorName: "증여자",
+      recipientName: "수증자"
+    });
+
+    assert.equal(validation.errors.includes("첫 이체일은 증여일과 같거나 이후여야 합니다."), true);
   });
 });
