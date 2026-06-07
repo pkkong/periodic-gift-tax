@@ -1598,6 +1598,103 @@ th {
   gap: 8px;
 }
 
+/* Typography balance: keep only true emphasis heavy. */
+body {
+  font-weight: 500;
+}
+
+button,
+.landing-nav a,
+.primary-link,
+.wizard-nav button,
+.utility-actions button,
+.document-actions button {
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3,
+.landing-band h2,
+.entry-step h2,
+.question-block h2,
+.result-summary h2 {
+  font-weight: 700;
+}
+
+.landing-nav strong,
+.hero-float-card strong,
+.hero-proof strong,
+.landing-feature-grid strong,
+.landing-stack strong,
+.trust-band strong,
+.choice-card span,
+.account-product strong,
+.safe-number,
+.metric .value,
+.result-meta-grid strong,
+.result-action-card li,
+.result-disclosure summary {
+  font-weight: 700;
+}
+
+.eyebrow,
+.app-meta span,
+.app-meta strong,
+.progress-copy span,
+.progress-copy strong,
+.landing-nav span,
+.landing-kicker,
+.hero-actions span,
+.hero-float-card span,
+.landing-feature-grid span,
+.landing-stack span,
+.trust-band span,
+.question-kicker,
+legend,
+label,
+.flow-field > span,
+.field-card-head > span,
+label small,
+.same-check,
+.account-product span,
+.safe-breakdown span,
+.result-summary > div > p,
+.result-summary span,
+.result-basis span,
+.metric .label,
+.notice,
+.result-meta-grid span,
+.rule-list strong,
+.utility-actions strong {
+  font-weight: 600;
+}
+
+.landing-band p,
+.entry-step > p,
+.mode-hint,
+.safe-step p,
+.account-product p,
+.choice-card small,
+.safeNote,
+.inline-alert p,
+.result-summary > p,
+.result-action-card p,
+.pdf-card p,
+.rule-list p,
+.overlay-copy {
+  font-weight: 500;
+}
+
+input,
+select {
+  font-weight: 600;
+}
+
+input::placeholder {
+  font-weight: 500;
+}
+
 @media (max-width: 520px) {
   .app-shell {
     padding-inline: 0;
