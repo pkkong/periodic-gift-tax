@@ -57,6 +57,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Recipient address defaults to donor address when `sameAddressAsDonor` is checked.
 - Guardian defaults to donor name but must remain editable.
 - Account step is strategically important. Keep the recipient-name account check and Toss Securities child-account CTA visible.
+- History step asks whether the same donor gave anything in the last 10 years. It feeds `priorSameDonorGiftValue`, `priorDeductionUsed`, and `priorGiftTaxPaid` into the existing tax engine.
 - Safe step explains the no-tax range before asking the gift mode.
 - Gift mode branches one-time gift and monthly periodic gift.
 - Amount step must show the tax-warning override if assessed value exceeds the safe limit.

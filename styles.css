@@ -2161,6 +2161,27 @@ select {
   font-weight: 600;
 }
 
+.prior-fields {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #f7f8fa;
+}
+
+.prior-fields[hidden] {
+  display: none;
+}
+
+.prior-fields label {
+  gap: 8px;
+}
+
+.prior-fields span {
+  color: #4e5968;
+  font-weight: 500;
+}
+
 .account-product {
   position: relative;
   padding: 20px 20px 20px 72px;

@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=20";
-import { renderDocumentPack } from "./documents.js?v=20";
+} from "./tax.js?v=21";
+import { renderDocumentPack } from "./documents.js?v=21";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -54,12 +54,15 @@ const safeNote = document.querySelector("#safeNote");
 const modeHint = document.querySelector("#modeHint");
 const amountTitle = document.querySelector("#amountTitle");
 const amountHint = document.querySelector("#amountHint");
+const priorGiftFields = document.querySelector("#priorGiftFields");
+const priorGiftHint = document.querySelector("#priorGiftHint");
 
 const STEPS = [
   { key: "intro", title: "시작" },
   { key: "donor", title: "증여자 정보" },
   { key: "recipient", title: "수증자 정보" },
   { key: "account", title: "수증자 계좌가 있나요?" },
+  { key: "history", title: "이전 증여" },
   { key: "safe", title: "무세금 범위" },
   { key: "giftMode", title: "증여 방식" },
   { key: "amount", title: "얼마를 증여할까요?" },
@@ -120,6 +123,7 @@ function bootstrap() {
   bindEvents();
   recalculate();
   updateModeUi();
+  updatePriorGiftUi();
   renderStep();
   cleanupBrowserCache();
 }
@@ -164,6 +168,12 @@ function bindEvents() {
       resetAmountConfirmations();
       setRecommendedAmountDefaults();
       updateModeUi();
+      recalculate();
+    });
+  });
+  Array.from(form.elements.priorGiftStatus).forEach((radio) => {
+    radio.addEventListener("change", () => {
+      updatePriorGiftUi();
       recalculate();
     });
   });
@@ -568,6 +578,9 @@ function renderResultBasis(input) {
   const items = input.giftMode === "lump_sum"
     ? ["현금", "일시증여", "홈택스 신고 준비", "2026.06.06 기준"]
     : ["현금", "매월 고정액", "유기정기금", "2026.06.06 기준"];
+  if (input.priorSameDonorGiftValue > 0 || input.priorDeductionUsed > 0 || input.priorGiftTaxPaid > 0) {
+    items.push("이전 증여 반영");
+  }
   resultBasis.innerHTML = items.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
 }
 
@@ -633,6 +646,14 @@ function fillForm(input) {
       element.value = value;
     }
   }
+  const hasPriorGift =
+    normalized.priorSameDonorGiftValue > 0 ||
+    normalized.priorDeductionUsed > 0 ||
+    normalized.priorGiftTaxPaid > 0;
+  if (form.elements.priorGiftStatus) {
+    form.elements.priorGiftStatus.value = hasPriorGift ? "yes" : "no";
+  }
+  updatePriorGiftUi({ keepValues: true });
   updateProgressiveFields();
   updateRecipientAddressState();
 }
@@ -703,7 +724,8 @@ function renderStep() {
 }
 
 function getNextButtonText(stepKey) {
-  if (stepKey === "account") return "증여 가능 범위 보기";
+  if (stepKey === "account") return "이전 증여 확인";
+  if (stepKey === "history") return "증여 가능 범위 보기";
   if (stepKey === "safe") return "증여 방식 고르기";
   if (stepKey === "giftMode") return "조건 입력하기";
   if (stepKey === "amount") return "결과 보기";
@@ -727,6 +749,7 @@ function validateCurrentStep() {
     showToast("받는 분 명의 계좌를 준비한 뒤 진행하세요.");
     return false;
   }
+  if (step === "history" && !validatePriorGiftStep()) return false;
   if (step === "amount") {
     const validation = validateGiftInput(readForm());
     if (!isAmountComplete()) {
@@ -750,6 +773,7 @@ function canAdvanceCurrentStep() {
   if (step === "donor") return isDonorComplete();
   if (step === "recipient") return isRecipientComplete();
   if (step === "account") return form.elements.recipientHasAccount.value === "yes" || form.elements.accountReady.checked;
+  if (step === "history") return isPriorGiftStepComplete();
   if (step === "amount") return isAmountComplete() && (!isAmountOverSafeLimit() || amountTaxOverrideApproved);
   return true;
 }
@@ -775,6 +799,31 @@ function isAmountComplete() {
   const input = readForm();
   if (input.giftMode === "lump_sum") return confirmedFields.has("giftDate") && confirmedFields.has("lumpSumAmount");
   return ["giftDate", "firstPaymentDate", "monthlyAmount", "totalMonths"].every((field) => confirmedFields.has(field));
+}
+
+function isPriorGiftStepComplete() {
+  if (form.elements.priorGiftStatus.value !== "yes") return true;
+  return ["priorSameDonorGiftValue", "priorDeductionUsed", "priorGiftTaxPaid"].every((field) => Number(form.elements[field].value || 0) >= 0);
+}
+
+function validatePriorGiftStep() {
+  if (isPriorGiftStepComplete()) return true;
+  showToast("이전 증여 금액은 0원 이상으로 입력하세요.");
+  return false;
+}
+
+function updatePriorGiftUi(options = {}) {
+  const hasPriorGift = form.elements.priorGiftStatus?.value === "yes";
+  priorGiftFields.hidden = !hasPriorGift;
+  priorGiftHint.textContent = hasPriorGift
+    ? "모르면 0으로 두고 넘어가도 돼요. 실제 신고 전에는 증여 이력을 다시 확인하세요."
+    : "없다면 다음 단계에서 기본 공제 기준으로 보여드려요.";
+  if (!hasPriorGift && !options.keepValues) {
+    form.elements.priorSameDonorGiftValue.value = "0";
+    form.elements.priorDeductionUsed.value = "0";
+    form.elements.priorGiftTaxPaid.value = "0";
+  }
+  updateWizardNavState();
 }
 
 function requireConfirmedFields(fields, message) {
