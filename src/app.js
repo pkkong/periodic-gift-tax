@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=19";
-import { renderDocumentPack } from "./documents.js?v=19";
+} from "./tax.js?v=20";
+import { renderDocumentPack } from "./documents.js?v=20";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -441,27 +441,27 @@ function recalculate() {
 
 function renderSafeBriefing(input, tax) {
   const safeLimit = getSafeAssessmentLimit(input);
-  safeTitle.textContent = `${tax.relationshipLabel} 기준으로 먼저 볼게요`;
-  safeLimitText.textContent = `10년간 ${formatLimit(safeLimit)}은 증여세 없이 설계할 수 있어요.`;
+  safeTitle.textContent = `${tax.relationshipLabel} 기준으로 확인해볼게요`;
+  safeLimitText.textContent = `10년 동안 ${formatLimit(safeLimit)}까지는 세금 없이 보낼 수 있어요.`;
   safeBreakdown.innerHTML = `
-    <div><span>증여재산공제</span><strong>${formatWon(tax.availableDeduction)}</strong></div>
+    <div><span>기본 공제</span><strong>${formatWon(tax.availableDeduction)}</strong></div>
     <div><span>과세표준 50만원 미만</span><strong>부과 제외</strong></div>
   `;
   safeNote.textContent = tax.generationSkippingRate > 0
-    ? "조부모가 손자녀에게 증여하는 경우 세대생략 할증이 붙을 수 있어 한도를 넘기지 않는 설계가 더 중요합니다."
-    : "최근 10년 내 같은 증여자로부터 받은 증여가 있으면 이 범위가 줄어들 수 있습니다.";
+    ? "조부모가 손자녀에게 보내면 세대생략 할증이 붙을 수 있어요."
+    : "최근 10년 안에 같은 분에게 받은 증여가 있으면 기준이 낮아질 수 있어요.";
 }
 
 function renderModeHints(input) {
   const safeLimit = getSafeAssessmentLimit(input);
   const recommendedMonthly = calculateRecommendedMonthly(input, safeLimit);
   modeHint.textContent = input.giftMode === "lump_sum"
-    ? `${formatLimit(safeLimit)} 현금 일시증여를 기준으로 계산합니다.`
-    : `10년 정기증여라면 현재 조건에서 매월 약 ${formatWon(recommendedMonthly)}까지 설계할 수 있습니다.`;
-  amountTitle.textContent = input.giftMode === "lump_sum" ? "한번에 증여할 조건을 입력하세요" : "정기증여 조건을 입력하세요";
+    ? `${formatLimit(safeLimit)} 안에서 한 번에 보내는 기준으로 볼게요.`
+    : `10년 동안 매월 약 ${formatWon(recommendedMonthly)}까지 맞출 수 있어요.`;
+  amountTitle.textContent = input.giftMode === "lump_sum" ? "한 번에 얼마를 보낼까요?" : "매월 얼마를 보낼까요?";
   amountHint.textContent = input.giftMode === "lump_sum"
-    ? `이번 증여금액이 ${formatLimit(safeLimit)}을 넘으면 증여세가 나올 수 있습니다.`
-    : `10년 기준 추천 월 납입액은 약 ${formatWon(recommendedMonthly)}입니다.`;
+    ? `${formatLimit(safeLimit)}을 넘으면 세금이 나올 수 있어요.`
+    : `추천 월 납입액은 약 ${formatWon(recommendedMonthly)}이에요.`;
 }
 
 function renderResults(input, valuation, tax, errors, warnings) {
@@ -472,13 +472,15 @@ function renderResults(input, valuation, tax, errors, warnings) {
 
   resultStatus.classList.toggle("has-tax", hasTax);
   resultStatus.classList.toggle("has-error", hasErrors);
-  resultStatusLabel.textContent = hasErrors ? "입력 확인 필요" : hasTax ? "납부세액 발생" : "증여세 0원 예상";
-  resultTaxAmount.textContent = hasErrors ? "계산값 확인 필요" : hasTax ? `납부세액 ${formatWon(tax.payableTax)}` : "납부세액 0원";
+  resultStatusLabel.textContent = hasErrors ? "입력 확인 필요" : hasTax ? "낼 세금이 있어요" : "낼 세금이 없어요";
+  resultTaxAmount.textContent = hasErrors ? "다시 확인해주세요" : hasTax ? `예상 세금 ${formatWon(tax.payableTax)}` : "예상 세금 0원";
   resultLead.textContent = hasErrors
-    ? "필수 입력값을 보완한 뒤 홈택스 신고 준비팩을 저장하세요."
-    : `${tax.relationshipLabel} 기준 평가액 ${formatWon(valuation.assessedValue)}, 과세표준 ${formatWon(tax.taxBase)}으로 계산했습니다.`;
+    ? "빠진 정보를 채우고 다시 확인해주세요."
+    : hasTax
+      ? "세금이 나오는 조건이에요. 그래도 신고 준비를 계속할 수 있어요."
+      : "지금 조건으로는 예상 납부세액이 0원이에요.";
   deadlineSummary.textContent = tax.filingDeadline
-    ? `신고기한 ${formatKoreanDate(tax.filingDeadline)}`
+    ? `신고는 ${formatKoreanDate(tax.filingDeadline)}까지`
     : "신고기한 산정 전";
 
   const metrics = [
@@ -488,7 +490,7 @@ function renderResults(input, valuation, tax, errors, warnings) {
       sub: valuation.capApplied ? "20배 상한 적용" : "현재가치 합계 적용"
     },
     {
-      label: "무세금 안전 기준",
+      label: "세금 없는 기준",
       value: formatWon(safeLimit),
       sub: `사용 가능 공제 ${formatWon(tax.availableDeduction)}`
     },
@@ -520,13 +522,13 @@ function renderResults(input, valuation, tax, errors, warnings) {
 
   resultNextSteps.innerHTML = [
     input.recipientHasAccount === "yes" || input.accountReady
-      ? "수증자 명의 계좌로 증여금을 이체하고 이체내역을 보관하세요."
-      : "수증자 명의 계좌를 먼저 준비한 뒤 증여금을 이체하세요.",
+      ? "받는 분 명의 계좌로 돈을 보내고 이체내역을 보관하세요."
+      : "받는 분 명의 계좌를 먼저 준비해주세요.",
     input.giftMode === "periodic"
-      ? `약정서에 매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 지급 조건을 기재하세요.`
-      : `현금 증여 확인서에 ${formatWon(input.lumpSumAmount)} 증여 사실을 기재하세요.`,
-    `${formatKoreanDate(tax.filingDeadline)}까지 홈택스 증여세 신고 화면에 계산값을 옮겨 적으세요.`,
-    "가족관계증명서, 이체계획 또는 이체내역, PDF 서류팩을 첨부자료로 준비하세요."
+      ? `매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 보내는 약정서를 준비하세요.`
+      : `${formatWon(input.lumpSumAmount)}을 보낸 내역을 준비하세요.`,
+    `${formatKoreanDate(tax.filingDeadline)}까지 홈택스에 신고하세요.`,
+    "가족관계증명서와 이체내역을 함께 준비하세요."
   ]
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
@@ -541,8 +543,8 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .join("");
 
   resultDocsSummary.textContent = input.giftMode === "periodic"
-    ? "유기정기금 평가명세서, 증여세 신고서 초안, 증여약정서, 홈택스 체크리스트를 인쇄합니다."
-    : "현금 증여 명세서, 증여세 신고서 초안, 현금 증여 확인서, 홈택스 체크리스트를 인쇄합니다.";
+    ? "평가명세서, 신고서 초안, 약정서, 홈택스 체크리스트를 저장해요."
+    : "증여 명세서, 신고서 초안, 확인서, 홈택스 체크리스트를 저장해요.";
 
   scheduleRows.innerHTML = valuation.schedule
     .map(
@@ -719,10 +721,10 @@ function validateCurrentStep() {
     if (!isDonorComplete()) return requireConfirmedFields(["donorName", "donorAddress", "donorPhone", "donorId"], "증여자 정보를 순서대로 확인하세요.");
   }
   if (step === "recipient") {
-    if (!isRecipientComplete()) return requireConfirmedFields(["recipientName", "recipientAddress", "guardianName", "recipientId"], "수증자 정보를 순서대로 확인하세요.");
+    if (!isRecipientComplete()) return requireConfirmedFields(["recipientName", "recipientAddress", "guardianName", "recipientId"], "받는 분 정보를 순서대로 확인하세요.");
   }
   if (step === "account" && form.elements.recipientHasAccount.value === "no" && !form.elements.accountReady.checked) {
-    showToast("수증자 명의 계좌를 준비한 뒤 진행하세요.");
+    showToast("받는 분 명의 계좌를 준비한 뒤 진행하세요.");
     return false;
   }
   if (step === "amount") {
@@ -735,7 +737,7 @@ function validateCurrentStep() {
     const safeLimit = getSafeAssessmentLimit(validation.input);
     if (valuation.assessedValue > safeLimit && !amountTaxOverrideApproved) {
       renderAmountGuard(valuation);
-      showToast("증여세 발생 가능성을 확인하고 계속 여부를 선택하세요.");
+      showToast("세금이 나올 수 있어요. 계속할지 선택해주세요.");
       return false;
     }
   }
@@ -985,7 +987,7 @@ function markAccountReady() {
   form.elements.accountReady.checked = true;
   form.elements.recipientHasAccount.value = "yes";
   updateProgressiveFields();
-  showToast("계좌 준비 완료로 표시했습니다.");
+  showToast("계좌 준비 완료로 표시했어요.");
 }
 
 function renderAmountGuard(valuation) {
@@ -999,9 +1001,9 @@ function renderAmountGuard(valuation) {
   amountGuard.hidden = false;
   amountGuard.classList.toggle("is-approved", amountTaxOverrideApproved);
   amountGuard.innerHTML = `
-    <strong>${amountTaxOverrideApproved ? "증여세 발생 가능성을 확인했습니다." : "증여세가 나올 수 있습니다."}</strong>
-    <p>현재 평가액은 ${formatWon(valuation.assessedValue)}입니다. 이 관계의 안전 기준 ${formatLimit(safeLimit)}을 넘으면 공제와 과세최저한을 지나 세금이 발생할 수 있습니다.</p>
-    ${amountTaxOverrideApproved ? "<p>이 상태로 결과 단계에서 납부세액과 신고 준비물을 확인합니다.</p>" : '<button class="guard-action" type="button" data-continue-tax>그래도 결과 보기</button>'}
+    <strong>${amountTaxOverrideApproved ? "확인했어요" : "세금이 나올 수 있어요"}</strong>
+    <p>현재 평가액은 ${formatWon(valuation.assessedValue)}이에요. 이 관계의 기준 ${formatLimit(safeLimit)}을 넘었어요.</p>
+    ${amountTaxOverrideApproved ? "<p>결과 화면에서 예상 세금과 준비물을 볼게요.</p>" : '<button class="guard-action" type="button" data-continue-tax>이대로 결과 보기</button>'}
   `;
   updateWizardNavState();
 }
