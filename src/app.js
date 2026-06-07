@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=15";
-import { renderDocumentPack } from "./documents.js?v=15";
+} from "./tax.js?v=16";
+import { renderDocumentPack } from "./documents.js?v=16";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -81,8 +81,20 @@ const defaultInput = normalizeInput({
 let toastTimer = 0;
 let currentStepIndex = 0;
 let guardianNameEdited = false;
+let amountTaxOverrideApproved = false;
 const confirmedFields = new Set();
 const confirmedValues = new Map();
+const taxSensitiveFields = new Set([
+  "relationshipType",
+  "giftDate",
+  "firstPaymentDate",
+  "lumpSumAmount",
+  "monthlyAmount",
+  "totalMonths",
+  "priorSameDonorGiftValue",
+  "priorDeductionUsed",
+  "priorGiftTaxPaid"
+]);
 const flowDependencies = {
   donorName: ["donorAddress", "donorPhone", "donorId", "relationshipType"],
   donorAddress: ["donorPhone", "donorId", "relationshipType"],
@@ -110,16 +122,8 @@ function bootstrap() {
 }
 
 function bindEvents() {
-  form.addEventListener("input", (event) => {
-    markManualRecipientEdit(event);
-    formatStructuredInput(event);
-    syncFirstPaymentDate();
-    handleConfirmedValueChanges();
-    syncRecipientDefaults();
-    updateModeUi();
-    updateProgressiveFields();
-    recalculate();
-  });
+  form.addEventListener("input", handleFormValueChange);
+  form.addEventListener("change", handleFormValueChange);
   form.addEventListener("keydown", handleFormEnterKey);
 
   introStartButton.addEventListener("click", () => {
@@ -135,6 +139,7 @@ function bindEvents() {
   document.querySelector("#printButtonDocuments").addEventListener("click", printDocuments);
   backButton.addEventListener("click", previousStep);
   nextButton.addEventListener("click", nextStep);
+  amountGuard.addEventListener("click", handleAmountGuardClick);
   ruleButton.addEventListener("click", () => openOverlay(ruleOverlay));
   document.querySelector("#dataButton").addEventListener("click", () => openOverlay(dataOverlay));
   accountCreateButton.addEventListener("click", markAccountReady);
@@ -147,6 +152,7 @@ function bindEvents() {
   });
   Array.from(form.elements.giftMode).forEach((radio) => {
     radio.addEventListener("change", () => {
+      amountTaxOverrideApproved = false;
       resetAmountConfirmations();
       setRecommendedAmountDefaults();
       updateModeUi();
@@ -176,6 +182,18 @@ function bindEvents() {
       closeOverlay(dataOverlay);
     }
   });
+}
+
+function handleFormValueChange(event) {
+  markManualRecipientEdit(event);
+  formatStructuredInput(event);
+  resetTaxOverrideIfNeeded(event);
+  syncFirstPaymentDate();
+  handleConfirmedValueChanges();
+  syncRecipientDefaults();
+  updateModeUi();
+  updateProgressiveFields();
+  recalculate();
 }
 
 function handleFormEnterKey(event) {
@@ -271,6 +289,14 @@ function formatResidentIdDisplay(value) {
   const digits = value.replace(/\D/g, "").slice(0, 13);
   if (digits.length <= 6) return digits;
   return `${digits.slice(0, 6)}-${digits.slice(6)}`;
+}
+
+function resetTaxOverrideIfNeeded(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+  if (taxSensitiveFields.has(target.name)) {
+    amountTaxOverrideApproved = false;
+  }
 }
 
 function handleSameAddressChange() {
@@ -557,6 +583,16 @@ function nextStep() {
   scrollToTop();
 }
 
+function handleAmountGuardClick(event) {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const button = target.closest("[data-continue-tax]");
+  if (!button) return;
+  amountTaxOverrideApproved = true;
+  hideToast();
+  nextStep();
+}
+
 function previousStep() {
   hideToast();
   currentStepIndex = Math.max(0, currentStepIndex - 1);
@@ -584,7 +620,6 @@ function renderStep() {
   progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;
   backButton.hidden = isIntro;
   backButton.disabled = isIntro;
-  nextButton.disabled = !canAdvanceCurrentStep();
   nextButton.textContent = getNextButtonText(step.key);
   if (step.key === "recipient") syncRecipientDefaults();
   if (step.key === "safe") renderSafeBriefing(readForm(), calculateGiftTax(readForm()));
@@ -628,9 +663,9 @@ function validateCurrentStep() {
     }
     const valuation = calculateValuation(validation.input);
     const safeLimit = getSafeAssessmentLimit(validation.input);
-    if (valuation.assessedValue > safeLimit) {
+    if (valuation.assessedValue > safeLimit && !amountTaxOverrideApproved) {
       renderAmountGuard(valuation);
-      showToast(`평가액이 ${formatLimit(safeLimit)}을 넘어 증여세가 나올 수 있습니다.`);
+      showToast("증여세 발생 가능성을 확인하고 계속 여부를 선택하세요.");
       return false;
     }
   }
@@ -643,8 +678,17 @@ function canAdvanceCurrentStep() {
   if (step === "donor") return isDonorComplete();
   if (step === "recipient") return isRecipientComplete();
   if (step === "account") return form.elements.recipientHasAccount.value === "yes" || form.elements.accountReady.checked;
-  if (step === "amount") return isAmountComplete();
+  if (step === "amount") return isAmountComplete() && (!isAmountOverSafeLimit() || amountTaxOverrideApproved);
   return true;
+}
+
+function isAmountOverSafeLimit() {
+  if (!isAmountComplete()) return false;
+  const input = readForm();
+  const validation = validateGiftInput(input);
+  if (validation.errors.length) return false;
+  const valuation = calculateValuation(validation.input);
+  return valuation.assessedValue > getSafeAssessmentLimit(validation.input);
 }
 
 function isDonorComplete() {
@@ -694,7 +738,7 @@ function updateProgressiveFields() {
     button.classList.toggle("is-confirmed", confirmedFields.has(field));
     button.textContent = confirmedFields.has(field) ? "✓" : "→";
   });
-  nextButton.disabled = !canAdvanceCurrentStep();
+  updateWizardNavState();
 }
 
 function confirmField(fieldName) {
@@ -787,6 +831,7 @@ function clearConfirmedField(fieldName) {
 }
 
 function resetAmountConfirmations() {
+  amountTaxOverrideApproved = false;
   ["giftDate", "firstPaymentDate", "lumpSumAmount", "monthlyAmount", "totalMonths", "amountComplete", "taxOffice"].forEach((field) => {
     confirmedFields.delete(field);
     confirmedValues.delete(field);
@@ -846,16 +891,27 @@ function markAccountReady() {
 function renderAmountGuard(valuation) {
   const input = readForm();
   const safeLimit = getSafeAssessmentLimit(input);
-  if (valuation.assessedValue <= safeLimit) {
+  if (!isAmountComplete() || valuation.assessedValue <= safeLimit) {
     amountGuard.hidden = true;
     amountGuard.innerHTML = "";
     return;
   }
   amountGuard.hidden = false;
+  amountGuard.classList.toggle("is-approved", amountTaxOverrideApproved);
   amountGuard.innerHTML = `
-    <strong>증여세가 나올 수 있습니다.</strong>
-    <p>현재 평가액은 ${formatWon(valuation.assessedValue)}입니다. 이 관계의 안전 기준 ${formatLimit(safeLimit)}을 넘으면 공제와 과세최저한을 지나 세금이 발생할 수 있어 결과 단계로 진행하지 않습니다.</p>
+    <strong>${amountTaxOverrideApproved ? "증여세 발생 가능성을 확인했습니다." : "증여세가 나올 수 있습니다."}</strong>
+    <p>현재 평가액은 ${formatWon(valuation.assessedValue)}입니다. 이 관계의 안전 기준 ${formatLimit(safeLimit)}을 넘으면 공제와 과세최저한을 지나 세금이 발생할 수 있습니다.</p>
+    ${amountTaxOverrideApproved ? "<p>이 상태로 결과 단계에서 납부세액과 신고 준비물을 확인합니다.</p>" : '<button class="guard-action" type="button" data-continue-tax>그래도 결과 보기</button>'}
   `;
+  updateWizardNavState();
+}
+
+function updateWizardNavState() {
+  const stepKey = currentStep().key;
+  const canAdvance = canAdvanceCurrentStep();
+  nextButton.disabled = !canAdvance;
+  nextButton.setAttribute("aria-disabled", String(!canAdvance));
+  wizardNav.classList.toggle("is-pending", !canAdvance && stepKey !== "intro" && stepKey !== "result");
 }
 
 function formatLimit(value) {
@@ -925,6 +981,7 @@ function importJson(event) {
 
 function clearAll() {
   localStorage.removeItem(STORAGE_KEY);
+  amountTaxOverrideApproved = false;
   fillForm(defaultInput);
   storageStatus.textContent = "저장 안 됨";
   recalculate();

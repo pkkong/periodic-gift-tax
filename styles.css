@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --bg: #f5f7fa;
+  --bg: #f2f4f6;
   --surface: #ffffff;
-  --surface-strong: #f8fafc;
+  --surface-strong: #f7f8fa;
   --text: #191f28;
   --muted: #8b95a1;
-  --line: #e5e8eb;
+  --line: #eef0f3;
   --accent: #0064ff;
   --accent-strong: #0050d8;
   --accent-soft: #eef4ff;
@@ -15,7 +15,7 @@
   --ink: #191f28;
   --green: #0a8f5a;
   --green-soft: #e9f8f1;
-  --shadow: 0 10px 30px rgba(25, 31, 40, 0.07);
+  --shadow: 0 8px 22px rgba(25, 31, 40, 0.045);
 }
 
 * {
@@ -61,9 +61,9 @@ a {
 }
 
 button {
-  min-height: 48px;
+  min-height: 52px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   background: #eef1f4;
   color: var(--text);
   cursor: pointer;
@@ -72,6 +72,13 @@ button {
 
 button:hover {
   background: #e7ebef;
+}
+
+button:disabled,
+button[aria-disabled="true"] {
+  background: #edf1f4;
+  color: #b0b8c1;
+  cursor: default;
 }
 
 button:focus-visible,
@@ -89,6 +96,12 @@ button.primary {
 
 button.primary:hover {
   background: var(--accent-strong);
+}
+
+button.primary:disabled,
+button.primary[aria-disabled="true"] {
+  background: #edf1f4;
+  color: #b0b8c1;
 }
 
 button.danger {
@@ -247,7 +260,7 @@ h3 {
 
 .landing-step {
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--bg);
 }
 
 .landing-step.is-active {
@@ -262,8 +275,8 @@ h3 {
   justify-content: space-between;
   align-items: center;
   padding: max(16px, env(safe-area-inset-top)) 20px 14px;
-  border-bottom: 1px solid rgba(229, 232, 235, 0.72);
-  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(229, 232, 235, 0.54);
+  background: rgba(242, 244, 246, 0.9);
   backdrop-filter: blur(14px);
 }
 
@@ -306,7 +319,7 @@ h3 {
   max-width: none;
   padding-inline: max(22px, calc((100% - 760px) / 2 + 22px));
   background:
-    linear-gradient(180deg, rgba(250, 252, 255, 0.97), rgba(255, 255, 255, 1) 80%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 1) 80%),
     radial-gradient(circle at 54% 12%, rgba(105, 170, 255, 0.12), transparent 42%),
     radial-gradient(circle at 78% 40%, rgba(255, 191, 198, 0.18), transparent 34%);
 }
@@ -700,7 +713,7 @@ h3 {
   width: min(440px, 100%);
   min-height: 100vh;
   margin: 0 auto;
-  padding: max(24px, env(safe-area-inset-top)) 18px 120px;
+  padding: max(28px, env(safe-area-inset-top)) 18px 120px;
   align-content: start;
 }
 
@@ -714,10 +727,10 @@ h3 {
 }
 
 .entry-step h2 {
-  margin: 6px 0 10px;
+  margin: 8px 0 12px;
   color: var(--ink);
-  font-size: 1.62rem;
-  line-height: 1.24;
+  font-size: 1.72rem;
+  line-height: 1.22;
 }
 
 .entry-step > p,
@@ -756,7 +769,7 @@ h3 {
   margin: 0;
   padding: 18px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -790,11 +803,11 @@ label {
   display: grid;
   gap: 10px;
   min-width: 0;
-  padding: 16px;
-  border: 1px solid rgba(229, 232, 235, 0.72);
-  border-radius: 8px;
+  padding: 18px;
+  border: 0;
+  border-radius: 18px;
   background: #ffffff;
-  box-shadow: 0 10px 26px rgba(25, 31, 40, 0.045);
+  box-shadow: var(--shadow);
   animation: revealField 260ms ease both;
 }
 
@@ -814,19 +827,35 @@ label {
 
 .input-action {
   display: grid;
-  grid-template-columns: 1fr 46px;
+  grid-template-columns: minmax(0, 1fr) 48px;
   gap: 8px;
   align-items: center;
 }
 
+.date-action {
+  position: relative;
+  display: block;
+}
+
 .field-next {
+  width: 48px;
   min-height: 48px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 14px;
   background: #f2f4f6;
   color: var(--accent);
   font-size: 1.25rem;
   line-height: 1;
+}
+
+.date-action .field-next {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
 }
 
 .field-next:hover {
@@ -858,14 +887,27 @@ label small {
 input,
 select {
   width: 100%;
-  min-height: 50px;
-  padding: 12px 13px;
-  border: 1px solid #edf0f3;
-  border-radius: 8px;
-  background: #f7f8fa;
+  min-height: 56px;
+  padding: 13px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #f2f4f6;
   color: var(--text);
   font-size: 16px;
   font-weight: 700;
+}
+
+.date-action input {
+  padding-right: 60px;
+}
+
+input[type="date"] {
+  appearance: none;
+  text-align: left;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
 }
 
 input[readonly] {
@@ -894,7 +936,7 @@ input::placeholder {
   min-height: 76px;
   padding: 16px;
   border: 2px solid transparent;
-  border-radius: 8px;
+  border-radius: 18px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -925,8 +967,8 @@ input::placeholder {
 .inline-alert {
   display: grid;
   gap: 10px;
-  padding: 16px;
-  border-radius: 8px;
+  padding: 18px;
+  border-radius: 18px;
   background: var(--accent-soft);
   color: var(--ink);
 }
@@ -935,7 +977,7 @@ input::placeholder {
   display: grid;
   gap: 10px;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 18px;
   background: #111827;
   color: #ffffff;
 }
@@ -986,7 +1028,7 @@ input::placeholder {
 
 .safe-number {
   padding: 22px;
-  border-radius: 8px;
+  border-radius: 18px;
   background: var(--accent);
   color: #ffffff;
   font-size: 1.45rem;
@@ -1004,7 +1046,7 @@ input::placeholder {
   justify-content: space-between;
   gap: 12px;
   padding: 14px;
-  border-radius: 8px;
+  border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -1045,8 +1087,28 @@ input::placeholder {
   background: var(--danger-soft);
 }
 
+.inline-alert.is-approved {
+  border-color: rgba(10, 143, 90, 0.22);
+  background: var(--green-soft);
+}
+
 .inline-alert strong {
   color: var(--danger);
+}
+
+.inline-alert.is-approved strong {
+  color: var(--green);
+}
+
+.guard-action {
+  width: 100%;
+  margin-top: 2px;
+  background: #191f28;
+  color: #ffffff;
+}
+
+.guard-action:hover {
+  background: #111827;
 }
 
 .wizard-nav,
@@ -1065,6 +1127,15 @@ input::placeholder {
   grid-template-columns: 92px 1fr;
   padding: 10px 18px max(10px, env(safe-area-inset-bottom));
   background: linear-gradient(rgba(242, 244, 246, 0), var(--bg) 20%);
+}
+
+.wizard-nav.is-pending {
+  grid-template-columns: 92px;
+  justify-content: start;
+}
+
+.wizard-nav.is-pending #nextButton {
+  display: none;
 }
 
 .wizard-nav.is-intro {
@@ -1104,7 +1175,7 @@ input::placeholder {
   display: grid;
   gap: 14px;
   padding: 22px;
-  border-radius: 8px;
+  border-radius: 18px;
   background: #111827;
   color: #ffffff;
   box-shadow: 0 22px 60px rgba(17, 24, 39, 0.16);
