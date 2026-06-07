@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=21";
-import { renderDocumentPack } from "./documents.js?v=21";
+} from "./tax.js?v=22";
+import { renderDocumentPack } from "./documents.js?v=22";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -124,6 +124,7 @@ function bootstrap() {
   recalculate();
   updateModeUi();
   updatePriorGiftUi();
+  bindViewportInset();
   renderStep();
   cleanupBrowserCache();
 }
@@ -200,6 +201,23 @@ function bindEvents() {
       closeOverlay(dataOverlay);
     }
   });
+}
+
+function bindViewportInset() {
+  syncViewportInset();
+  window.addEventListener("resize", syncViewportInset);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", syncViewportInset);
+    window.visualViewport.addEventListener("scroll", syncViewportInset);
+  }
+}
+
+function syncViewportInset() {
+  const viewport = window.visualViewport;
+  const bottomInset = viewport
+    ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+    : 0;
+  document.documentElement.style.setProperty("--visual-viewport-bottom", `${Math.round(bottomInset)}px`);
 }
 
 function handleFormValueChange(event) {

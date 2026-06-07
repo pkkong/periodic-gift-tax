@@ -16,6 +16,7 @@
   --green: #0a8f5a;
   --green-soft: #e9f8f1;
   --shadow: 0 2px 8px rgba(25, 31, 40, 0.035);
+  --visual-viewport-bottom: 0px;
 }
 
 * {
@@ -1512,8 +1513,8 @@ th {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 22px;
-  z-index: 20;
+  bottom: calc(96px + var(--visual-viewport-bottom));
+  z-index: 70;
   max-width: min(520px, calc(100% - 32px));
   padding: 11px 14px;
   border-radius: 8px;
@@ -1523,7 +1524,7 @@ th {
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 10px);
-  transition: opacity 160ms ease, transform 160ms ease;
+  transition: bottom 160ms ease, opacity 160ms ease, transform 160ms ease;
 }
 
 .toast.is-visible {

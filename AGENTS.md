@@ -70,6 +70,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Keep `input`, `select`, and `textarea` font size at least `16px` to prevent iOS zoom on focus.
 - Keep `enterkeyhint="next"` on progressive inputs.
 - Enter handling lives in `handleFormEnterKey`, `handleFormLineBreak`, `handleFormSubmit`, and `scheduleAutoConfirmField`.
+- Validation toasts must stay above the mobile keyboard and bottom browser bar. `syncViewportInset` updates `--visual-viewport-bottom`; do not replace it with a hardcoded bottom value.
 - When changing CSS/JS, bump the query version in `index.html`, `src/app.js`, and `src/documents.js` imports so GitHub Pages and mobile browsers do not serve stale assets.
 
 ## Verification Checklist
