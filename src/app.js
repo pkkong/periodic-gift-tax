@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=17";
-import { renderDocumentPack } from "./documents.js?v=17";
+} from "./tax.js?v=18";
+import { renderDocumentPack } from "./documents.js?v=18";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -132,6 +132,7 @@ function bindEvents() {
   form.addEventListener("keyup", handleFormEnterKey);
   form.addEventListener("submit", handleFormSubmit);
   form.addEventListener("focusin", trackFocusedFieldControl);
+  form.addEventListener("focusout", handleFieldFocusOut);
 
   introStartButton.addEventListener("click", () => {
     currentStepIndex = 1;
@@ -201,6 +202,9 @@ function handleFormValueChange(event) {
   updateModeUi();
   updateProgressiveFields();
   recalculate();
+  if (event.type === "change") {
+    scheduleAutoConfirmField(event.target);
+  }
 }
 
 function handleFormEnterKey(event) {
@@ -241,6 +245,27 @@ function trackFocusedFieldControl(event) {
   if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement) {
     lastFocusedFieldControl = target;
   }
+}
+
+function handleFieldFocusOut(event) {
+  const target = event.target;
+  scheduleAutoConfirmField(target);
+}
+
+function scheduleAutoConfirmField(target) {
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+  if (target instanceof HTMLInputElement && ["checkbox", "file", "radio"].includes(target.type)) return;
+  const field = target.closest("[data-field]");
+  const fieldName = field?.dataset.field;
+  if (!fieldName || field.hidden || confirmedFields.has(fieldName)) return;
+
+  window.setTimeout(() => {
+    if (field.hidden || confirmedFields.has(fieldName) || !isFieldReadyForAutoConfirm(fieldName)) return;
+    const confirmed = confirmField(fieldName);
+    if (confirmed && shouldAdvanceAfterEnterConfirm(fieldName)) {
+      nextStep();
+    }
+  }, 0);
 }
 
 function handleFormEnterTarget(target) {
@@ -801,6 +826,35 @@ function confirmField(fieldName) {
   recalculate();
   focusNextField(fieldName);
   return true;
+}
+
+function isFieldReadyForAutoConfirm(fieldName) {
+  const element = form.elements[fieldName];
+  if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement)) return false;
+  if (fieldName === "donorName" || fieldName === "recipientName" || fieldName === "guardianName") {
+    return isPlausibleName(element.value);
+  }
+  if (fieldName === "donorAddress" || fieldName === "recipientAddress") {
+    return element.value.trim().length >= 5;
+  }
+  if (fieldName === "donorPhone") {
+    return isValidPhoneInput(element.value);
+  }
+  if (fieldName === "donorId" || fieldName === "recipientId") {
+    return isValidResidentIdInput(element.value);
+  }
+  if (fieldName === "giftDate" || fieldName === "firstPaymentDate") {
+    if (!element.value) return false;
+    const validation = validateGiftInput(readForm());
+    return !validation.errors.some((error) => error.includes("증여일") || error.includes("첫 이체일"));
+  }
+  if (fieldName === "lumpSumAmount" || fieldName === "monthlyAmount" || fieldName === "totalMonths") {
+    return Number(element.value) > 0;
+  }
+  if (fieldName === "taxOffice") {
+    return element.value.trim().length >= 2;
+  }
+  return false;
 }
 
 function validateField(fieldName) {
