@@ -725,14 +725,14 @@ h3 {
 
 .entry-step {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .entry-step h2 {
-  margin: 4px 0 8px;
+  margin: 6px 0 10px;
   color: var(--ink);
-  font-size: 1.72rem;
-  line-height: 1.2;
+  font-size: 1.62rem;
+  line-height: 1.24;
 }
 
 .entry-step > p,
@@ -802,28 +802,55 @@ label {
 }
 
 .flow-field {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(229, 232, 235, 0.72);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(25, 31, 40, 0.045);
   animation: revealField 260ms ease both;
+}
+
+.flow-field > span,
+.field-card-head > span {
+  color: #4e5968;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.field-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .input-action {
   display: grid;
-  grid-template-columns: 1fr 48px;
+  grid-template-columns: 1fr 46px;
   gap: 8px;
   align-items: center;
 }
 
 .field-next {
-  min-height: 50px;
+  min-height: 48px;
   padding: 0;
   border-radius: 8px;
-  background: var(--accent);
-  color: #ffffff;
+  background: #f2f4f6;
+  color: var(--accent);
   font-size: 1.25rem;
   line-height: 1;
 }
 
+.field-next:hover {
+  background: #e8edf3;
+}
+
 .field-next.is-confirmed {
-  background: #00a86b;
+  background: var(--green-soft);
+  color: var(--green);
 }
 
 @keyframes revealField {
@@ -848,12 +875,18 @@ select {
   width: 100%;
   min-height: 50px;
   padding: 12px 13px;
-  border: 1px solid var(--line);
+  border: 1px solid #edf0f3;
   border-radius: 8px;
-  background: #f9fafb;
+  background: #f7f8fa;
   color: var(--text);
   font-size: 16px;
   font-weight: 700;
+}
+
+input[readonly] {
+  border-color: transparent;
+  background: #f2f4f6;
+  color: #6b7684;
 }
 
 input::placeholder {
@@ -936,14 +969,28 @@ input::placeholder {
 }
 
 .same-check {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-width: max-content;
+  color: #6b7684;
+  font-size: 0.82rem;
+  font-weight: 900;
 }
 
 .same-check input {
-  width: 20px;
-  min-height: 20px;
+  width: 18px;
+  min-height: 18px;
+}
+
+.same-check span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.flow-field.is-same-address {
+  background: linear-gradient(180deg, #ffffff, #fbfcff);
 }
 
 .safe-step {

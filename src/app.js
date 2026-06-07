@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=12";
-import { renderDocumentPack } from "./documents.js?v=12";
+} from "./tax.js?v=13";
+import { renderDocumentPack } from "./documents.js?v=13";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -80,6 +80,7 @@ const defaultInput = normalizeInput({
 
 let toastTimer = 0;
 let currentStepIndex = 0;
+let guardianNameEdited = false;
 const confirmedFields = new Set();
 const confirmedValues = new Map();
 const flowDependencies = {
@@ -109,7 +110,8 @@ function bootstrap() {
 }
 
 function bindEvents() {
-  form.addEventListener("input", () => {
+  form.addEventListener("input", (event) => {
+    markManualRecipientEdit(event);
     syncFirstPaymentDate();
     handleConfirmedValueChanges();
     syncRecipientDefaults();
@@ -127,6 +129,7 @@ function bindEvents() {
   fieldConfirmButtons.forEach((button) => {
     button.addEventListener("click", () => confirmField(button.dataset.confirmField));
   });
+  form.elements.sameAddressAsDonor.addEventListener("change", handleSameAddressChange);
   document.querySelector("#printButton").addEventListener("click", printDocuments);
   document.querySelector("#printButtonDocuments").addEventListener("click", printDocuments);
   backButton.addEventListener("click", previousStep);
@@ -223,9 +226,37 @@ function syncRecipientDefaults() {
   if (sameAddress && form.elements.donorAddress.value) {
     form.elements.recipientAddress.value = form.elements.donorAddress.value;
   }
-  if (!form.elements.guardianName.value && form.elements.donorName.value) {
+  updateRecipientAddressState();
+  if (!guardianNameEdited && form.elements.donorName.value) {
     form.elements.guardianName.value = form.elements.donorName.value;
   }
+}
+
+function markManualRecipientEdit(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) return;
+  if (target.name === "guardianName") {
+    guardianNameEdited = true;
+  }
+}
+
+function handleSameAddressChange() {
+  if (form.elements.sameAddressAsDonor.checked && form.elements.donorAddress.value) {
+    form.elements.recipientAddress.value = form.elements.donorAddress.value;
+  }
+  clearConfirmedField("recipientAddress");
+  updateRecipientAddressState();
+  updateProgressiveFields();
+  recalculate();
+}
+
+function updateRecipientAddressState() {
+  const sameAddress = form.elements.sameAddressAsDonor?.checked;
+  const addressInput = form.elements.recipientAddress;
+  if (addressInput instanceof HTMLInputElement) {
+    addressInput.readOnly = Boolean(sameAddress);
+  }
+  document.querySelector('[data-field="recipientAddress"]')?.classList.toggle("is-same-address", Boolean(sameAddress));
 }
 
 function updateModeUi() {
@@ -456,6 +487,7 @@ function readForm() {
 
 function fillForm(input) {
   const normalized = normalizeInput(input);
+  guardianNameEdited = Boolean(normalized.guardianName && normalized.guardianName !== normalized.donorName);
   for (const [key, value] of Object.entries(normalized)) {
     const element = form.elements[key];
     if (!element) continue;
@@ -468,6 +500,7 @@ function fillForm(input) {
     }
   }
   updateProgressiveFields();
+  updateRecipientAddressState();
 }
 
 function printDocuments() {
