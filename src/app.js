@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=16";
-import { renderDocumentPack } from "./documents.js?v=16";
+} from "./tax.js?v=17";
+import { renderDocumentPack } from "./documents.js?v=17";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -82,6 +82,9 @@ let toastTimer = 0;
 let currentStepIndex = 0;
 let guardianNameEdited = false;
 let amountTaxOverrideApproved = false;
+let lastEnterActionAt = 0;
+let lastEnterActionTarget = null;
+let lastFocusedFieldControl = null;
 const confirmedFields = new Set();
 const confirmedValues = new Map();
 const taxSensitiveFields = new Set([
@@ -124,7 +127,11 @@ function bootstrap() {
 function bindEvents() {
   form.addEventListener("input", handleFormValueChange);
   form.addEventListener("change", handleFormValueChange);
+  form.addEventListener("beforeinput", handleFormLineBreak);
   form.addEventListener("keydown", handleFormEnterKey);
+  form.addEventListener("keyup", handleFormEnterKey);
+  form.addEventListener("submit", handleFormSubmit);
+  form.addEventListener("focusin", trackFocusedFieldControl);
 
   introStartButton.addEventListener("click", () => {
     currentStepIndex = 1;
@@ -198,29 +205,67 @@ function handleFormValueChange(event) {
 
 function handleFormEnterKey(event) {
   if (event.key !== "Enter") return;
-  const target = event.target;
-  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-  event.preventDefault();
+  if (event.type === "keyup" && Date.now() - lastEnterActionAt < 700) {
+    event.preventDefault();
+    return;
+  }
+  handleFormEnterEvent(event);
+}
 
+function handleFormLineBreak(event) {
+  if (event.inputType !== "insertLineBreak") return;
+  handleFormEnterEvent(event);
+}
+
+function handleFormSubmit(event) {
+  handleFormEnterEvent(event);
+}
+
+function handleFormEnterEvent(event) {
+  const target = event.target;
+  event.preventDefault();
+  const activeTarget = target instanceof HTMLInputElement || target instanceof HTMLSelectElement
+    ? target
+    : document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLSelectElement
+      ? document.activeElement
+      : lastFocusedFieldControl;
+  const now = Date.now();
+  if (activeTarget === lastEnterActionTarget && now - lastEnterActionAt < 350) return;
+  lastEnterActionAt = now;
+  lastEnterActionTarget = activeTarget;
+  handleFormEnterTarget(activeTarget);
+}
+
+function trackFocusedFieldControl(event) {
+  const target = event.target;
+  if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement) {
+    lastFocusedFieldControl = target;
+  }
+}
+
+function handleFormEnterTarget(target) {
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return false;
   const field = target.closest("[data-field]");
   const fieldName = field?.dataset.field;
   if (fieldName && !field.hidden && !confirmedFields.has(fieldName)) {
-    confirmField(fieldName);
-    if (shouldAdvanceAfterEnterConfirm(fieldName)) {
+    const confirmed = confirmField(fieldName);
+    if (confirmed && shouldAdvanceAfterEnterConfirm(fieldName)) {
       nextStep();
     }
-    return;
+    return confirmed;
   }
 
   if (canAdvanceCurrentStep()) {
     nextStep();
-    return;
+    return true;
   }
 
   const confirmButton = field?.querySelector("[data-confirm-field]");
   if (confirmButton instanceof HTMLButtonElement) {
     confirmButton.click();
+    return true;
   }
+  return false;
 }
 
 function shouldAdvanceAfterEnterConfirm(fieldName) {
@@ -742,7 +787,7 @@ function updateProgressiveFields() {
 }
 
 function confirmField(fieldName) {
-  if (!validateField(fieldName)) return;
+  if (!validateField(fieldName)) return false;
   if (fieldName === "recipientAddress" && form.elements.sameAddressAsDonor.checked) {
     form.elements.recipientAddress.value = form.elements.donorAddress.value;
   }
@@ -755,6 +800,7 @@ function confirmField(fieldName) {
   updateProgressiveFields();
   recalculate();
   focusNextField(fieldName);
+  return true;
 }
 
 function validateField(fieldName) {
