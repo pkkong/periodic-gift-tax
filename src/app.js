@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=13";
-import { renderDocumentPack } from "./documents.js?v=13";
+} from "./tax.js?v=14";
+import { renderDocumentPack } from "./documents.js?v=14";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");

@@ -1,6 +1,6 @@
 {
-  "name": "2세 증여 도우미",
-  "short_name": "2세 증여",
+  "name": "우리 아기 증여 도우미",
+  "short_name": "아기 증여",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
