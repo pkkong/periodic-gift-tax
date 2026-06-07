@@ -875,7 +875,9 @@ input[readonly] {
 }
 
 input::placeholder {
-  color: #9aa6a0;
+  color: #b0b8c1;
+  font-weight: 700;
+  opacity: 1;
 }
 
 .choice-group {

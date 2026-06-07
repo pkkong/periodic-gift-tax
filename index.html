@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=14" />
+    <link rel="stylesheet" href="./styles.css?v=15" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "14";
+      window.__PROJECT_TAX_VERSION__ = "15";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -183,14 +183,14 @@
               <label class="flow-field" data-field="donorPhone" data-reveal-after="donorAddress">
                 <span>연락처</span>
                 <div class="input-action">
-                  <input autocomplete="tel" inputmode="tel" name="donorPhone" />
+                  <input autocomplete="tel" inputmode="tel" maxlength="13" name="donorPhone" placeholder="010-1234-5678" />
                   <button class="field-next" type="button" data-confirm-field="donorPhone" aria-label="연락처 확인">→</button>
                 </div>
               </label>
               <label class="flow-field" data-field="donorId" data-reveal-after="donorPhone">
                 <span>주민등록번호</span>
                 <div class="input-action">
-                  <input inputmode="numeric" name="donorId" placeholder="생년월일 6자리 + 뒤 첫 자리" />
+                  <input inputmode="numeric" maxlength="14" name="donorId" placeholder="900101-1******" />
                   <button class="field-next" type="button" data-confirm-field="donorId" aria-label="주민등록번호 확인">→</button>
                 </div>
                 <small>앱에서는 일부만 입력해도 진행됩니다. 홈택스 제출 때 전체 번호를 확인하세요.</small>
@@ -241,7 +241,7 @@
               <label class="flow-field" data-field="recipientId" data-reveal-after="guardianName">
                 <span>주민등록번호</span>
                 <div class="input-action">
-                  <input inputmode="numeric" name="recipientId" placeholder="생년월일 6자리 + 뒤 첫 자리" />
+                  <input inputmode="numeric" maxlength="14" name="recipientId" placeholder="240101-3******" />
                   <button class="field-next" type="button" data-confirm-field="recipientId" aria-label="주민등록번호 확인">→</button>
                 </div>
                 <small>홈택스 제출 때 전체 번호를 확인하세요.</small>
@@ -473,6 +473,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=14"></script>
+    <script type="module" src="./src/app.js?v=15"></script>
   </body>
 </html>

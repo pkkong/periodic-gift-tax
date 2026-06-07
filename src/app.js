@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=14";
-import { renderDocumentPack } from "./documents.js?v=14";
+} from "./tax.js?v=15";
+import { renderDocumentPack } from "./documents.js?v=15";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -112,6 +112,7 @@ function bootstrap() {
 function bindEvents() {
   form.addEventListener("input", (event) => {
     markManualRecipientEdit(event);
+    formatStructuredInput(event);
     syncFirstPaymentDate();
     handleConfirmedValueChanges();
     syncRecipientDefaults();
@@ -238,6 +239,38 @@ function markManualRecipientEdit(event) {
   if (target.name === "guardianName") {
     guardianNameEdited = true;
   }
+}
+
+function formatStructuredInput(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) return;
+  if (target.name === "donorPhone") {
+    target.value = formatPhoneDisplay(target.value);
+  }
+  if (target.name === "donorId" || target.name === "recipientId") {
+    target.value = formatResidentIdDisplay(target.value);
+  }
+}
+
+function formatPhoneDisplay(value) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.startsWith("02")) {
+    const localDigits = digits.slice(0, 10);
+    if (localDigits.length <= 2) return localDigits;
+    if (localDigits.length <= 6) return `${localDigits.slice(0, 2)}-${localDigits.slice(2)}`;
+    return `${localDigits.slice(0, 2)}-${localDigits.slice(2, -4)}-${localDigits.slice(-4)}`;
+  }
+
+  const mobileDigits = digits.slice(0, 11);
+  if (mobileDigits.length <= 3) return mobileDigits;
+  if (mobileDigits.length <= 7) return `${mobileDigits.slice(0, 3)}-${mobileDigits.slice(3)}`;
+  return `${mobileDigits.slice(0, 3)}-${mobileDigits.slice(3, 7)}-${mobileDigits.slice(7)}`;
+}
+
+function formatResidentIdDisplay(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 13);
+  if (digits.length <= 6) return digits;
+  return `${digits.slice(0, 6)}-${digits.slice(6)}`;
 }
 
 function handleSameAddressChange() {
@@ -488,6 +521,9 @@ function readForm() {
 function fillForm(input) {
   const normalized = normalizeInput(input);
   guardianNameEdited = Boolean(normalized.guardianName && normalized.guardianName !== normalized.donorName);
+  normalized.donorPhone = formatPhoneDisplay(normalized.donorPhone);
+  normalized.donorId = formatResidentIdDisplay(normalized.donorId);
+  normalized.recipientId = formatResidentIdDisplay(normalized.recipientId);
   for (const [key, value] of Object.entries(normalized)) {
     const element = form.elements[key];
     if (!element) continue;
