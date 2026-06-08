@@ -7,11 +7,12 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=29";
-import { renderDocumentPack } from "./documents.js?v=29";
+} from "./tax.js?v=30";
+import { renderDocumentPack } from "./documents.js?v=30";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
+const DEFAULT_PERIODIC_MONTHS = 120;
 const form = document.querySelector("#giftForm");
 const storageStatus = document.querySelector("#storageStatus");
 const resultCards = document.querySelector("#resultCards");
@@ -236,6 +237,9 @@ function handleFormValueChange(event) {
   handleConfirmedValueChanges();
   syncRecipientDefaults();
   updateModeUi();
+  if (currentStep().key === "giftMode" || currentStep().key === "amount") {
+    setRecommendedAmountDefaults();
+  }
   updateProgressiveFields();
   recalculate();
   if (event.type === "change") {
@@ -494,15 +498,39 @@ function updateModeUi() {
 
 function setRecommendedAmountDefaults() {
   const input = readForm();
-  if (input.giftMode === "periodic" && !form.elements.totalMonths.value) {
-    form.elements.totalMonths.value = "120";
+  const safeLimit = getSafeAssessmentLimit(input);
+  if (input.giftMode === "periodic") {
+    setRecommendedNumericValue(form.elements.totalMonths, DEFAULT_PERIODIC_MONTHS, "totalMonths");
+    const monthlyInput = readForm();
+    const recommendedMonthly = calculateRecommendedMonthly(monthlyInput, safeLimit);
+    setRecommendedNumericValue(form.elements.monthlyAmount, recommendedMonthly, "monthlyAmount");
+    return;
   }
+
+  setRecommendedNumericValue(form.elements.lumpSumAmount, calculateRecommendedLumpSum(safeLimit), "lumpSumAmount");
+}
+
+function setRecommendedNumericValue(element, value, fieldName) {
+  if (!(element instanceof HTMLInputElement)) return;
+  const recommendedValue = String(Math.max(0, Math.floor(Number(value) || 0)));
+  if (recommendedValue === "0") return;
+
+  const previousRecommendedValue = element.dataset.recommendedValue ?? "";
+  const currentValue = element.value.trim();
+  if (currentValue && currentValue !== previousRecommendedValue) return;
+
+  if (currentValue !== recommendedValue) {
+    element.value = recommendedValue;
+    clearConfirmedField(fieldName);
+  }
+  element.dataset.recommendedValue = recommendedValue;
 }
 
 function calculateRecommendedMonthly(input, safeLimit) {
-  const baseInput = { ...input, giftMode: "periodic", totalMonths: 120 };
+  const totalMonths = Math.max(1, input.totalMonths || DEFAULT_PERIODIC_MONTHS);
+  const baseInput = { ...input, giftMode: "periodic", totalMonths };
   let low = 0;
-  let high = Math.max(1, Math.ceil(safeLimit / 120));
+  let high = Math.max(1, Math.ceil(safeLimit / totalMonths));
   while (calculateValuation({ ...baseInput, monthlyAmount: high }).assessedValue <= safeLimit) {
     high *= 2;
   }
@@ -514,7 +542,12 @@ function calculateRecommendedMonthly(input, safeLimit) {
       high = mid;
     }
   }
-  return Math.floor(low / 1000) * 1000;
+  const rounded = Math.floor(low / 1000) * 1000;
+  return rounded > 0 ? rounded : low;
+}
+
+function calculateRecommendedLumpSum(safeLimit) {
+  return Math.max(0, Math.floor(safeLimit));
 }
 
 function scrollToTop() {
@@ -549,13 +582,14 @@ function renderSafeBriefing(input, tax) {
 function renderModeHints(input) {
   const safeLimit = getSafeAssessmentLimit(input);
   const recommendedMonthly = calculateRecommendedMonthly(input, safeLimit);
+  const recommendedLumpSum = calculateRecommendedLumpSum(safeLimit);
   modeHint.textContent = input.giftMode === "lump_sum"
-    ? `${formatLimit(safeLimit)} 안에서 한 번에 보내는 기준으로 볼게요.`
+    ? `추천 금액은 ${formatWon(recommendedLumpSum)}이에요.`
     : `10년 동안 매월 약 ${formatWon(recommendedMonthly)}까지 맞출 수 있어요.`;
   amountTitle.textContent = input.giftMode === "lump_sum" ? "한 번에 얼마를 보낼까요?" : "매월 얼마를 보낼까요?";
   amountHint.textContent = input.giftMode === "lump_sum"
-    ? `${formatLimit(safeLimit)}을 넘으면 세금이 나올 수 있어요.`
-    : `추천 월 납입액은 약 ${formatWon(recommendedMonthly)}이에요.`;
+    ? `추천 금액 ${formatWon(recommendedLumpSum)}을 넣어뒀어요. 바꿔도 돼요.`
+    : `추천 월 납입액 ${formatWon(recommendedMonthly)}을 넣어뒀어요. 바꿔도 돼요.`;
 }
 
 function renderResults(input, valuation, tax, errors, warnings) {

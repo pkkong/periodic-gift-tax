@@ -61,6 +61,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Safe step explains the no-tax range before asking the gift mode.
 - Gift mode branches one-time gift and monthly periodic gift.
 - Amount step must show the tax-warning override if assessed value exceeds the safe limit.
+- Amount step should prefill recommended amounts when fields are empty or still hold the app-provided recommendation. Do not overwrite user-edited amounts.
 - Result step should summarize expected tax, deadline, next actions, HomeTax filing guidance, calculation basis, and PDF document actions.
 - HomeTax guide belongs on the result screen, not inside the printable PDF pack. Keep auto filing clearly labeled as preparing/not available until a real submission integration exists.
 - HomeTax guidance must separate `prepared by this service` from `must be obtained or verified separately`. Do not merge generated draft documents with external evidence such as family certificates, full resident IDs, transfer records, or prior gift records.
