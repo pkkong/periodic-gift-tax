@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=27" />
+    <link rel="stylesheet" href="./styles.css?v=29" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "27";
+      window.__PROJECT_TAX_VERSION__ = "29";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -189,7 +189,7 @@
               <label class="flow-field" data-field="donorId" data-reveal-after="donorPhone">
                 <span>주민등록번호 앞 7자리</span>
                 <div class="input-action">
-                  <input enterkeyhint="next" inputmode="numeric" maxlength="8" name="donorId" placeholder="900101-1" />
+                  <input enterkeyhint="next" inputmode="numeric" maxlength="14" name="donorId" placeholder="900101-1••••••" />
                   <button class="field-next" type="button" data-confirm-field="donorId" aria-label="주민등록번호 확인">→</button>
                 </div>
                 <small>생년월일 6자리와 뒤 첫 자리만 입력하세요. 홈택스 제출 때 전체 번호를 확인하세요.</small>
@@ -240,7 +240,7 @@
               <label class="flow-field" data-field="recipientId" data-reveal-after="guardianName">
                 <span>주민등록번호 앞 7자리</span>
                 <div class="input-action">
-                  <input enterkeyhint="next" inputmode="numeric" maxlength="8" name="recipientId" placeholder="240101-3" />
+                  <input enterkeyhint="next" inputmode="numeric" maxlength="14" name="recipientId" placeholder="240101-3••••••" />
                   <button class="field-next" type="button" data-confirm-field="recipientId" aria-label="주민등록번호 확인">→</button>
                 </div>
                 <small>생년월일 6자리와 뒤 첫 자리만 입력하세요. 홈택스 제출 때 전체 번호를 확인하세요.</small>
@@ -585,6 +585,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=27"></script>
+    <script type="module" src="./src/app.js?v=29"></script>
   </body>
 </html>

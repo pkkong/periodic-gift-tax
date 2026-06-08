@@ -93,6 +93,7 @@ Manual browser checks:
 - Incomplete form step hides the next button.
 - Name Enter reveals the next input and moves focus.
 - Phone and resident ID hyphen formatting works.
+- Resident ID fields accept only the first seven digits but should display the six hidden trailing digits as a mask, e.g. `900101-1••••••`.
 - Recipient address defaults to donor address.
 - Guardian can be edited.
 - A taxable amount shows a warning and still allows `이대로 결과 보기`.

@@ -7,10 +7,11 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=27";
-import { renderDocumentPack } from "./documents.js?v=27";
+} from "./tax.js?v=29";
+import { renderDocumentPack } from "./documents.js?v=29";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
+const RESIDENT_ID_MASK = "••••••";
 const form = document.querySelector("#giftForm");
 const storageStatus = document.querySelector("#storageStatus");
 const resultCards = document.querySelector("#resultCards");
@@ -139,6 +140,7 @@ function bindEvents() {
   form.addEventListener("change", handleFormValueChange);
   form.addEventListener("beforeinput", handleFormLineBreak);
   form.addEventListener("keydown", handleFormEnterKey);
+  form.addEventListener("keydown", handleResidentIdDeleteKey);
   form.addEventListener("keyup", handleFormEnterKey);
   form.addEventListener("submit", handleFormSubmit);
   form.addEventListener("focusin", trackFocusedFieldControl);
@@ -330,7 +332,7 @@ function handleFormEnterTarget(target) {
 function shouldAdvanceAfterEnterConfirm(fieldName) {
   const step = currentStep().key;
   if (!canAdvanceCurrentStep()) return false;
-  if (step === "donor") return fieldName === "donorId";
+  if (step === "donor") return fieldName === "relationshipType";
   if (step === "recipient") return fieldName === "recipientId";
   if (step === "amount") return fieldName === "totalMonths" || fieldName === "lumpSumAmount";
   return false;
@@ -370,7 +372,11 @@ function formatStructuredInput(event) {
     target.value = formatPhoneDisplay(target.value);
   }
   if (target.name === "donorId" || target.name === "recipientId") {
-    target.value = formatResidentIdDisplay(target.value);
+    const digits = getResidentIdDigits(target.value);
+    const cursorDigits = Number(target.dataset.residentCursorDigits || digits.length);
+    delete target.dataset.residentCursorDigits;
+    target.value = formatResidentIdDisplay(digits);
+    setResidentIdCursor(target, cursorDigits);
   }
 }
 
@@ -390,9 +396,63 @@ function formatPhoneDisplay(value) {
 }
 
 function formatResidentIdDisplay(value) {
-  const digits = value.replace(/\D/g, "").slice(0, 7);
+  const digits = getResidentIdDigits(value);
   if (digits.length <= 6) return digits;
-  return `${digits.slice(0, 6)}-${digits.slice(6)}`;
+  return `${digits.slice(0, 6)}-${digits.slice(6)}${RESIDENT_ID_MASK}`;
+}
+
+function getResidentIdDigits(value) {
+  return String(value ?? "").replace(/\D/g, "").slice(0, 7);
+}
+
+function handleResidentIdDeleteKey(event) {
+  if (event.key !== "Backspace" && event.key !== "Delete") return;
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement) || !isResidentIdField(target)) return;
+
+  const digits = getResidentIdDigits(target.value);
+  const selectionStart = target.selectionStart ?? target.value.length;
+  const selectionEnd = target.selectionEnd ?? selectionStart;
+  const digitStart = countResidentDigitsBefore(target.value, selectionStart);
+  const digitEnd = countResidentDigitsBefore(target.value, selectionEnd);
+  let nextDigits = digits;
+  let nextCursorDigits = digitStart;
+
+  if (digitStart !== digitEnd) {
+    nextDigits = digits.slice(0, digitStart) + digits.slice(digitEnd);
+  } else if (event.key === "Backspace" && digitStart > 0) {
+    nextDigits = digits.slice(0, digitStart - 1) + digits.slice(digitStart);
+    nextCursorDigits = digitStart - 1;
+  } else if (event.key === "Delete" && digitStart < digits.length) {
+    nextDigits = digits.slice(0, digitStart) + digits.slice(digitStart + 1);
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+  target.value = formatResidentIdDisplay(nextDigits);
+  target.dataset.residentCursorDigits = String(nextCursorDigits);
+  setResidentIdCursor(target, nextCursorDigits);
+  target.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function isResidentIdField(element) {
+  return element.name === "donorId" || element.name === "recipientId";
+}
+
+function countResidentDigitsBefore(value, index) {
+  return getResidentIdDigits(String(value).slice(0, index)).length;
+}
+
+function setResidentIdCursor(element, digitCount) {
+  const cursor = digitCount <= 6 ? digitCount : 8;
+  requestAnimationFrame(() => {
+    try {
+      element.setSelectionRange(cursor, cursor);
+    } catch {
+      // Some embedded browsers can reject selection changes on unfocused inputs.
+    }
+  });
 }
 
 function resetTaxOverrideIfNeeded(event) {
@@ -871,7 +931,9 @@ function isAmountOverSafeLimit() {
 }
 
 function isDonorComplete() {
-  return ["donorName", "donorAddress", "donorPhone", "donorId"].every((field) => confirmedFields.has(field));
+  return ["donorName", "donorAddress", "donorPhone", "donorId", "relationshipType"].every((field) =>
+    confirmedFields.has(field)
+  );
 }
 
 function isRecipientComplete() {
@@ -957,9 +1019,20 @@ function confirmField(fieldName) {
   }
   syncRecipientDefaults();
   updateProgressiveFields();
+  confirmDefaultRelationshipAfterId(fieldName);
   recalculate();
   focusNextField(fieldName);
   return true;
+}
+
+function confirmDefaultRelationshipAfterId(fieldName) {
+  if (fieldName !== "donorId" || confirmedFields.has("relationshipType")) return;
+  const field = document.querySelector('[data-field="relationshipType"]');
+  const element = form.elements.relationshipType;
+  if (!field || field.hidden || !(element instanceof HTMLSelectElement) || !element.value) return;
+  confirmedFields.add("relationshipType");
+  confirmedValues.set("relationshipType", getFieldValue("relationshipType"));
+  updateProgressiveFields();
 }
 
 function isFieldReadyForAutoConfirm(fieldName) {
@@ -976,6 +1049,9 @@ function isFieldReadyForAutoConfirm(fieldName) {
   }
   if (fieldName === "donorId" || fieldName === "recipientId") {
     return isValidResidentIdInput(element.value);
+  }
+  if (fieldName === "relationshipType") {
+    return Boolean(element.value);
   }
   if (fieldName === "giftDate" || fieldName === "firstPaymentDate") {
     if (!element.value) return false;
@@ -1020,6 +1096,11 @@ function validateField(fieldName) {
       element.focus();
       return false;
     }
+  }
+  if (fieldName === "relationshipType" && !element.value) {
+    showToast("증여 관계를 선택하세요.");
+    element.focus();
+    return false;
   }
   if (fieldName === "giftDate" || fieldName === "firstPaymentDate") {
     const validation = validateGiftInput(readForm());
