@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=24";
-import { renderDocumentPack } from "./documents.js?v=24";
+} from "./tax.js?v=25";
+import { renderDocumentPack } from "./documents.js?v=25";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -22,6 +22,9 @@ const resultLead = document.querySelector("#resultLead");
 const resultNextSteps = document.querySelector("#resultNextSteps");
 const resultFilingMeta = document.querySelector("#resultFilingMeta");
 const resultDocsSummary = document.querySelector("#resultDocsSummary");
+const evidenceSummary = document.querySelector("#evidenceSummary");
+const evidenceList = document.querySelector("#evidenceList");
+const hometaxAssetGuide = document.querySelector("#hometaxAssetGuide");
 const scheduleRows = document.querySelector("#scheduleRows");
 const validationList = document.querySelector("#validationList");
 const deadlineSummary = document.querySelector("#deadlineSummary");
@@ -150,6 +153,7 @@ function bindEvents() {
   form.elements.sameAddressAsDonor.addEventListener("change", handleSameAddressChange);
   document.querySelector("#printButton").addEventListener("click", printDocuments);
   document.querySelector("#printButtonDocuments").addEventListener("click", printDocuments);
+  document.querySelector("#hometaxButton").addEventListener("click", openHometax);
   backButton.addEventListener("click", previousStep);
   nextButton.addEventListener("click", nextStep);
   amountGuard.addEventListener("click", handleAmountGuardClick);
@@ -561,6 +565,8 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
+  renderHometaxGuide(input, valuation, tax);
+
   resultFilingMeta.innerHTML = [
     ["증여 관계", tax.relationshipLabel],
     ["평가 방식", input.giftMode === "periodic" ? "유기정기금 현재가치 평가" : "현금 일시증여 평가"],
@@ -571,8 +577,8 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .join("");
 
   resultDocsSummary.textContent = input.giftMode === "periodic"
-    ? "평가명세서, 신고서 초안, 약정서, 홈택스 체크리스트를 저장해요."
-    : "증여 명세서, 신고서 초안, 확인서, 홈택스 체크리스트를 저장해요.";
+    ? "평가명세서, 신고서 초안, 약정서를 저장해요."
+    : "증여 명세서, 신고서 초안, 현금 증여 확인서를 저장해요.";
 
   scheduleRows.innerHTML = valuation.schedule
     .map(
@@ -590,6 +596,30 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .join("");
 
   renderValidation(input, errors, warnings, tax);
+}
+
+function renderHometaxGuide(input, valuation, tax) {
+  const isPeriodic = input.giftMode === "periodic";
+  const evidenceItems = [
+    "가족관계증명서 또는 기본증명서",
+    "수증자 명의 계좌 이체내역",
+    isPeriodic ? "유기정기금 평가명세서" : "현금 증여 확인서",
+    isPeriodic ? "유기정기금 증여약정서 또는 이체계획" : "증여재산 및 평가명세서 초안"
+  ];
+  if (input.priorSameDonorGiftValue > 0) {
+    evidenceItems.push("최근 10년 동일인 증여 신고내역");
+  }
+  if (tax.payableTax > 0) {
+    evidenceItems.push(`납부 예상세액 ${formatWon(tax.payableTax)} 확인`);
+  }
+
+  evidenceSummary.textContent = isPeriodic
+    ? "정기증여는 약정 사실과 현재가치 평가 근거가 같이 필요해요."
+    : "현금 일시증여는 이체내역과 가족관계, 증여 확인 근거를 같이 준비하세요.";
+  evidenceList.innerHTML = evidenceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  hometaxAssetGuide.textContent = isPeriodic
+    ? `증여재산은 유기정기금 수급권으로 보고 평가액 ${formatWon(valuation.assessedValue)}을 입력하세요.`
+    : `증여재산은 현금으로 보고 증여금액 ${formatWon(valuation.assessedValue)}을 입력하세요.`;
 }
 
 function renderResultBasis(input) {
@@ -680,6 +710,11 @@ function printDocuments() {
   currentStepIndex = STEPS.length - 1;
   renderStep();
   requestAnimationFrame(() => window.print());
+}
+
+function openHometax() {
+  window.open("https://www.hometax.go.kr/", "_blank", "noopener");
+  showToast("홈택스를 열었어요. 자동 신고는 준비중입니다.");
 }
 
 function nextStep() {

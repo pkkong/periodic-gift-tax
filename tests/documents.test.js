@@ -51,4 +51,11 @@ describe("문서 출력", () => {
 
     assert.match(html, /<tr><th>평가방법<\/th><td>유기정기금 현재가치 평가<\/td><\/tr>/);
   });
+
+  it("출력용 서류팩에는 홈택스 입력 체크리스트를 포함하지 않는다", () => {
+    const html = buildDocumentPack();
+
+    assert.doesNotMatch(html, /홈택스 입력 체크리스트/);
+    assert.doesNotMatch(html, /홈택스에서 증여세 정기신고 메뉴/);
+  });
 });

@@ -1337,6 +1337,7 @@ th {
 
 .result-action-card,
 .result-disclosure,
+.hometax-card,
 .pdf-card {
   min-width: 0;
   padding: 18px;
@@ -1375,6 +1376,128 @@ th {
 .result-action-card li {
   color: var(--ink);
   font-weight: 800;
+}
+
+.hometax-card {
+  display: grid;
+  gap: 16px;
+}
+
+.hometax-main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.hometax-main span {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 8px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.hometax-main h3,
+.evidence-box strong {
+  color: var(--ink);
+}
+
+.hometax-main p,
+.evidence-box p,
+.hometax-guide p,
+.guide-note {
+  color: #4e5968;
+  font-size: 0.94rem;
+}
+
+.evidence-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.evidence-box ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.evidence-box li {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.hometax-guide {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.hometax-guide summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.hometax-steps {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0 0;
+  padding-left: 24px;
+}
+
+.hometax-steps li::marker {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.hometax-steps strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+
+.screen-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.screen-guide article {
+  padding: 14px;
+  border-radius: 8px;
+  background: #f2f4f6;
+}
+
+.screen-guide span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.screen-guide strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+
+.screen-guide p,
+.guide-note {
+  margin: 0;
+}
+
+.guide-note {
+  margin-top: 12px;
 }
 
 .result-meta-grid {
@@ -1741,6 +1864,7 @@ input::placeholder {
   .landing-highlight,
   .result-grid.compact,
   .result-meta-grid,
+  .screen-guide,
   .pdf-card {
     grid-template-columns: 1fr;
   }
@@ -1757,6 +1881,7 @@ input::placeholder {
 @media (max-width: 760px) {
   .result-grid.compact,
   .result-meta-grid,
+  .screen-guide,
   .pdf-card {
     grid-template-columns: 1fr;
   }
@@ -2321,6 +2446,7 @@ select {
 
 .result-action-card,
 .result-disclosure,
+.hometax-card,
 .pdf-card {
   border: 0;
   border-radius: 0;
@@ -2328,25 +2454,47 @@ select {
   box-shadow: none;
 }
 
-.result-action-card {
+.result-action-card,
+.hometax-card {
   margin-inline: -28px;
   padding: 28px;
   border-bottom: 12px solid #f2f4f6;
 }
 
 .result-action-card h3,
+.hometax-main h3,
 .pdf-card h3 {
   font-weight: 650;
 }
 
 .result-action-card p,
+.hometax-main p,
+.evidence-box p,
+.hometax-guide p,
 .pdf-card p {
   color: #6b7684;
   font-weight: 400;
 }
 
-.result-action-card li {
+.result-action-card li,
+.evidence-box li {
   font-weight: 500;
+}
+
+.hometax-main {
+  grid-template-columns: 1fr;
+}
+
+.hometax-main .primary {
+  width: 100%;
+}
+
+.evidence-box {
+  background: #f2f4f6;
+}
+
+.screen-guide {
+  grid-template-columns: 1fr;
 }
 
 .pdf-card {
@@ -2391,6 +2539,7 @@ select {
   .result-grid,
   .notice-list,
   .result-action-card,
+  .hometax-card,
   .result-meta-grid,
   .result-disclosure,
   .pdf-card,

@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=24";
+} from "./tax.js?v=25";
 
 /**
  * @typedef {Object} DocumentContext
@@ -27,7 +27,6 @@ export function renderDocumentPack(context) {
       ${renderGiftTaxDraft(input, valuation, tax)}
       ${renderPropertyStatement(input, valuation, tax)}
       ${input.giftMode === "lump_sum" ? renderCashAgreement(input, valuation) : renderAgreement(input, valuation)}
-      ${renderHometaxChecklist(input, valuation, tax, errors, warnings)}
     </article>
   `;
 }
@@ -237,35 +236,6 @@ function renderCashAgreement(input, valuation) {
         <span>증여자: ${escapeHtml(input.donorName) || blank()} (서명)</span>
         <span>법정대리인: ${escapeHtml(input.guardianName || input.donorName) || blank()} (서명)</span>
       </div>
-    </section>
-  `;
-}
-
-function renderHometaxChecklist(input, valuation, tax, errors, warnings) {
-  const issueItems = [...errors, ...warnings].map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-
-  return `
-    <section class="print-page">
-      <h2>홈택스 입력 체크리스트</h2>
-      <ol class="checklist">
-        <li>홈택스에서 증여세 정기신고 메뉴를 선택한다.</li>
-        <li>증여자, 수증자, 법정대리인, 관할세무서 정보를 입력한다.</li>
-        <li>앱에는 주민등록번호 앞 7자리만 입력하므로 홈택스와 법정 신고서에는 증여자ㆍ수증자 전체 주민등록번호를 확인해 입력한다.</li>
-        <li>증여일은 ${formatKoreanDate(input.giftDate) || blank()}로 입력한다.</li>
-        <li>증여재산은 ${input.giftMode === "lump_sum" ? "현금" : "유기정기금 수급권"}으로 기재하고 평가액 ${formatWon(valuation.assessedValue)}를 입력한다.</li>
-        <li>최근 10년 동일인 증여가산액 ${formatWon(tax.aggregatedPriorGiftValue)}와 공제 ${formatWon(tax.deductionApplied)}를 확인한다.</li>
-        <li>산출세액 ${formatWon(tax.calculatedTax)}, 신고세액공제 ${formatWon(tax.filingCredit)}, 납부할 세액 ${formatWon(tax.payableTax)}를 화면 계산값과 대조한다.</li>
-        <li>${input.giftMode === "lump_sum" ? "현금 증여 확인서, 가족관계증명서, 이체내역" : "유기정기금 평가명세서, 증여약정서, 가족관계증명서, 이체계획 또는 이체내역"}을 첨부자료로 준비한다.</li>
-        <li>신고기한 ${formatKoreanDate(tax.filingDeadline) || blank()}까지 신고와 납부를 완료한다.</li>
-      </ol>
-      ${
-        issueItems
-          ? `<h3>입력 확인</h3><ul class="checklist">${issueItems}</ul>`
-          : "<p class=\"doc-footnote\">현재 입력값 기준으로 필수 입력 오류는 없습니다.</p>"
-      }
-      <p class="doc-footnote">
-        홈택스 화면 항목명은 개편될 수 있습니다. 이 체크리스트는 자동 제출을 수행하지 않습니다.
-      </p>
     </section>
   `;
 }

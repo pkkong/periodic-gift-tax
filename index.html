@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=24" />
+    <link rel="stylesheet" href="./styles.css?v=25" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "24";
+      window.__PROJECT_TAX_VERSION__ = "25";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -404,6 +404,72 @@
               </div>
               <ol id="resultNextSteps"></ol>
             </section>
+            <section class="hometax-card">
+              <div class="hometax-main">
+                <div>
+                  <span>자동 신고 준비중</span>
+                  <h3>홈택스에 신고하러 가기</h3>
+                  <p>지금은 자동 입력이나 제출을 하지 않아요. 계산값과 준비물을 보면서 홈택스에 직접 입력하세요.</p>
+                </div>
+                <button class="primary" type="button" id="hometaxButton">홈택스 열기</button>
+              </div>
+              <div class="evidence-box">
+                <strong>첨부자료</strong>
+                <p id="evidenceSummary">준비할 자료를 정리하고 있어요.</p>
+                <ul id="evidenceList"></ul>
+              </div>
+              <details class="hometax-guide" open>
+                <summary>신고 방법 자세히 보기</summary>
+                <ol class="hometax-steps">
+                  <li>
+                    <strong>홈택스에 로그인</strong>
+                    <p>공동인증서나 간편인증으로 로그인하세요. 자녀 명의가 아니라 신고하는 사람의 홈택스 화면에서 시작합니다.</p>
+                  </li>
+                  <li>
+                    <strong>증여세 신고 메뉴로 이동</strong>
+                    <p>상단 메뉴에서 신고/납부, 세금신고, 증여세 순서로 들어가세요. 국세청 안내 기준 경로입니다.</p>
+                  </li>
+                  <li>
+                    <strong>기본세율 정기신고 선택</strong>
+                    <p>증여받은 달의 말일부터 3개월 이내라면 기본세율 적용 증여재산의 정기신고로 진행하세요.</p>
+                  </li>
+                  <li>
+                    <strong>증여자와 수증자 입력</strong>
+                    <p>앱에는 주민등록번호 앞 7자리만 입력했으므로 홈택스에는 전체 주민등록번호와 주소를 다시 확인해 입력하세요.</p>
+                  </li>
+                  <li>
+                    <strong>증여재산 입력</strong>
+                    <p id="hometaxAssetGuide">증여재산 종류와 평가액을 입력하세요.</p>
+                  </li>
+                  <li>
+                    <strong>첨부자료 제출</strong>
+                    <p>PDF로 저장한 신고 준비 서류와 가족관계증명서, 이체내역을 첨부하세요. 홈택스 화면 항목명은 바뀔 수 있습니다.</p>
+                  </li>
+                  <li>
+                    <strong>신고서 제출과 납부</strong>
+                    <p>납부세액이 있으면 신고기한 안에 신고와 납부를 함께 끝내세요.</p>
+                  </li>
+                </ol>
+                <div class="screen-guide">
+                  <article>
+                    <span>화면 1</span>
+                    <strong>신고 메뉴</strong>
+                    <p>신고/납부 → 세금신고 → 증여세</p>
+                  </article>
+                  <article>
+                    <span>화면 2</span>
+                    <strong>신고 유형</strong>
+                    <p>기본세율 적용 증여재산 신고</p>
+                  </article>
+                  <article>
+                    <span>화면 3</span>
+                    <strong>첨부자료</strong>
+                    <p>이체내역과 가족관계 자료 업로드</p>
+                  </article>
+                </div>
+                <p class="guide-note">실제 화면 캡처는 홈택스 로그인 후 화면 기준으로 추가할 예정입니다.</p>
+              </details>
+            </section>
             <section class="result-meta-grid" id="resultFilingMeta" aria-label="신고 요약"></section>
             <div class="notice-list" id="validationList"></div>
             <details class="result-disclosure">
@@ -427,7 +493,7 @@
             <section class="pdf-card">
               <div>
                 <h3>홈택스 신고 준비 PDF</h3>
-                <p id="resultDocsSummary">신고서 초안과 첨부 체크리스트를 PDF로 저장합니다.</p>
+                <p id="resultDocsSummary">신고서 초안과 첨부자료를 PDF로 저장합니다.</p>
               </div>
               <div class="document-actions">
                 <button class="primary" type="button" id="printButton">PDF 저장</button>
@@ -481,7 +547,7 @@
           </article>
           <article>
             <strong>국세청 주요서식 안내</strong>
-            <p>신고서 초안, 평가명세, 약정서, 홈택스 입력 체크리스트를 PDF 저장용으로 만듭니다.</p>
+            <p>신고서 초안, 평가명세, 약정서 또는 확인서를 PDF 저장용으로 만듭니다. 홈택스 신고 방법은 결과 화면에서 안내합니다.</p>
           </article>
         </div>
       </div>
@@ -503,6 +569,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=24"></script>
+    <script type="module" src="./src/app.js?v=25"></script>
   </body>
 </html>

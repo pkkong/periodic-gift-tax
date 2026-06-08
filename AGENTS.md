@@ -61,7 +61,9 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Safe step explains the no-tax range before asking the gift mode.
 - Gift mode branches one-time gift and monthly periodic gift.
 - Amount step must show the tax-warning override if assessed value exceeds the safe limit.
-- Result step should summarize expected tax, deadline, next actions, calculation basis, and PDF document actions.
+- Result step should summarize expected tax, deadline, next actions, HomeTax filing guidance, calculation basis, and PDF document actions.
+- HomeTax guide belongs on the result screen, not inside the printable PDF pack. Keep auto filing clearly labeled as preparing/not available until a real submission integration exists.
+- Printable document pack should contain filing-prep documents only: cover, valuation/cash statement, gift tax draft, property statement draft, and agreement/confirmation. Do not print the HomeTax input checklist.
 
 ## Browser And Mobile Gotchas
 
@@ -93,7 +95,7 @@ Manual browser checks:
 - Recipient address defaults to donor address.
 - Guardian can be edited.
 - A taxable amount shows a warning and still allows `이대로 결과 보기`.
-- Result page can generate/print the document pack.
+- Result page can show the HomeTax filing guide, open HomeTax, and generate/print the document pack.
 - Local save, JSON export/import, and reset still work if those files were touched.
 
 GitHub Pages deployment check after push:
