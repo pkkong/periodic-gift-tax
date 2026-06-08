@@ -52,8 +52,8 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 ## UX Flow Rules
 
 - Intro: landing page, not a form page. Keep scrollable service guidance and bottom start section.
-- Donor step: name -> address -> phone -> partial resident ID -> relationship.
-- Recipient step: name -> address -> guardian -> partial resident ID.
+- Donor step: name -> address -> phone -> first seven resident ID digits -> relationship.
+- Recipient step: name -> address -> guardian -> first seven resident ID digits.
 - Recipient address defaults to donor address when `sameAddressAsDonor` is checked.
 - Guardian defaults to donor name but must remain editable.
 - Account step is strategically important. Keep the recipient-name account check and Toss Securities child-account CTA visible.

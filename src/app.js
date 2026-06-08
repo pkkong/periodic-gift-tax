@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=22";
-import { renderDocumentPack } from "./documents.js?v=22";
+} from "./tax.js?v=23";
+import { renderDocumentPack } from "./documents.js?v=23";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -384,7 +384,7 @@ function formatPhoneDisplay(value) {
 }
 
 function formatResidentIdDisplay(value) {
-  const digits = value.replace(/\D/g, "").slice(0, 13);
+  const digits = value.replace(/\D/g, "").slice(0, 7);
   if (digits.length <= 6) return digits;
   return `${digits.slice(0, 6)}-${digits.slice(6)}`;
 }
@@ -951,7 +951,7 @@ function validateField(fieldName) {
   }
   if (fieldName === "donorId" || fieldName === "recipientId") {
     if (!isValidResidentIdInput(element.value)) {
-      showToast("주민등록번호는 생년월일 6자리와 뒤 첫 자리 또는 전체 번호로 입력하세요.");
+      showToast("주민등록번호는 앞 7자리만 입력하세요.");
       element.focus();
       return false;
     }
@@ -1038,7 +1038,7 @@ function isPlausibleName(value) {
 
 function isValidResidentIdInput(value) {
   const digits = value.replace(/\D/g, "");
-  return /^\d{6}[1-8]$/.test(digits) || /^\d{6}[1-8]\d{6}$/.test(digits);
+  return /^\d{6}[1-8]$/.test(digits);
 }
 
 function isValidPhoneInput(value) {
