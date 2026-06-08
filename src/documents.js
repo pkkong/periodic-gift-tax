@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=26";
+} from "./tax.js?v=27";
 
 /**
  * @typedef {Object} DocumentContext

@@ -38,7 +38,14 @@ body {
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
   line-height: 1.45;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
+}
+
+:where(h1, h2, h3, p, li, span, strong, a, button, label, summary, small) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 body.modal-open {
@@ -342,14 +349,19 @@ h3 {
 .landing-band h2 {
   margin-bottom: 0;
   color: var(--ink);
-  font-size: clamp(2rem, 8vw, 3.6rem);
+  font-size: 2.9rem;
   line-height: 1.12;
 }
 
 .landing-hero h2 {
-  font-size: clamp(2.2rem, 6.4vw, 4rem);
+  font-size: 3.35rem;
   line-height: 1.08;
   letter-spacing: 0;
+}
+
+.hero-title span {
+  display: block;
+  white-space: nowrap;
 }
 
 .landing-band p {
@@ -1997,7 +2009,7 @@ button,
 }
 
 .landing-hero h2 {
-  font-size: clamp(1.68rem, 7vw, 2.12rem);
+  font-size: 1.54rem;
   font-weight: 650;
   line-height: 1.27;
 }
@@ -2043,9 +2055,19 @@ button.primary:hover {
 }
 
 .landing-band h2 {
-  font-size: clamp(1.42rem, 5.8vw, 1.9rem);
+  font-size: 1.54rem;
   font-weight: 650;
   line-height: 1.28;
+}
+
+.landing-hero .hero-title {
+  font-size: 1.54rem;
+}
+
+@media (max-width: 360px) {
+  .landing-hero .hero-title {
+    font-size: 1.26rem;
+  }
 }
 
 .landing-kicker {

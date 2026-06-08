@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=26" />
+    <link rel="stylesheet" href="./styles.css?v=27" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "26";
+      window.__PROJECT_TAX_VERSION__ = "27";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -48,7 +48,10 @@
             <section class="landing-band landing-hero">
               <div class="hero-copy">
                 <p class="landing-kicker">증여세 확인</p>
-                <h2>우리 아기에게 보낼 돈, 세금이 나오는지 확인해볼게요</h2>
+                <h2 class="hero-title">
+                  <span>우리 아기에게 보낼 돈,</span>
+                  <span>세금이 나오는지 확인해볼게요</span>
+                </h2>
                 <p>
                   금액과 기간을 입력하면 예상 세금과 신고 준비물을 보여줘요.
                   입력값은 내 기기에만 남아요.
@@ -582,6 +585,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=26"></script>
+    <script type="module" src="./src/app.js?v=27"></script>
   </body>
 </html>
