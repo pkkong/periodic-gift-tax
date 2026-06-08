@@ -1403,34 +1403,59 @@ th {
 }
 
 .hometax-main h3,
-.evidence-box strong {
+.prep-box strong {
   color: var(--ink);
 }
 
 .hometax-main p,
-.evidence-box p,
+.prep-box p,
 .hometax-guide p,
 .guide-note {
   color: #4e5968;
   font-size: 0.94rem;
 }
 
-.evidence-box {
+.prep-split {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.prep-box {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  min-width: 0;
   padding: 14px;
+  border: 1px solid var(--line);
   border-radius: 8px;
   background: #f8fafc;
 }
 
-.evidence-box ul {
+.prep-box span {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.prep-box.needed span {
+  background: #fff4e5;
+  color: #b25c00;
+}
+
+.prep-box ul {
   display: grid;
   gap: 6px;
   margin: 0;
   padding-left: 20px;
 }
 
-.evidence-box li {
+.prep-box li {
   color: var(--ink);
   font-weight: 700;
 }
@@ -1864,6 +1889,7 @@ input::placeholder {
   .landing-highlight,
   .result-grid.compact,
   .result-meta-grid,
+  .prep-split,
   .screen-guide,
   .pdf-card {
     grid-template-columns: 1fr;
@@ -1881,6 +1907,7 @@ input::placeholder {
 @media (max-width: 760px) {
   .result-grid.compact,
   .result-meta-grid,
+  .prep-split,
   .screen-guide,
   .pdf-card {
     grid-template-columns: 1fr;
@@ -2469,7 +2496,7 @@ select {
 
 .result-action-card p,
 .hometax-main p,
-.evidence-box p,
+.prep-box p,
 .hometax-guide p,
 .pdf-card p {
   color: #6b7684;
@@ -2477,7 +2504,7 @@ select {
 }
 
 .result-action-card li,
-.evidence-box li {
+.prep-box li {
   font-weight: 500;
 }
 
@@ -2489,7 +2516,11 @@ select {
   width: 100%;
 }
 
-.evidence-box {
+.prep-split {
+  grid-template-columns: 1fr;
+}
+
+.prep-box {
   background: #f2f4f6;
 }
 

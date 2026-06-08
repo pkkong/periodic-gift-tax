@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=25";
-import { renderDocumentPack } from "./documents.js?v=25";
+} from "./tax.js?v=26";
+import { renderDocumentPack } from "./documents.js?v=26";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const form = document.querySelector("#giftForm");
@@ -22,8 +22,10 @@ const resultLead = document.querySelector("#resultLead");
 const resultNextSteps = document.querySelector("#resultNextSteps");
 const resultFilingMeta = document.querySelector("#resultFilingMeta");
 const resultDocsSummary = document.querySelector("#resultDocsSummary");
-const evidenceSummary = document.querySelector("#evidenceSummary");
-const evidenceList = document.querySelector("#evidenceList");
+const preparedSummary = document.querySelector("#preparedSummary");
+const preparedList = document.querySelector("#preparedList");
+const neededSummary = document.querySelector("#neededSummary");
+const neededList = document.querySelector("#neededList");
 const hometaxAssetGuide = document.querySelector("#hometaxAssetGuide");
 const scheduleRows = document.querySelector("#scheduleRows");
 const validationList = document.querySelector("#validationList");
@@ -600,26 +602,54 @@ function renderResults(input, valuation, tax, errors, warnings) {
 
 function renderHometaxGuide(input, valuation, tax) {
   const isPeriodic = input.giftMode === "periodic";
-  const evidenceItems = [
-    "가족관계증명서 또는 기본증명서",
-    "수증자 명의 계좌 이체내역",
-    isPeriodic ? "유기정기금 평가명세서" : "현금 증여 확인서",
-    isPeriodic ? "유기정기금 증여약정서 또는 이체계획" : "증여재산 및 평가명세서 초안"
+  const preparedItems = [
+    "증여세 과세표준신고 및 자진납부계산서 초안",
+    "증여재산 및 평가명세서 초안",
+    isPeriodic ? "유기정기금 평가명세서" : "현금 증여 명세서",
+    isPeriodic ? "유기정기금 증여약정서" : "현금 증여 확인서",
+    `증여재산 평가액 ${formatWon(valuation.assessedValue)}`,
+    `신고기한 ${formatKoreanDate(tax.filingDeadline)}`
   ];
+  const neededItems = [
+    "가족관계증명서 또는 기본증명서",
+    "증여자와 수증자의 전체 주민등록번호",
+    "수증자 명의 계좌 이체내역",
+    "수증자 주소와 관할세무서 확인",
+    "최근 10년 동일인 증여 신고·결정 내역 확인"
+  ];
+
+  if (isPeriodic) {
+    neededItems.push("첫 이체내역 또는 실제 이체계획");
+  } else {
+    neededItems.push("현금 이체일과 증여일 일치 여부 확인");
+  }
+  if (input.recipientHasAccount !== "yes" && !input.accountReady) {
+    neededItems.unshift("수증자 명의 계좌 개설");
+  }
   if (input.priorSameDonorGiftValue > 0) {
-    evidenceItems.push("최근 10년 동일인 증여 신고내역");
+    preparedItems.push("입력한 10년 내 동일인 증여가산액 반영");
+    neededItems.push("이전 증여 신고서 또는 홈택스 결정정보 대조");
+  }
+  if (tax.generationSkippingRate > 0) {
+    preparedItems.push(`세대생략 할증 ${Math.round(tax.generationSkippingRate * 100)}% 반영`);
+    neededItems.push("손자녀 증여 관계를 확인할 가족관계 자료");
   }
   if (tax.payableTax > 0) {
-    evidenceItems.push(`납부 예상세액 ${formatWon(tax.payableTax)} 확인`);
+    preparedItems.push(`예상 납부세액 ${formatWon(tax.payableTax)}`);
+    neededItems.push("납부 수단과 납부 가능 시간 확인");
   }
 
-  evidenceSummary.textContent = isPeriodic
-    ? "정기증여는 약정 사실과 현재가치 평가 근거가 같이 필요해요."
-    : "현금 일시증여는 이체내역과 가족관계, 증여 확인 근거를 같이 준비하세요.";
-  evidenceList.innerHTML = evidenceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-  hometaxAssetGuide.textContent = isPeriodic
-    ? `증여재산은 유기정기금 수급권으로 보고 평가액 ${formatWon(valuation.assessedValue)}을 입력하세요.`
-    : `증여재산은 현금으로 보고 증여금액 ${formatWon(valuation.assessedValue)}을 입력하세요.`;
+  preparedSummary.textContent = isPeriodic
+    ? "정기증여 계산값과 유기정기금 서류 초안을 만들어줘요."
+    : "현금 일시증여 신고서 초안과 확인서를 만들어줘요.";
+  neededSummary.textContent = "공공기관 발급자료와 실제 송금 증빙은 사용자가 직접 준비해야 해요.";
+  preparedList.innerHTML = preparedItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  neededList.innerHTML = neededItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+
+  const assetDetail = isPeriodic
+    ? `증여재산은 유기정기금 수급권으로 보고 평가액 ${formatWon(valuation.assessedValue)}을 입력하세요. 재산 내용에는 매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 지급받을 권리라고 적는 식으로 정리하면 됩니다.`
+    : `증여재산은 현금으로 보고 증여금액 ${formatWon(valuation.assessedValue)}을 입력하세요. 증여일은 실제 이체일과 맞춰 확인하세요.`;
+  hometaxAssetGuide.textContent = `${assetDetail} 증여재산공제는 ${formatWon(tax.deductionApplied)}, 과세표준은 ${formatWon(tax.taxBase)} 기준으로 대조하세요.`;
 }
 
 function renderResultBasis(input) {
