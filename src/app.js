@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=31";
-import { renderDocumentPack } from "./documents.js?v=31";
+} from "./tax.js?v=32";
+import { renderDocumentPack } from "./documents.js?v=32";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -63,6 +63,11 @@ const amountTitle = document.querySelector("#amountTitle");
 const amountHint = document.querySelector("#amountHint");
 const priorGiftFields = document.querySelector("#priorGiftFields");
 const priorGiftHint = document.querySelector("#priorGiftHint");
+const executeTransferTitle = document.querySelector("#executeTransferTitle");
+const executeSummary = document.querySelector("#executeSummary");
+const executeTransferNote = document.querySelector("#executeTransferNote");
+const executeAccountButton = document.querySelector("#executeAccountButton");
+const hometaxFlowSummary = document.querySelector("#hometaxFlowSummary");
 
 const STEPS = [
   { key: "intro", title: "시작" },
@@ -73,7 +78,9 @@ const STEPS = [
   { key: "safe", title: "무세금 범위" },
   { key: "giftMode", title: "증여 방식" },
   { key: "amount", title: "얼마를 증여할까요?" },
-  { key: "result", title: "신고 준비 결과" }
+  { key: "result", title: "계산 결과" },
+  { key: "execute", title: "송금 실행" },
+  { key: "hometaxFlow", title: "홈택스 신고" }
 ];
 
 const defaultInput = normalizeInput({
@@ -159,6 +166,7 @@ function bindEvents() {
   document.querySelector("#printButton").addEventListener("click", printDocuments);
   document.querySelector("#printButtonDocuments").addEventListener("click", printDocuments);
   document.querySelector("#hometaxButton").addEventListener("click", openHometax);
+  executeAccountButton.addEventListener("click", markAccountReady);
   backButton.addEventListener("click", previousStep);
   nextButton.addEventListener("click", nextStep);
   amountGuard.addEventListener("click", handleAmountGuardClick);
@@ -594,6 +602,7 @@ function renderModeHints(input) {
 
 function renderResults(input, valuation, tax, errors, warnings) {
   renderResultBasis(input);
+  renderExecutionGuide(input, tax);
   const safeLimit = getSafeAssessmentLimit(input);
   const hasErrors = errors.length > 0;
   const hasTax = tax.payableTax > 0;
@@ -642,12 +651,10 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .join("");
 
   resultNextSteps.innerHTML = [
+    "신고 준비 PDF를 저장하세요.",
     input.recipientHasAccount === "yes" || input.accountReady
       ? "받는 분 명의 계좌로 송금하고 이체내역을 저장하세요."
       : "받는 분 명의 계좌를 먼저 준비하세요.",
-    input.giftMode === "periodic"
-      ? `매월 ${formatWon(input.monthlyAmount)}씩 보내는 약정서를 PDF로 저장하세요.`
-      : `${formatWon(input.lumpSumAmount)} 현금 증여 확인서를 PDF로 저장하세요.`,
     `${formatKoreanDate(tax.filingDeadline)}까지 홈택스에서 신고하세요.`
   ]
     .map((item) => `<li>${escapeHtml(item)}</li>`)
@@ -684,6 +691,22 @@ function renderResults(input, valuation, tax, errors, warnings) {
     .join("");
 
   renderValidation(input, errors, warnings, tax);
+}
+
+function renderExecutionGuide(input, tax) {
+  const recipientName = input.recipientName || "받는 분";
+  if (input.giftMode === "periodic") {
+    executeTransferTitle.textContent = `${recipientName} 계좌로 첫 이체를 보내세요`;
+    executeSummary.textContent = `이번 달 ${formatWon(input.monthlyAmount)}을 보내고, 앞으로 매월 같은 금액을 이체하세요.`;
+    executeTransferNote.textContent = `${input.totalMonths.toLocaleString("ko-KR")}개월 정기증여 약정과 첫 이체내역을 함께 보관하세요.`;
+  } else {
+    executeTransferTitle.textContent = `${recipientName} 계좌로 ${formatWon(input.lumpSumAmount)}을 보내세요`;
+    executeSummary.textContent = "실제 증여일과 이체일이 맞는지 확인하고 이체내역을 저장하세요.";
+    executeTransferNote.textContent = "현금 증여 확인서와 수증자 명의 계좌 이체내역을 함께 보관하세요.";
+  }
+  hometaxFlowSummary.textContent = tax.filingDeadline
+    ? `${formatKoreanDate(tax.filingDeadline)}까지 PDF와 이체내역을 보면서 신고하세요.`
+    : "PDF와 이체내역을 보면서 홈택스 신고를 진행하세요.";
 }
 
 function renderHometaxGuide(input, valuation, tax) {
@@ -818,7 +841,7 @@ function fillForm(input) {
 }
 
 function printDocuments() {
-  currentStepIndex = STEPS.length - 1;
+  currentStepIndex = getStepIndex("result");
   renderStep();
   requestAnimationFrame(() => window.print());
 }
@@ -829,8 +852,8 @@ function openHometax() {
 }
 
 function nextStep() {
-  if (currentStep().key === "result") {
-    printDocuments();
+  if (currentStep().key === "hometaxFlow") {
+    openHometax();
     return;
   }
   if (!validateCurrentStep()) return;
@@ -866,12 +889,13 @@ function renderStep() {
   const progressIndex = Math.max(1, currentStepIndex);
   const isIntro = step.key === "intro";
   const isResult = step.key === "result";
-  topbar.hidden = step.key !== "result";
+  const isPostResult = step.key === "result" || step.key === "execute" || step.key === "hometaxFlow";
+  topbar.hidden = !isPostResult;
   wizardProgress.hidden = true;
-  utilityActions.hidden = isIntro || isResult;
-  ruleButton.hidden = step.key !== "result";
+  utilityActions.hidden = isIntro || isPostResult;
+  ruleButton.hidden = !isPostResult;
   wizardNav.classList.toggle("is-intro", isIntro);
-  wizardNav.hidden = isIntro || isResult;
+  wizardNav.hidden = isIntro;
   stepCount.textContent = `${progressIndex} / ${progressTotal}`;
   stepTitle.textContent = step.title;
   progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;
@@ -893,12 +917,18 @@ function getNextButtonText(stepKey) {
   if (stepKey === "safe") return "증여 방식 고르기";
   if (stepKey === "giftMode") return "조건 입력하기";
   if (stepKey === "amount") return "결과 보기";
-  if (stepKey === "result") return "PDF 저장";
+  if (stepKey === "result") return "송금 실행하기";
+  if (stepKey === "execute") return "홈택스 신고하러 가기";
+  if (stepKey === "hometaxFlow") return "홈택스 열기";
   return "다음";
 }
 
 function currentStep() {
   return STEPS[currentStepIndex];
+}
+
+function getStepIndex(stepKey) {
+  return Math.max(0, STEPS.findIndex((step) => step.key === stepKey));
 }
 
 function validateCurrentStep() {
@@ -914,6 +944,10 @@ function validateCurrentStep() {
     return false;
   }
   if (step === "history" && !validatePriorGiftStep()) return false;
+  if (step === "execute" && !form.elements.transferDone.checked) {
+    showToast("아이 계좌로 이체를 완료한 뒤 진행하세요.");
+    return false;
+  }
   if (step === "amount") {
     const validation = validateGiftInput(readForm());
     if (!isAmountComplete()) {
@@ -939,6 +973,7 @@ function canAdvanceCurrentStep() {
   if (step === "account") return form.elements.recipientHasAccount.value === "yes" || form.elements.accountReady.checked;
   if (step === "history") return isPriorGiftStepComplete();
   if (step === "amount") return isAmountComplete() && (!isAmountOverSafeLimit() || amountTaxOverrideApproved);
+  if (step === "execute") return form.elements.transferDone.checked;
   return true;
 }
 

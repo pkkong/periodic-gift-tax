@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=31" />
+    <link rel="stylesheet" href="./styles.css?v=32" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "31";
+      window.__PROJECT_TAX_VERSION__ = "32";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -416,88 +416,6 @@
                 <button type="button" id="printButtonDocuments">인쇄</button>
               </div>
             </section>
-            <section class="hometax-card">
-              <div class="hometax-main">
-                <div>
-                  <span>자동 신고 준비중</span>
-                  <h3>홈택스에 신고하러 가기</h3>
-                  <p>자동 입력은 아직 안 돼요. PDF와 이체내역을 준비한 뒤 직접 신고하세요.</p>
-                </div>
-                <button class="primary" type="button" id="hometaxButton">홈택스 열기</button>
-              </div>
-              <details class="hometax-guide prep-guide">
-                <summary>준비물 자세히 보기</summary>
-                <div class="prep-split">
-                  <article class="prep-box prepared">
-                    <span>이 앱에서 준비</span>
-                    <strong>PDF로 저장할 자료</strong>
-                    <p id="preparedSummary">자동 작성할 자료를 정리하고 있어요.</p>
-                    <ul id="preparedList"></ul>
-                  </article>
-                  <article class="prep-box needed">
-                    <span>직접 챙길 것</span>
-                    <strong>발급하거나 확인할 자료</strong>
-                    <p id="neededSummary">따로 준비할 자료를 정리하고 있어요.</p>
-                    <ul id="neededList"></ul>
-                  </article>
-                </div>
-              </details>
-              <details class="hometax-guide">
-                <summary>신고 방법 자세히 보기</summary>
-                <ol class="hometax-steps">
-                  <li>
-                    <strong>홈택스에 로그인</strong>
-                    <p>공동인증서나 간편인증을 준비하세요. 미성년 자녀 신고는 화면 안내에 따라 법정대리인 정보가 필요할 수 있습니다.</p>
-                  </li>
-                  <li>
-                    <strong>증여세 신고 메뉴로 이동</strong>
-                    <p>국세청 안내 기준 경로는 홈택스 → 신고/납부 → 세금신고 → 증여세입니다.</p>
-                  </li>
-                  <li>
-                    <strong>기본세율 정기신고 선택</strong>
-                    <p>현금 증여와 유기정기금 증여는 특례세율이 아니라면 기본세율 적용 증여재산 신고로 봅니다. 신고기한 안이면 정기신고로 진행하세요.</p>
-                  </li>
-                  <li>
-                    <strong>기본정보 입력</strong>
-                    <p>증여일, 관할세무서, 증여자와 수증자의 성명·전체 주민등록번호·주소를 입력하세요. 앱에는 앞 7자리만 저장하므로 전체 번호는 직접 확인해야 합니다.</p>
-                  </li>
-                  <li>
-                    <strong>증여재산 입력</strong>
-                    <p id="hometaxAssetGuide">증여재산 종류와 평가액을 입력하세요.</p>
-                  </li>
-                  <li>
-                    <strong>공제와 10년 내 증여 확인</strong>
-                    <p>최근 10년 안에 같은 증여자에게 받은 증여가 있으면 합산 여부와 이미 쓴 공제액을 다시 확인하세요. 직계존속은 배우자 증여까지 동일인으로 묶일 수 있습니다.</p>
-                  </li>
-                  <li>
-                    <strong>첨부자료 제출</strong>
-                    <p>앱에서 만든 PDF와 직접 준비한 가족관계 자료, 이체내역을 첨부하세요. 홈택스 화면 항목명은 개편될 수 있으니 화면의 최신 안내를 우선하세요.</p>
-                  </li>
-                  <li>
-                    <strong>신고서 제출과 납부</strong>
-                    <p>제출 전 평가액, 공제액, 산출세액, 신고세액공제, 납부세액을 앱 결과와 대조하세요. 납부세액이 있으면 신고기한 안에 납부까지 끝내세요.</p>
-                  </li>
-                </ol>
-                <div class="screen-guide">
-                  <article>
-                    <span>화면 1</span>
-                    <strong>신고 메뉴</strong>
-                    <p>신고/납부 → 세금신고 → 증여세</p>
-                  </article>
-                  <article>
-                    <span>화면 2</span>
-                    <strong>신고 유형</strong>
-                    <p>기본세율 적용 증여재산 신고</p>
-                  </article>
-                  <article>
-                    <span>화면 3</span>
-                    <strong>첨부자료</strong>
-                    <p>PDF, 이체내역, 가족관계 자료 업로드</p>
-                  </article>
-                </div>
-                <p class="guide-note">실제 화면 캡처는 홈택스 로그인 후 화면 기준으로 추가할 예정입니다.</p>
-              </details>
-            </section>
             <details class="result-disclosure result-detail-disclosure">
               <summary>계산 기준 자세히 보기</summary>
               <div class="result-basis" id="resultBasis" aria-label="계산 기준"></div>
@@ -523,6 +441,121 @@
               </div>
             </details>
             <div id="documentPreview" class="document-preview" aria-label="인쇄용 신고 서류팩"></div>
+          </section>
+
+          <section class="wizard-step" data-step="execute">
+            <div class="entry-step execution-step">
+              <h2 id="executeTransferTitle">아이 계좌로 보내세요</h2>
+              <p id="executeSummary">받는 분 명의 계좌로 송금하고 이체내역을 저장하세요.</p>
+              <section class="execution-card">
+                <span>송금 실행</span>
+                <strong id="executeTransferNote">이체내역은 홈택스 첨부자료로 필요해요.</strong>
+                <label class="same-check transfer-check">
+                  <input name="transferDone" type="checkbox" />
+                  <span>아이 계좌로 이체를 완료했어요</span>
+                </label>
+              </section>
+              <section class="account-product execute-account-card">
+                <div>
+                  <span>아직 아이 계좌가 없다면</span>
+                  <strong>아이 명의 계좌부터 준비하세요</strong>
+                  <p>실제 신고에는 수증자 명의 계좌 이체내역이 가장 깔끔해요.</p>
+                </div>
+                <button class="primary" type="button" id="executeAccountButton">아이 계좌 만들기</button>
+              </section>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="hometaxFlow">
+            <div class="entry-step hometax-flow-step">
+              <h2>자동 신고는 아직 미지원이에요</h2>
+              <p id="hometaxFlowSummary">PDF와 이체내역을 보면서 하나씩 따라 해보세요.</p>
+              <section class="hometax-card">
+                <div class="hometax-main">
+                  <div>
+                    <span>따라하기</span>
+                    <h3>홈택스에 신고하러 가기</h3>
+                    <p>홈택스를 열고 아래 순서대로 입력하세요. 자동 입력이나 제출은 하지 않아요.</p>
+                  </div>
+                  <button class="primary" type="button" id="hometaxButton">홈택스 열기</button>
+                </div>
+                <ol class="action-timeline">
+                  <li>
+                    <span>1</span>
+                    <div>
+                      <strong>회원가입 또는 로그인</strong>
+                      <p>공동인증서나 간편인증을 준비하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>2</span>
+                    <div>
+                      <strong>증여세 신고 메뉴 열기</strong>
+                      <p>신고/납부 → 세금신고 → 증여세로 이동하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>3</span>
+                    <div>
+                      <strong>기본정보와 증여재산 입력</strong>
+                      <p id="hometaxAssetGuide">증여재산 종류와 평가액을 입력하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>4</span>
+                    <div>
+                      <strong>증빙서류 첨부</strong>
+                      <p>PDF, 이체내역, 가족관계 자료를 업로드하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>5</span>
+                    <div>
+                      <strong>제출하고 납부 확인</strong>
+                      <p>제출 전 평가액, 공제액, 납부세액을 다시 대조하세요.</p>
+                    </div>
+                  </li>
+                </ol>
+                <details class="hometax-guide prep-guide">
+                  <summary>준비물 자세히 보기</summary>
+                  <div class="prep-split">
+                    <article class="prep-box prepared">
+                      <span>이 앱에서 준비</span>
+                      <strong>PDF로 저장할 자료</strong>
+                      <p id="preparedSummary">자동 작성할 자료를 정리하고 있어요.</p>
+                      <ul id="preparedList"></ul>
+                    </article>
+                    <article class="prep-box needed">
+                      <span>직접 챙길 것</span>
+                      <strong>발급하거나 확인할 자료</strong>
+                      <p id="neededSummary">따로 준비할 자료를 정리하고 있어요.</p>
+                      <ul id="neededList"></ul>
+                    </article>
+                  </div>
+                </details>
+                <details class="hometax-guide">
+                  <summary>신고 방법 더 자세히 보기</summary>
+                  <div class="screen-guide">
+                    <article>
+                      <span>화면 1</span>
+                      <strong>신고 메뉴</strong>
+                      <p>신고/납부 → 세금신고 → 증여세</p>
+                    </article>
+                    <article>
+                      <span>화면 2</span>
+                      <strong>신고 유형</strong>
+                      <p>기본세율 적용 증여재산 신고</p>
+                    </article>
+                    <article>
+                      <span>화면 3</span>
+                      <strong>첨부자료</strong>
+                      <p>PDF, 이체내역, 가족관계 자료 업로드</p>
+                    </article>
+                  </div>
+                  <p class="guide-note">실제 화면 캡처는 홈택스 로그인 후 화면 기준으로 추가할 예정입니다.</p>
+                </details>
+              </section>
+            </div>
           </section>
         </form>
 
@@ -591,6 +624,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=31"></script>
+    <script type="module" src="./src/app.js?v=32"></script>
   </body>
 </html>
