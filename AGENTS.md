@@ -63,6 +63,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Amount step must show the tax-warning override if assessed value exceeds the safe limit.
 - Amount step should prefill recommended amounts when fields are empty or still hold the app-provided recommendation. Do not overwrite user-edited amounts.
 - Result step should summarize expected tax, deadline, next actions, HomeTax filing guidance, calculation basis, and PDF document actions.
+- Result step should keep the default view short. Show the outcome, three key facts, next actions, PDF save, and HomeTax CTA first; keep preparation lists, HomeTax details, calculation basis, and valuation tables collapsed by default.
 - HomeTax guide belongs on the result screen, not inside the printable PDF pack. Keep auto filing clearly labeled as preparing/not available until a real submission integration exists.
 - HomeTax guidance must separate `prepared by this service` from `must be obtained or verified separately`. Do not merge generated draft documents with external evidence such as family certificates, full resident IDs, transfer records, or prior gift records.
 - Printable document pack should contain filing-prep documents only: cover, valuation/cash statement, gift tax draft, property statement draft, and agreement/confirmation. Do not print the HomeTax input checklist.

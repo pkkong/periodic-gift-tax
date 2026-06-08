@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=30";
-import { renderDocumentPack } from "./documents.js?v=30";
+} from "./tax.js?v=31";
+import { renderDocumentPack } from "./documents.js?v=31";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -623,16 +623,9 @@ function renderResults(input, valuation, tax, errors, warnings) {
       sub: `사용 가능 공제 ${formatWon(tax.availableDeduction)}`
     },
     {
-      label: "과세표준",
-      value: formatWon(tax.taxBase),
-      sub: tax.minimumRuleApplied ? "과세최저한 적용" : `${(tax.rate * 100).toFixed(0)}% 세율`
-    },
-    {
-      label: "납부할 세액",
-      value: formatWon(tax.payableTax),
-      sub: tax.generationSkippingTax > 0
-        ? `할증 포함, 신고공제 ${formatWon(tax.filingCredit)}`
-        : tax.filingCreditApplied ? `신고세액공제 ${formatWon(tax.filingCredit)}` : "신고기한 경과"
+      label: "신고기한",
+      value: tax.filingDeadline ? formatKoreanDate(tax.filingDeadline) : "확인 필요",
+      sub: "홈택스 신고 마감일"
     }
   ];
 
@@ -650,13 +643,12 @@ function renderResults(input, valuation, tax, errors, warnings) {
 
   resultNextSteps.innerHTML = [
     input.recipientHasAccount === "yes" || input.accountReady
-      ? "받는 분 명의 계좌로 돈을 보내고 이체내역을 보관하세요."
-      : "받는 분 명의 계좌를 먼저 준비해주세요.",
+      ? "받는 분 명의 계좌로 송금하고 이체내역을 저장하세요."
+      : "받는 분 명의 계좌를 먼저 준비하세요.",
     input.giftMode === "periodic"
-      ? `매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 보내는 약정서를 준비하세요.`
-      : `${formatWon(input.lumpSumAmount)}을 보낸 내역을 준비하세요.`,
-    `${formatKoreanDate(tax.filingDeadline)}까지 홈택스에 신고하세요.`,
-    "가족관계증명서와 이체내역을 함께 준비하세요."
+      ? `매월 ${formatWon(input.monthlyAmount)}씩 보내는 약정서를 PDF로 저장하세요.`
+      : `${formatWon(input.lumpSumAmount)} 현금 증여 확인서를 PDF로 저장하세요.`,
+    `${formatKoreanDate(tax.filingDeadline)}까지 홈택스에서 신고하세요.`
   ]
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
@@ -666,15 +658,15 @@ function renderResults(input, valuation, tax, errors, warnings) {
   resultFilingMeta.innerHTML = [
     ["증여 관계", tax.relationshipLabel],
     ["평가 방식", input.giftMode === "periodic" ? "유기정기금 현재가치 평가" : "현금 일시증여 평가"],
-    ["신고 기준일", "2026.06.06 확인 기준"],
-    ["세대생략 할증", tax.generationSkippingRate > 0 ? `${(tax.generationSkippingRate * 100).toFixed(0)}% 반영` : "해당 없음"]
+    ["세대생략 할증", tax.generationSkippingRate > 0 ? `${(tax.generationSkippingRate * 100).toFixed(0)}% 반영` : "해당 없음"],
+    ["신고 기준일", "2026.06.06 확인 기준"]
   ]
     .map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`)
     .join("");
 
   resultDocsSummary.textContent = input.giftMode === "periodic"
     ? "평가명세서, 신고서 초안, 약정서를 저장해요."
-    : "증여 명세서, 신고서 초안, 현금 증여 확인서를 저장해요.";
+    : "신고서 초안과 현금 증여 확인서를 저장해요.";
 
   scheduleRows.innerHTML = valuation.schedule
     .map(
@@ -697,19 +689,16 @@ function renderResults(input, valuation, tax, errors, warnings) {
 function renderHometaxGuide(input, valuation, tax) {
   const isPeriodic = input.giftMode === "periodic";
   const preparedItems = [
-    "증여세 과세표준신고 및 자진납부계산서 초안",
-    "증여재산 및 평가명세서 초안",
     isPeriodic ? "유기정기금 평가명세서" : "현금 증여 명세서",
     isPeriodic ? "유기정기금 증여약정서" : "현금 증여 확인서",
-    `증여재산 평가액 ${formatWon(valuation.assessedValue)}`,
-    `신고기한 ${formatKoreanDate(tax.filingDeadline)}`
+    "증여세 신고서 초안",
+    `평가액 ${formatWon(valuation.assessedValue)}`
   ];
   const neededItems = [
     "가족관계증명서 또는 기본증명서",
-    "증여자와 수증자의 전체 주민등록번호",
+    "전체 주민등록번호",
     "수증자 명의 계좌 이체내역",
-    "수증자 주소와 관할세무서 확인",
-    "최근 10년 동일인 증여 신고·결정 내역 확인"
+    "최근 10년 동일인 증여 이력"
   ];
 
   if (isPeriodic) {
@@ -733,10 +722,8 @@ function renderHometaxGuide(input, valuation, tax) {
     neededItems.push("납부 수단과 납부 가능 시간 확인");
   }
 
-  preparedSummary.textContent = isPeriodic
-    ? "정기증여 계산값과 유기정기금 서류 초안을 만들어줘요."
-    : "현금 일시증여 신고서 초안과 확인서를 만들어줘요.";
-  neededSummary.textContent = "공공기관 발급자료와 실제 송금 증빙은 사용자가 직접 준비해야 해요.";
+  preparedSummary.textContent = isPeriodic ? "정기증여 서류 초안을 만들어요." : "일시증여 서류 초안을 만들어요.";
+  neededSummary.textContent = "발급자료와 송금 증빙은 직접 준비해야 해요.";
   preparedList.innerHTML = preparedItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   neededList.innerHTML = neededItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
 
@@ -881,7 +868,7 @@ function renderStep() {
   const isResult = step.key === "result";
   topbar.hidden = step.key !== "result";
   wizardProgress.hidden = true;
-  utilityActions.hidden = isIntro;
+  utilityActions.hidden = isIntro || isResult;
   ruleButton.hidden = step.key !== "result";
   wizardNav.classList.toggle("is-intro", isIntro);
   wizardNav.hidden = isIntro || isResult;

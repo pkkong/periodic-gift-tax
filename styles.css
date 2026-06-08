@@ -1265,7 +1265,7 @@ input::placeholder {
 }
 
 .result-grid.compact {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .metric {
@@ -1330,6 +1330,10 @@ th {
   gap: 8px;
 }
 
+.notice-list:empty {
+  display: none;
+}
+
 .notice {
   padding: 11px 12px;
   border: 1px solid var(--line);
@@ -1392,7 +1396,7 @@ th {
 
 .hometax-card {
   display: grid;
-  gap: 16px;
+  gap: 10px;
 }
 
 .hometax-main {
@@ -1431,6 +1435,10 @@ th {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.prep-guide .prep-split {
+  margin-top: 14px;
 }
 
 .prep-box {
@@ -1580,6 +1588,15 @@ th {
 
 .result-disclosure .table-wrap {
   padding: 0 18px 18px;
+}
+
+.result-detail-disclosure .result-meta-grid,
+.result-detail-disclosure .notice-list {
+  padding: 0 18px 18px;
+}
+
+.result-detail-disclosure .result-basis {
+  padding: 0 18px 12px;
 }
 
 .pdf-card {
@@ -2510,6 +2527,11 @@ select {
   border-bottom: 12px solid #f2f4f6;
 }
 
+.result-disclosure {
+  margin-inline: -28px;
+  border-bottom: 1px solid #eef0f3;
+}
+
 .result-action-card h3,
 .hometax-main h3,
 .pdf-card h3 {
@@ -2538,12 +2560,66 @@ select {
   width: 100%;
 }
 
+.hometax-guide {
+  border-top: 1px solid #eef0f3;
+  padding-top: 0;
+}
+
+.hometax-guide summary,
+.result-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  color: #191f28;
+  font-weight: 600;
+}
+
+.hometax-guide summary {
+  padding: 18px 0;
+}
+
+.result-disclosure summary {
+  padding: 18px 28px;
+}
+
+.hometax-guide summary::-webkit-details-marker,
+.result-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.hometax-guide summary::after,
+.result-disclosure summary::after {
+  content: "›";
+  color: #8b95a1;
+  font-size: 1.25rem;
+  transform: rotate(90deg);
+}
+
+.hometax-guide[open] summary::after,
+.result-disclosure[open] summary::after {
+  transform: rotate(-90deg);
+}
+
 .prep-split {
   grid-template-columns: 1fr;
 }
 
 .prep-box {
   background: #f2f4f6;
+}
+
+.result-detail-disclosure .result-meta-grid,
+.result-detail-disclosure .notice-list {
+  padding: 0 28px 18px;
+}
+
+.result-detail-disclosure .result-basis {
+  padding: 0 28px 12px;
+}
+
+.result-disclosure .table-wrap {
+  padding: 0 28px 18px;
 }
 
 .screen-guide {
@@ -2554,6 +2630,7 @@ select {
   grid-template-columns: 1fr;
   margin-inline: -28px;
   padding: 24px 28px;
+  border-bottom: 12px solid #f2f4f6;
 }
 
 .notice {
