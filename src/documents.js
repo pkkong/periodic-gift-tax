@@ -5,7 +5,7 @@ import {
   TAXABLE_MINIMUM,
   formatKoreanDate,
   formatWon
-} from "./tax.js?v=23";
+} from "./tax.js?v=24";
 
 /**
  * @typedef {Object} DocumentContext
@@ -165,6 +165,10 @@ function renderGiftTaxDraft(input, valuation, tax) {
 }
 
 function renderPropertyStatement(input, valuation, tax) {
+  const valuationMethod = input.giftMode === "lump_sum"
+    ? "현금 일시증여 평가"
+    : "유기정기금 현재가치 평가";
+
   return `
     <section class="print-page">
       <h2>증여재산 및 평가명세서 초안</h2>
@@ -174,7 +178,7 @@ function renderPropertyStatement(input, valuation, tax) {
           <tr><th>소재지/내용</th><td>${input.giftMode === "lump_sum" ? `${formatWon(input.lumpSumAmount)} 현금 증여` : `매월 ${formatWon(input.monthlyAmount)}씩 ${input.totalMonths.toLocaleString("ko-KR")}개월 지급받을 권리`}</td></tr>
           <tr><th>취득 원인</th><td>증여</td></tr>
           <tr><th>평가기준일</th><td>${formatKoreanDate(input.giftDate) || blank()}</td></tr>
-          <tr><th>평가방법</th><td>유기정기금 현재가치 평가</td></tr>
+          <tr><th>평가방법</th><td>${valuationMethod}</td></tr>
           <tr><th>평가액</th><td>${formatWon(valuation.assessedValue)}</td></tr>
           <tr><th>공제 후 과세표준</th><td>${formatWon(tax.taxBase)}</td></tr>
         </tbody>
