@@ -37,7 +37,7 @@ This app should feel like a Toss mobile service, not like a form demo.
 - Use tabular numeric rendering for money/date figures.
 - Avoid decorative card piles. Prefer white screens, list rows, light section dividers, and timeline rows.
 - Do not use raw text glyphs such as `→`, `✓`, `›`, or `->` as visible UI controls. Use real buttons with CSS-drawn icons or natural Korean copy.
-- The wizard has a small inline SVG baby mascot after the landing page. Keep it subtle, soft, and baby-like: round face, cheeks, ears, swaddle, and progress mood changes should support the task without dominating it.
+- The wizard has a small inline SVG baby mascot after the landing page. Keep it subtle, soft, and baby-like: rounded organic face, cheeks, ears, swaddle, and progress mood changes should support the task without dominating it.
 
 ## File Map
 
@@ -91,7 +91,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Relationship labels should be natural Korean copy, e.g. `부모가 미성년 자녀에게`, not ASCII arrows.
 - Money inputs are text inputs with `inputmode="numeric"` so the app can show comma grouping while preserving mobile numeric keyboard behavior.
 - Resident ID fields collect only the first seven digits and display the remaining six hidden digits as mask dots.
-- The baby mascot is inline SVG styled by CSS. It should remain rounded and cute at small mobile sizes, with cheeks/ears/swaddle visible. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the `돌반지 플렉스` state with ring/arm/sparkles visible.
+- The baby mascot is inline SVG styled by CSS. It should remain rounded and cute at small mobile sizes, with cheeks/ears/swaddle visible and soft, slightly organic curves instead of mechanical circles. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the flex visual state with ring/arm/sparkles visible. Mascot copy should not describe the mascot mood, e.g. avoid labels like `처음엔 울상`; use short natural helper copy such as `괜찮아요` or `조금만 더`.
 
 ## Browser And Mobile Gotchas
 
@@ -127,7 +127,7 @@ Manual browser checks:
 - A taxable amount shows a warning and still allows `이대로 결과 보기`.
 - Result page can show the HomeTax filing guide, open HomeTax, and generate/print the document pack.
 - Local save, JSON export/import, and reset still work if those files were touched.
-- Baby mascot is hidden on landing, shows crying/tear on the first wizard step, and reaches `돌반지 플렉스` with visible ring/arm by the HomeTax guided filing step.
+- Baby mascot is hidden on landing, shows crying/tear on the first wizard step, and reaches the final flex visual state with visible ring/arm by the HomeTax guided filing step.
 - Visible UI should not contain raw arrow/check glyphs like `->`, `→`, `✓`, or `›`.
 
 GitHub Pages deployment check after push:

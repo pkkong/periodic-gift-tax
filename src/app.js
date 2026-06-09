@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=38";
-import { renderDocumentPack } from "./documents.js?v=38";
+} from "./tax.js?v=39";
+import { renderDocumentPack } from "./documents.js?v=39";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -985,16 +985,16 @@ function renderBabyMascot(stepKey, progressIndex, progressTotal) {
   if (isIntro) return;
 
   const states = {
-    donor: ["cry", "처음엔 울상", "보내는 분부터 천천히 확인해요."],
-    recipient: ["calm", "조금 안심", "받는 분 정보가 채워지고 있어요."],
-    account: ["calm", "기록 준비", "계좌 흐름까지 잡히고 있어요."],
-    history: ["smile", "공제 확인 중", "이전 증여까지 보면 더 정확해져요."],
-    safe: ["smile", "기준 확인", "세금 없는 범위가 보이기 시작했어요."],
-    giftMode: ["happy", "방식 선택", "한 번에 보낼지 매월 보낼지 정하면 돼요."],
-    amount: ["happy", "거의 다 왔어요", "금액을 넣으면 결과가 바로 나와요."],
-    result: ["proud", "계산 완료", "예상 세금과 신고기한을 확인했어요."],
-    execute: ["proud", "송금 준비", "이체내역만 챙기면 신고 준비가 쉬워져요."],
-    hometaxFlow: ["flex", "돌반지 플렉스", "신고 준비까지 마무리해볼게요."]
+    donor: ["cry", "괜찮아요", "먼저 보내는 분부터 볼게요."],
+    recipient: ["calm", "좋아요", "받는 분도 이어서 확인해요."],
+    account: ["calm", "계좌 확인", "받는 분 명의 계좌가 있으면 좋아요."],
+    history: ["smile", "조금만 더", "최근 10년 기록만 보면 돼요."],
+    safe: ["smile", "기준 확인", "세금 없는 범위를 찾았어요."],
+    giftMode: ["happy", "고르면 돼요", "한 번에, 또는 매월 보낼 수 있어요."],
+    amount: ["happy", "거의 끝", "금액만 넣으면 계산돼요."],
+    result: ["proud", "계산 끝", "이제 할 일만 챙기면 돼요."],
+    execute: ["proud", "이체 확인", "이체내역은 꼭 저장해두세요."],
+    hometaxFlow: ["flex", "다 왔어요", "홈택스에 하나씩 입력하면 돼요."]
   };
   const [mood, stage, text] = states[stepKey] ?? ["smile", `${progressIndex} / ${progressTotal}`, "하나씩 확인하고 있어요."];
   babyMascot.dataset.mood = mood;
