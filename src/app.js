@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=33";
-import { renderDocumentPack } from "./documents.js?v=33";
+} from "./tax.js?v=34";
+import { renderDocumentPack } from "./documents.js?v=34";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -1119,8 +1119,9 @@ function updateProgressiveFields() {
   });
   fieldConfirmButtons.forEach((button) => {
     const field = button.dataset.confirmField;
-    button.classList.toggle("is-confirmed", confirmedFields.has(field));
-    button.textContent = confirmedFields.has(field) ? "✓" : "→";
+    const confirmed = confirmedFields.has(field);
+    button.classList.toggle("is-confirmed", confirmed);
+    button.setAttribute("aria-pressed", String(confirmed));
   });
   updateWizardNavState();
 }

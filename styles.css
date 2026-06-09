@@ -2216,13 +2216,18 @@ button.primary:hover {
 }
 
 .landing-feature-grid article::after {
-  content: "›";
+  content: "";
   grid-column: 3;
   grid-row: 1 / span 2;
   align-self: center;
+  justify-self: end;
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid #b0b8c1;
+  border-right: 2px solid #b0b8c1;
+  border-radius: 1px;
   color: #b0b8c1;
-  font-size: 1.55rem;
-  line-height: 1;
+  transform: rotate(45deg);
 }
 
 .landing-feature-grid span {
@@ -2397,6 +2402,29 @@ select {
   border-radius: 50%;
   background: #f2f4f6;
   font-weight: 600;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0;
+}
+
+.field-next::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-top: 2.5px solid currentColor;
+  border-right: 2.5px solid currentColor;
+  border-radius: 1px;
+  transform: translateX(-2px) rotate(45deg);
+}
+
+.field-next.is-confirmed::before {
+  width: 9px;
+  height: 15px;
+  border-top: 0;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
 }
 
 .date-action .field-next {
@@ -2745,15 +2773,19 @@ select {
 
 .hometax-guide summary::after,
 .result-disclosure summary::after {
-  content: "›";
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid #8b95a1;
+  border-right: 2px solid #8b95a1;
+  border-radius: 1px;
   color: #8b95a1;
-  font-size: 1.25rem;
-  transform: rotate(90deg);
+  transform: rotate(135deg);
 }
 
 .hometax-guide[open] summary::after,
 .result-disclosure[open] summary::after {
-  transform: rotate(-90deg);
+  transform: rotate(-45deg);
 }
 
 .prep-split {

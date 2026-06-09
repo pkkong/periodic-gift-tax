@@ -81,31 +81,31 @@ export const HIGH_VALUE_MINOR_GENERATION_SKIP_THRESHOLD = 2_000_000_000;
 
 export const RELATIONSHIP_TYPES = {
   parent_minor_child: {
-    label: "부모 -> 미성년 자녀",
+    label: "부모가 미성년 자녀에게",
     deduction: MINOR_CHILD_DEDUCTION,
     generationSkipping: false,
     minorRecipient: true
   },
   parent_adult_child: {
-    label: "부모 -> 성년 자녀",
+    label: "부모가 성년 자녀에게",
     deduction: LINEAL_RELATIVE_DEDUCTION,
     generationSkipping: false,
     minorRecipient: false
   },
   adult_child_parent: {
-    label: "성년 자녀 -> 부모",
+    label: "성년 자녀가 부모에게",
     deduction: LINEAL_RELATIVE_DEDUCTION,
     generationSkipping: false,
     minorRecipient: false
   },
   grandparent_minor_grandchild: {
-    label: "조부모 -> 미성년 손자녀",
+    label: "조부모가 미성년 손자녀에게",
     deduction: MINOR_CHILD_DEDUCTION,
     generationSkipping: true,
     minorRecipient: true
   },
   grandparent_adult_grandchild: {
-    label: "조부모 -> 성년 손자녀",
+    label: "조부모가 성년 손자녀에게",
     deduction: LINEAL_RELATIVE_DEDUCTION,
     generationSkipping: true,
     minorRecipient: false
