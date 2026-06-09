@@ -266,102 +266,120 @@ h3 {
 .baby-face {
   position: relative;
   flex: 0 0 auto;
-  width: 58px;
-  height: 58px;
-  border: 1px solid #eef0f3;
-  border-radius: 21px;
-  background:
-    radial-gradient(circle at 34% 64%, rgba(255, 127, 127, 0.18) 0 7px, transparent 8px),
-    radial-gradient(circle at 66% 64%, rgba(255, 127, 127, 0.18) 0 7px, transparent 8px),
-    linear-gradient(145deg, #fff8ef, #ffe6cf);
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #ffffff, #eef6ff);
   box-shadow: 0 10px 24px rgba(49, 130, 246, 0.12);
+  overflow: visible;
   transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
-.baby-hair,
-.baby-eye,
-.baby-mouth,
-.baby-tear,
-.baby-arm,
-.baby-ring {
-  position: absolute;
-  display: block;
+.baby-svg {
+  width: 76px;
+  height: 76px;
+  overflow: visible;
 }
 
-.baby-hair {
-  top: 8px;
-  left: 26px;
-  width: 9px;
-  height: 13px;
-  border-top: 2.5px solid #333d4b;
-  border-left: 2.5px solid #333d4b;
-  border-radius: 9px 0 0;
-  transform: rotate(32deg);
+.mascot-shadow {
+  fill: rgba(49, 130, 246, 0.14);
 }
 
-.baby-eye {
-  top: 25px;
-  width: 5px;
-  height: 7px;
-  border-radius: 50%;
-  background: #333d4b;
-  transition: height 180ms ease, border-radius 180ms ease, transform 180ms ease;
+.mascot-wrap {
+  fill: url(#babyWrap);
+  stroke: #9fcfff;
+  stroke-width: 1.5;
 }
 
-.baby-eye-left {
-  left: 20px;
+.mascot-wrap-fold {
+  fill: none;
+  stroke: rgba(49, 130, 246, 0.32);
+  stroke-linecap: round;
+  stroke-width: 2;
 }
 
-.baby-eye-right {
-  right: 20px;
+.mascot-face {
+  fill: url(#babySkin);
+  stroke: #ffd0ad;
+  stroke-width: 1.5;
 }
 
-.baby-mouth {
-  left: 50%;
-  top: 39px;
-  width: 16px;
-  height: 8px;
-  border-top: 2.5px solid #333d4b;
-  border-radius: 50% 50% 0 0;
-  transform: translateX(-50%);
-  transition: all 180ms ease;
+.mascot-hair {
+  fill: none;
+  stroke: #333d4b;
+  stroke-linecap: round;
+  stroke-width: 3;
 }
 
-.baby-tear {
-  left: 13px;
-  top: 31px;
-  width: 6px;
-  height: 10px;
-  border-radius: 7px 7px 8px 8px;
-  background: #64b5f6;
+.mascot-blush {
+  fill: rgba(255, 127, 127, 0.2);
+}
+
+.mascot-eye-open {
+  fill: #333d4b;
+  opacity: 1;
+  transition: opacity 160ms ease;
+}
+
+.mascot-eye-happy {
+  fill: none;
+  stroke: #333d4b;
+  stroke-linecap: round;
+  stroke-width: 3;
   opacity: 0;
-  transform: rotate(12deg);
-  transition: opacity 180ms ease;
+  transition: opacity 160ms ease;
 }
 
-.baby-arm {
-  right: -4px;
-  top: 31px;
-  width: 17px;
-  height: 9px;
-  border-radius: 999px;
-  background: #ffd8bd;
+.mascot-mouth {
+  fill: none;
+  stroke: #333d4b;
+  stroke-linecap: round;
+  stroke-width: 3;
   opacity: 0;
-  transform: rotate(-28deg);
-  transform-origin: left center;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition: opacity 160ms ease;
 }
 
-.baby-ring {
-  right: -8px;
-  top: 25px;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #f2c94c;
-  border-radius: 50%;
+.mascot-mouth-cry {
+  opacity: 1;
+}
+
+.mascot-tear {
+  fill: #64b5f6;
   opacity: 0;
-  box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.18);
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition: opacity 160ms ease, transform 180ms ease;
+}
+
+.mascot-flex-arm {
+  fill: none;
+  stroke: #ffd0ad;
+  stroke-linecap: round;
+  stroke-width: 8;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 180ms ease;
+}
+
+.mascot-hand {
+  fill: #ffd0ad;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.mascot-ring {
+  fill: none;
+  stroke: url(#babyGold);
+  stroke-width: 4;
+  opacity: 0;
+  filter: drop-shadow(0 2px 4px rgba(242, 183, 5, 0.28));
+  transition: opacity 160ms ease, transform 180ms ease;
+}
+
+.mascot-spark {
+  fill: #ffd84d;
+  opacity: 0;
+  transform-origin: center;
+  transition: opacity 160ms ease, transform 180ms ease;
 }
 
 .baby-mascot-copy {
@@ -403,35 +421,43 @@ h3 {
   word-break: keep-all;
 }
 
-.baby-mascot[data-mood="cry"] .baby-tear {
+.baby-mascot[data-mood="cry"] .mascot-tear {
+  opacity: 1;
+  transform: translateY(2px);
+}
+
+.baby-mascot[data-mood="calm"] .mascot-mouth-cry {
+  opacity: 0;
+}
+
+.baby-mascot[data-mood="calm"] .mascot-mouth-calm {
   opacity: 1;
 }
 
-.baby-mascot[data-mood="calm"] .baby-mouth {
-  width: 14px;
-  height: 2px;
-  border-top: 2.5px solid #333d4b;
-  border-radius: 999px;
+.baby-mascot[data-mood="smile"] .mascot-mouth-cry,
+.baby-mascot[data-mood="happy"] .mascot-mouth-cry,
+.baby-mascot[data-mood="proud"] .mascot-mouth-cry,
+.baby-mascot[data-mood="flex"] .mascot-mouth-cry {
+  opacity: 0;
 }
 
-.baby-mascot[data-mood="smile"] .baby-mouth,
-.baby-mascot[data-mood="happy"] .baby-mouth,
-.baby-mascot[data-mood="proud"] .baby-mouth,
-.baby-mascot[data-mood="flex"] .baby-mouth {
-  top: 35px;
-  width: 18px;
-  height: 10px;
-  border-top: 0;
-  border-bottom: 2.5px solid #333d4b;
-  border-radius: 0 0 999px 999px;
+.baby-mascot[data-mood="smile"] .mascot-mouth-smile,
+.baby-mascot[data-mood="happy"] .mascot-mouth-smile,
+.baby-mascot[data-mood="proud"] .mascot-mouth-smile,
+.baby-mascot[data-mood="flex"] .mascot-mouth-smile {
+  opacity: 1;
 }
 
-.baby-mascot[data-mood="happy"] .baby-eye,
-.baby-mascot[data-mood="proud"] .baby-eye,
-.baby-mascot[data-mood="flex"] .baby-eye {
-  height: 3px;
-  border-radius: 999px;
-  transform: translateY(2px);
+.baby-mascot[data-mood="happy"] .mascot-eye-open,
+.baby-mascot[data-mood="proud"] .mascot-eye-open,
+.baby-mascot[data-mood="flex"] .mascot-eye-open {
+  opacity: 0;
+}
+
+.baby-mascot[data-mood="happy"] .mascot-eye-happy,
+.baby-mascot[data-mood="proud"] .mascot-eye-happy,
+.baby-mascot[data-mood="flex"] .mascot-eye-happy {
+  opacity: 1;
 }
 
 .baby-mascot[data-mood="proud"] .baby-face,
@@ -440,13 +466,23 @@ h3 {
   box-shadow: 0 14px 28px rgba(49, 130, 246, 0.16);
 }
 
-.baby-mascot[data-mood="flex"] .baby-arm,
-.baby-mascot[data-mood="flex"] .baby-ring {
+.baby-mascot[data-mood="flex"] .mascot-flex-arm,
+.baby-mascot[data-mood="flex"] .mascot-hand,
+.baby-mascot[data-mood="flex"] .mascot-ring,
+.baby-mascot[data-mood="flex"] .mascot-spark {
   opacity: 1;
 }
 
-.baby-mascot[data-mood="flex"] .baby-ring {
-  transform: translateY(-2px) rotate(-12deg);
+.baby-mascot[data-mood="flex"] .mascot-ring {
+  transform: translateY(-2px) rotate(-10deg);
+}
+
+.baby-mascot[data-mood="flex"] .mascot-spark-one {
+  transform: scale(1.06);
+}
+
+.baby-mascot[data-mood="flex"] .mascot-spark-two {
+  transform: scale(0.94);
 }
 
 .wizard-form {

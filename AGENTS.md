@@ -37,7 +37,7 @@ This app should feel like a Toss mobile service, not like a form demo.
 - Use tabular numeric rendering for money/date figures.
 - Avoid decorative card piles. Prefer white screens, list rows, light section dividers, and timeline rows.
 - Do not use raw text glyphs such as `→`, `✓`, `›`, or `->` as visible UI controls. Use real buttons with CSS-drawn icons or natural Korean copy.
-- The wizard has a small CSS-drawn baby mascot after the landing page. Keep it subtle: it should support progress feedback, not dominate the tax task.
+- The wizard has a small inline SVG baby mascot after the landing page. Keep it subtle: it should support progress feedback, not dominate the tax task.
 
 ## File Map
 
@@ -91,7 +91,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Relationship labels should be natural Korean copy, e.g. `부모가 미성년 자녀에게`, not ASCII arrows.
 - Money inputs are text inputs with `inputmode="numeric"` so the app can show comma grouping while preserving mobile numeric keyboard behavior.
 - Resident ID fields collect only the first seven digits and display the remaining six hidden digits as mask dots.
-- The baby mascot is CSS-only. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the `돌반지 플렉스` state with ring/arm visible.
+- The baby mascot is inline SVG styled by CSS. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the `돌반지 플렉스` state with ring/arm/sparkles visible.
 
 ## Browser And Mobile Gotchas
 
