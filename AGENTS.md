@@ -11,6 +11,18 @@ This repo is a static GitHub Pages PWA for Korean gift tax filing prep. Treat th
 - Out of scope: HomeTax auto login/submission, tax agent judgment, server storage, dynamic legal update.
 - Privacy rule: do not send personal data to a server. Default state is memory only. Local save and JSON backup happen only when the user asks.
 
+## Handoff Discipline
+
+Keep this manual current. After each meaningful product or technical change, update `AGENTS.md` in the same commit when any of these changed:
+
+- Product decisions, scope, monetization stance, or user-facing flow.
+- UX rules, copy rules, visual system decisions, or interaction patterns.
+- Calculation rules, legal/tax assumptions, document contents, or HomeTax guidance.
+- Browser/mobile gotchas, deployment behavior, cache/versioning behavior, or verification steps.
+- Known pitfalls the user already corrected, especially things that caused repeated feedback.
+
+If no documentation change is needed, say that explicitly in the final response. Do not make future agents rediscover settled decisions from chat history.
+
 ## Quality Bar
 
 This app should feel like a Toss mobile service, not like a form demo.
@@ -24,6 +36,8 @@ This app should feel like a Toss mobile service, not like a form demo.
 - Use Toss-like typography: Pretendard webfont, body around 400, controls around 600, major headings around 650. Do not make the whole UI bold.
 - Use tabular numeric rendering for money/date figures.
 - Avoid decorative card piles. Prefer white screens, list rows, light section dividers, and timeline rows.
+- Do not use raw text glyphs such as `→`, `✓`, `›`, or `->` as visible UI controls. Use real buttons with CSS-drawn icons or natural Korean copy.
+- The wizard has a small CSS-drawn baby mascot after the landing page. Keep it subtle: it should support progress feedback, not dominate the tax task.
 
 ## File Map
 
@@ -35,6 +49,7 @@ This app should feel like a Toss mobile service, not like a form demo.
 - `tests/tax.test.js`: Node test suite for valuation, tax calculation, filing deadline, validation.
 - `assets/baby-gift-hero.png`: landing visual asset.
 - `manifest.webmanifest`, `sw.js`, `icon.svg`: PWA/static hosting assets.
+- `AGENTS.md`: living handoff manual. Update it when decisions or gotchas change.
 
 ## Calculation Rules
 
@@ -52,11 +67,11 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 ## UX Flow Rules
 
 - Intro: landing page, not a form page. Keep scrollable service guidance and bottom start section.
-- Donor step: name -> address -> phone -> first seven resident ID digits -> relationship.
-- Recipient step: name -> address -> guardian -> first seven resident ID digits.
+- Donor step: name, address, phone, first seven resident ID digits, relationship.
+- Recipient step: name, address, guardian, first seven resident ID digits.
 - Recipient address defaults to donor address when `sameAddressAsDonor` is checked.
 - Guardian defaults to donor name but must remain editable.
-- Account step is strategically important. Keep the recipient-name account check and Toss Securities child-account CTA visible.
+- Account step is strategically important but must not look like a Toss or securities affiliate integration until one is real. Current choices are `계좌가 있어요` and `아직 없지만 시뮬레이션할게요`; do not show a Toss Securities child-account CTA in production copy.
 - History step asks whether the same donor gave anything in the last 10 years. It feeds `priorSameDonorGiftValue`, `priorDeductionUsed`, and `priorGiftTaxPaid` into the existing tax engine.
 - Safe step explains the no-tax range before asking the gift mode.
 - Gift mode branches one-time gift and monthly periodic gift.
@@ -69,6 +84,14 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - HomeTax guide belongs on the result screen, not inside the printable PDF pack. Keep auto filing clearly labeled as preparing/not available until a real submission integration exists.
 - HomeTax guidance must separate `prepared by this service` from `must be obtained or verified separately`. Do not merge generated draft documents with external evidence such as family certificates, full resident IDs, transfer records, or prior gift records.
 - Printable document pack should contain filing-prep documents only: cover, valuation/cash statement, gift tax draft, property statement draft, and agreement/confirmation. Do not print the HomeTax input checklist.
+
+## Visual Decisions
+
+- Confirmation controls are empty `<button type="button">` elements with CSS-drawn chevron/check states. Keep accessible names in `aria-label`; do not put visible arrow/check text inside the buttons.
+- Relationship labels should be natural Korean copy, e.g. `부모가 미성년 자녀에게`, not ASCII arrows.
+- Money inputs are text inputs with `inputmode="numeric"` so the app can show comma grouping while preserving mobile numeric keyboard behavior.
+- Resident ID fields collect only the first seven digits and display the remaining six hidden digits as mask dots.
+- The baby mascot is CSS-only. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the `돌반지 플렉스` state with ring/arm visible.
 
 ## Browser And Mobile Gotchas
 
@@ -104,6 +127,8 @@ Manual browser checks:
 - A taxable amount shows a warning and still allows `이대로 결과 보기`.
 - Result page can show the HomeTax filing guide, open HomeTax, and generate/print the document pack.
 - Local save, JSON export/import, and reset still work if those files were touched.
+- Baby mascot is hidden on landing, shows crying/tear on the first wizard step, and reaches `돌반지 플렉스` with visible ring/arm by the HomeTax guided filing step.
+- Visible UI should not contain raw arrow/check glyphs like `->`, `→`, `✓`, or `›`.
 
 GitHub Pages deployment check after push:
 
