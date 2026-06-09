@@ -2798,6 +2798,12 @@ select {
   color: var(--ink);
 }
 
+.account-product > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
 .account-product::before {
   content: "₩";
   position: absolute;
@@ -2815,15 +2821,22 @@ select {
 }
 
 .account-product span {
+  display: block;
   color: #3182f6;
 }
 
 .account-product strong {
+  display: block;
   color: #333d4b;
+  line-height: 1.28;
+  word-break: keep-all;
 }
 
 .account-product p {
+  margin: 0;
   color: #6b7684;
+  line-height: 1.46;
+  word-break: keep-all;
 }
 
 .safe-number {
@@ -2994,7 +3007,12 @@ select {
 }
 
 .execute-account-card {
+  padding-left: 96px;
   border-bottom: 12px solid #f2f4f6;
+}
+
+.execute-account-card::before {
+  left: 36px;
 }
 
 .result-disclosure {

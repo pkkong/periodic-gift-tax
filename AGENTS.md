@@ -92,6 +92,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Money inputs are text inputs with `inputmode="numeric"` so the app can show comma grouping while preserving mobile numeric keyboard behavior.
 - Resident ID fields collect only the first seven digits and display the remaining six hidden digits as mask dots.
 - The baby mascot is inline SVG styled by CSS. It should remain rounded and cute at small mobile sizes, with cheeks/ears/swaddle visible and soft, slightly organic curves instead of mechanical circles. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the flex visual state with ring/arm/sparkles visible. Mascot copy should not describe the mascot mood, e.g. avoid labels like `처음엔 울상`; use short natural helper copy such as `괜찮아요` or `조금만 더`.
+- Account CTA cards use a left pseudo-element icon. Any specialized account card, especially `execute-account-card`, must preserve enough left padding or an explicit icon column so the icon never overlaps the headline or helper text.
 
 ## Browser And Mobile Gotchas
 
