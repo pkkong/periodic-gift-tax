@@ -73,6 +73,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 ## Browser And Mobile Gotchas
 
 - Do not rely on `file://` for final verification. Use a local static server or GitHub Pages.
+- Do not hand users a `file://` link as the working app URL. Safari and Chrome can block ES module imports from local files, so buttons may look dead even though the same file works in the Codex in-app browser. Use the public GitHub Pages URL or a local `http://localhost` static server URL.
 - Safari/Chrome tap reliability depends on real buttons. Keep confirm controls as `<button type="button">`.
 - Keep `input`, `select`, and `textarea` font size at least `16px` to prevent iOS zoom on focus.
 - Keep `enterkeyhint="next"` on progressive inputs.

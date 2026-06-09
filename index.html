@@ -9,14 +9,38 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=34" />
+    <link rel="stylesheet" href="./styles.css?v=35" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "34";
+      window.__PROJECT_TAX_VERSION__ = "35";
+      window.__PROJECT_TAX_PUBLIC_URL__ = "https://pkkong.github.io/periodic-gift-tax/";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()));
+      }
+      if (window.location.protocol === "file:") {
+        document.documentElement.classList.add("is-file-launch");
+        window.addEventListener("DOMContentLoaded", () => {
+          const publicUrl = window.__PROJECT_TAX_PUBLIC_URL__;
+          const startButton = document.querySelector("#introStartButton");
+          const landingStart = document.querySelector("#landingStart");
+          if (landingStart && !document.querySelector("#fileLaunchNotice")) {
+            const notice = document.createElement("p");
+            notice.className = "file-launch-note";
+            notice.id = "fileLaunchNotice";
+            notice.textContent = "Safari와 Chrome에서는 로컬 파일로 실행되지 않아 정식 링크로 열게요.";
+            landingStart.insertBefore(notice, startButton);
+          }
+          if (startButton) {
+            startButton.textContent = "정식 링크로 열기";
+            startButton.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              window.location.href = publicUrl;
+            }, true);
+          }
+        });
       }
     </script>
   </head>
@@ -615,6 +639,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=34"></script>
+    <script type="module" src="./src/app.js?v=35"></script>
   </body>
 </html>
