@@ -106,6 +106,23 @@ describe("유기정기금 평가", () => {
     assert.equal(valuation.schedule.length, 1);
     assert.equal(valuation.schedule[0].yearOffset, 0);
   });
+
+  it("콤마가 들어간 금액 문자열도 숫자로 계산한다", () => {
+    const lumpSumValuation = calculateValuation({
+      giftMode: "lump_sum",
+      giftDate: "2026-06-09",
+      lumpSumAmount: "20,499,999"
+    });
+    const periodicValuation = calculateValuation({
+      giftDate: "2026-06-09",
+      firstPaymentDate: "2026-06-09",
+      monthlyAmount: "196,000",
+      totalMonths: 120
+    });
+
+    assert.equal(lumpSumValuation.assessedValue, 20_499_999);
+    assert.ok(periodicValuation.assessedValue > 0);
+  });
 });
 
 describe("증여세 계산", () => {

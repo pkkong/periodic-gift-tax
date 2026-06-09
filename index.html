@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=32" />
+    <link rel="stylesheet" href="./styles.css?v=33" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "32";
+      window.__PROJECT_TAX_VERSION__ = "33";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
       }
@@ -252,28 +252,19 @@
             <div class="entry-step account-step">
               <h2>받는 분 명의 계좌가 있나요?</h2>
               <p>증여금은 받는 분 명의 계좌로 보내야 기록이 깔끔해요.</p>
-              <article class="account-product">
-                <span>미성년 자녀라면</span>
-                <strong>토스증권 아이 계좌</strong>
-                <p>아이 계좌를 만들고 매월 이체 기록을 남겨요.</p>
-                <button class="primary" id="accountCreateButton" type="button">토스증권 아이 계좌 만들기</button>
-              </article>
               <div class="choice-group" role="radiogroup" aria-label="수증자 계좌 보유 여부">
                 <label class="choice-card">
                   <input checked name="recipientHasAccount" type="radio" value="yes" />
-                  <span>이미 계좌가 있어요</span>
-                  <small>바로 다음으로 넘어가요.</small>
+                  <span>계좌가 있어요</span>
+                  <small>받는 분 명의 계좌로 보낼 예정이에요.</small>
                 </label>
                 <label class="choice-card">
-                  <input name="recipientHasAccount" type="radio" value="no" />
-                  <span>계좌를 만들고 진행할게요</span>
-                  <small>준비 완료를 체크하면 넘어가요.</small>
+                  <input name="recipientHasAccount" type="radio" value="simulate" />
+                  <span>아직 없지만 시뮬레이션할게요</span>
+                  <small>계산과 신고 준비 흐름만 먼저 볼게요.</small>
                 </label>
               </div>
-              <label class="ready-check">
-                <input name="accountReady" type="checkbox" />
-                계좌를 만들었거나 준비했어요.
-              </label>
+              <input name="accountReady" type="checkbox" hidden />
             </div>
           </section>
 
@@ -296,15 +287,15 @@
               <div class="prior-fields" hidden id="priorGiftFields">
                 <label>
                   <span>이전 증여 평가액</span>
-                  <input inputmode="numeric" min="0" name="priorSameDonorGiftValue" placeholder="예: 10000000" type="number" value="0" />
+                  <input inputmode="numeric" name="priorSameDonorGiftValue" placeholder="예: 10,000,000" type="text" value="0" />
                 </label>
                 <label>
                   <span>이미 사용한 공제액</span>
-                  <input inputmode="numeric" min="0" name="priorDeductionUsed" placeholder="예: 5000000" type="number" value="0" />
+                  <input inputmode="numeric" name="priorDeductionUsed" placeholder="예: 5,000,000" type="text" value="0" />
                 </label>
                 <label>
                   <span>이미 낸 증여세</span>
-                  <input inputmode="numeric" min="0" name="priorGiftTaxPaid" placeholder="예: 100000" type="number" value="0" />
+                  <input inputmode="numeric" name="priorGiftTaxPaid" placeholder="예: 100,000" type="text" value="0" />
                 </label>
               </div>
               <p class="mode-hint" id="priorGiftHint">없다면 다음 단계에서 기본 공제 기준으로 보여드려요.</p>
@@ -360,14 +351,14 @@
               <label class="flow-field lump-only" data-field="lumpSumAmount" data-reveal-after="giftDate">
                 <span>증여금액</span>
                 <div class="input-action">
-                  <input enterkeyhint="next" inputmode="numeric" min="1" name="lumpSumAmount" type="number" />
+                  <input enterkeyhint="next" inputmode="numeric" name="lumpSumAmount" type="text" />
                   <button class="field-next" type="button" data-confirm-field="lumpSumAmount" aria-label="증여금액 확인">→</button>
                 </div>
               </label>
               <label class="flow-field periodic-only" data-field="monthlyAmount" data-reveal-after="firstPaymentDate">
                 <span>월 납입액</span>
                 <div class="input-action">
-                  <input enterkeyhint="next" inputmode="numeric" min="1" name="monthlyAmount" required type="number" />
+                  <input enterkeyhint="next" inputmode="numeric" name="monthlyAmount" required type="text" />
                   <button class="field-next" type="button" data-confirm-field="monthlyAmount" aria-label="월 납입액 확인">→</button>
                 </div>
               </label>
@@ -423,7 +414,7 @@
               <div class="notice-list" id="validationList"></div>
             </details>
             <details class="result-disclosure">
-              <summary>현재가치 산출표 보기</summary>
+              <summary id="scheduleSummary">평가 내역 보기</summary>
               <div class="table-wrap">
                 <table>
                   <thead>
@@ -452,7 +443,7 @@
                 <strong id="executeTransferNote">이체내역은 홈택스 첨부자료로 필요해요.</strong>
                 <label class="same-check transfer-check">
                   <input name="transferDone" type="checkbox" />
-                  <span>아이 계좌로 이체를 완료했어요</span>
+                  <span id="transferCheckText">아이 계좌로 이체를 완료했어요</span>
                 </label>
               </section>
               <section class="account-product execute-account-card">
@@ -461,7 +452,7 @@
                   <strong>아이 명의 계좌부터 준비하세요</strong>
                   <p>실제 신고에는 수증자 명의 계좌 이체내역이 가장 깔끔해요.</p>
                 </div>
-                <button class="primary" type="button" id="executeAccountButton">아이 계좌 만들기</button>
+                <button class="primary" type="button" id="executeAccountButton">계좌 준비 완료</button>
               </section>
             </div>
           </section>
@@ -624,6 +615,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=32"></script>
+    <script type="module" src="./src/app.js?v=33"></script>
   </body>
 </html>

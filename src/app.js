@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=32";
-import { renderDocumentPack } from "./documents.js?v=32";
+} from "./tax.js?v=33";
+import { renderDocumentPack } from "./documents.js?v=33";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -30,6 +30,7 @@ const neededSummary = document.querySelector("#neededSummary");
 const neededList = document.querySelector("#neededList");
 const hometaxAssetGuide = document.querySelector("#hometaxAssetGuide");
 const scheduleRows = document.querySelector("#scheduleRows");
+const scheduleSummary = document.querySelector("#scheduleSummary");
 const validationList = document.querySelector("#validationList");
 const deadlineSummary = document.querySelector("#deadlineSummary");
 const documentPreview = document.querySelector("#documentPreview");
@@ -66,6 +67,7 @@ const priorGiftHint = document.querySelector("#priorGiftHint");
 const executeTransferTitle = document.querySelector("#executeTransferTitle");
 const executeSummary = document.querySelector("#executeSummary");
 const executeTransferNote = document.querySelector("#executeTransferNote");
+const transferCheckText = document.querySelector("#transferCheckText");
 const executeAccountButton = document.querySelector("#executeAccountButton");
 const hometaxFlowSummary = document.querySelector("#hometaxFlowSummary");
 
@@ -115,6 +117,14 @@ const taxSensitiveFields = new Set([
   "priorDeductionUsed",
   "priorGiftTaxPaid"
 ]);
+const moneyFieldNames = new Set([
+  "lumpSumAmount",
+  "monthlyAmount",
+  "priorSameDonorGiftValue",
+  "priorDeductionUsed",
+  "priorGiftTaxPaid"
+]);
+const blankWhenZeroMoneyFields = new Set(["lumpSumAmount", "monthlyAmount"]);
 const flowDependencies = {
   donorName: ["donorAddress", "donorPhone", "donorId", "relationshipType"],
   donorAddress: ["donorPhone", "donorId", "relationshipType"],
@@ -172,12 +182,11 @@ function bindEvents() {
   amountGuard.addEventListener("click", handleAmountGuardClick);
   ruleButton.addEventListener("click", () => openOverlay(ruleOverlay));
   document.querySelector("#dataButton").addEventListener("click", () => openOverlay(dataOverlay));
-  accountCreateButton.addEventListener("click", markAccountReady);
+  accountCreateButton?.addEventListener("click", markAccountReady);
   Array.from(form.elements.recipientHasAccount).forEach((radio) => {
     radio.addEventListener("change", () => {
-      if (form.elements.recipientHasAccount.value === "yes") {
-        form.elements.accountReady.checked = true;
-      }
+      updateAccountCta();
+      updateWizardNavState();
     });
   });
   Array.from(form.elements.giftMode).forEach((radio) => {
@@ -380,6 +389,9 @@ function markManualRecipientEdit(event) {
 function formatStructuredInput(event) {
   const target = event.target;
   if (!(target instanceof HTMLInputElement)) return;
+  if (moneyFieldNames.has(target.name)) {
+    formatMoneyInput(target);
+  }
   if (target.name === "donorPhone") {
     target.value = formatPhoneDisplay(target.value);
   }
@@ -390,6 +402,27 @@ function formatStructuredInput(event) {
     target.value = formatResidentIdDisplay(digits);
     setResidentIdCursor(target, cursorDigits);
   }
+}
+
+function formatMoneyInput(target) {
+  const formatted = formatNumberInputDisplay(target.value);
+  if (target.value === formatted) return;
+  target.value = formatted;
+  requestAnimationFrame(() => {
+    const end = target.value.length;
+    target.setSelectionRange(end, end);
+  });
+}
+
+function formatNumberInputDisplay(value, options = {}) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (!digits) return options.keepZero ? "0" : "";
+  return Number(digits).toLocaleString("ko-KR");
+}
+
+function parseNumericInput(value) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
 }
 
 function formatPhoneDisplay(value) {
@@ -520,8 +553,11 @@ function setRecommendedAmountDefaults() {
 
 function setRecommendedNumericValue(element, value, fieldName) {
   if (!(element instanceof HTMLInputElement)) return;
-  const recommendedValue = String(Math.max(0, Math.floor(Number(value) || 0)));
-  if (recommendedValue === "0") return;
+  const recommendedNumber = Math.max(0, Math.floor(Number(value) || 0));
+  if (recommendedNumber === 0) return;
+  const recommendedValue = moneyFieldNames.has(fieldName)
+    ? recommendedNumber.toLocaleString("ko-KR")
+    : String(recommendedNumber);
 
   const previousRecommendedValue = element.dataset.recommendedValue ?? "";
   const currentValue = element.value.trim();
@@ -624,7 +660,11 @@ function renderResults(input, valuation, tax, errors, warnings) {
     {
       label: "평가액",
       value: formatWon(valuation.assessedValue),
-      sub: valuation.capApplied ? "20배 상한 적용" : "현재가치 합계 적용"
+      sub: input.giftMode === "periodic"
+        ? valuation.capApplied
+          ? "20배 상한 적용"
+          : "현재가치 합계 적용"
+        : "현금 일시증여"
     },
     {
       label: "세금 없는 기준",
@@ -654,7 +694,7 @@ function renderResults(input, valuation, tax, errors, warnings) {
     "신고 준비 PDF를 저장하세요.",
     input.recipientHasAccount === "yes" || input.accountReady
       ? "받는 분 명의 계좌로 송금하고 이체내역을 저장하세요."
-      : "받는 분 명의 계좌를 먼저 준비하세요.",
+      : "실제 송금 전 받는 분 명의 계좌를 준비하세요.",
     `${formatKoreanDate(tax.filingDeadline)}까지 홈택스에서 신고하세요.`
   ]
     .map((item) => `<li>${escapeHtml(item)}</li>`)
@@ -689,21 +729,39 @@ function renderResults(input, valuation, tax, errors, warnings) {
       `
     )
     .join("");
+  scheduleSummary.textContent = input.giftMode === "periodic" ? "현재가치 산출표 보기" : "현금 평가 내역 보기";
 
   renderValidation(input, errors, warnings, tax);
 }
 
 function renderExecutionGuide(input, tax) {
   const recipientName = input.recipientName || "받는 분";
+  const isSimulation = input.recipientHasAccount === "simulate" && !input.accountReady;
   if (input.giftMode === "periodic") {
-    executeTransferTitle.textContent = `${recipientName} 계좌로 첫 이체를 보내세요`;
-    executeSummary.textContent = `이번 달 ${formatWon(input.monthlyAmount)}을 보내고, 앞으로 매월 같은 금액을 이체하세요.`;
-    executeTransferNote.textContent = `${input.totalMonths.toLocaleString("ko-KR")}개월 정기증여 약정과 첫 이체내역을 함께 보관하세요.`;
+    executeTransferTitle.textContent = isSimulation
+      ? `${recipientName} 명의 계좌가 필요해요`
+      : `${recipientName} 계좌로 첫 이체를 보내세요`;
+    executeSummary.textContent = isSimulation
+      ? `지금은 매월 ${formatWon(input.monthlyAmount)} 기준으로 신고 흐름만 이어갈게요.`
+      : `이번 달 ${formatWon(input.monthlyAmount)}을 보내고, 앞으로 매월 같은 금액을 이체하세요.`;
+    executeTransferNote.textContent = isSimulation
+      ? "실제 신고 전에는 수증자 명의 계좌와 첫 이체내역을 준비하세요."
+      : `${input.totalMonths.toLocaleString("ko-KR")}개월 정기증여 약정과 첫 이체내역을 함께 보관하세요.`;
   } else {
-    executeTransferTitle.textContent = `${recipientName} 계좌로 ${formatWon(input.lumpSumAmount)}을 보내세요`;
-    executeSummary.textContent = "실제 증여일과 이체일이 맞는지 확인하고 이체내역을 저장하세요.";
-    executeTransferNote.textContent = "현금 증여 확인서와 수증자 명의 계좌 이체내역을 함께 보관하세요.";
+    executeTransferTitle.textContent = isSimulation
+      ? `${recipientName} 명의 계좌가 필요해요`
+      : `${recipientName} 계좌로 ${formatWon(input.lumpSumAmount)}을 보내세요`;
+    executeSummary.textContent = isSimulation
+      ? `지금은 ${formatWon(input.lumpSumAmount)} 일시증여 기준으로 신고 흐름만 이어갈게요.`
+      : "실제 증여일과 이체일이 맞는지 확인하고 이체내역을 저장하세요.";
+    executeTransferNote.textContent = isSimulation
+      ? "실제 신고 전에는 수증자 명의 계좌와 이체내역을 준비하세요."
+      : "현금 증여 확인서와 수증자 명의 계좌 이체내역을 함께 보관하세요.";
   }
+  transferCheckText.textContent = isSimulation
+    ? "시뮬레이션으로 이체 완료 처리할게요"
+    : "아이 계좌로 이체를 완료했어요";
+  executeAccountButton.textContent = "계좌 준비 완료";
   hometaxFlowSummary.textContent = tax.filingDeadline
     ? `${formatKoreanDate(tax.filingDeadline)}까지 PDF와 이체내역을 보면서 신고하세요.`
     : "PDF와 이체내역을 보면서 홈택스 신고를 진행하세요.";
@@ -730,7 +788,7 @@ function renderHometaxGuide(input, valuation, tax) {
     neededItems.push("현금 이체일과 증여일 일치 여부 확인");
   }
   if (input.recipientHasAccount !== "yes" && !input.accountReady) {
-    neededItems.unshift("수증자 명의 계좌 개설");
+    neededItems.unshift("실제 송금 전 수증자 명의 계좌");
   }
   if (input.priorSameDonorGiftValue > 0) {
     preparedItems.push("입력한 10년 내 동일인 증여가산액 반영");
@@ -822,6 +880,11 @@ function fillForm(input) {
     if (!element) continue;
     if (element instanceof HTMLInputElement && element.type === "checkbox") {
       element.checked = Boolean(value);
+    } else if (element instanceof HTMLInputElement && moneyFieldNames.has(key)) {
+      element.value =
+        blankWhenZeroMoneyFields.has(key) && Number(value) <= 0
+          ? ""
+          : formatNumberInputDisplay(value, { keepZero: true });
     } else if (element instanceof HTMLInputElement && element.type === "number" && Number(value) <= 0) {
       element.value = "";
     } else {
@@ -939,13 +1002,12 @@ function validateCurrentStep() {
   if (step === "recipient") {
     if (!isRecipientComplete()) return requireConfirmedFields(["recipientName", "recipientAddress", "guardianName", "recipientId"], "받는 분 정보를 순서대로 확인하세요.");
   }
-  if (step === "account" && form.elements.recipientHasAccount.value === "no" && !form.elements.accountReady.checked) {
-    showToast("받는 분 명의 계좌를 준비한 뒤 진행하세요.");
-    return false;
-  }
   if (step === "history" && !validatePriorGiftStep()) return false;
   if (step === "execute" && !form.elements.transferDone.checked) {
-    showToast("아이 계좌로 이체를 완료한 뒤 진행하세요.");
+    const accountChoice = form.elements.recipientHasAccount.value;
+    showToast(accountChoice === "simulate" && !form.elements.accountReady.checked
+      ? "시뮬레이션으로 진행할지 확인하세요."
+      : "아이 계좌로 이체를 완료한 뒤 진행하세요.");
     return false;
   }
   if (step === "amount") {
@@ -970,7 +1032,7 @@ function canAdvanceCurrentStep() {
   if (step === "intro") return true;
   if (step === "donor") return isDonorComplete();
   if (step === "recipient") return isRecipientComplete();
-  if (step === "account") return form.elements.recipientHasAccount.value === "yes" || form.elements.accountReady.checked;
+  if (step === "account") return Boolean(form.elements.recipientHasAccount.value);
   if (step === "history") return isPriorGiftStepComplete();
   if (step === "amount") return isAmountComplete() && (!isAmountOverSafeLimit() || amountTaxOverrideApproved);
   if (step === "execute") return form.elements.transferDone.checked;
@@ -1004,7 +1066,7 @@ function isAmountComplete() {
 
 function isPriorGiftStepComplete() {
   if (form.elements.priorGiftStatus.value !== "yes") return true;
-  return ["priorSameDonorGiftValue", "priorDeductionUsed", "priorGiftTaxPaid"].every((field) => Number(form.elements[field].value || 0) >= 0);
+  return ["priorSameDonorGiftValue", "priorDeductionUsed", "priorGiftTaxPaid"].every((field) => parseNumericInput(form.elements[field].value) >= 0);
 }
 
 function validatePriorGiftStep() {
@@ -1115,7 +1177,7 @@ function isFieldReadyForAutoConfirm(fieldName) {
     return !validation.errors.some((error) => error.includes("증여일") || error.includes("첫 이체일"));
   }
   if (fieldName === "lumpSumAmount" || fieldName === "monthlyAmount" || fieldName === "totalMonths") {
-    return Number(element.value) > 0;
+    return parseNumericInput(element.value) > 0;
   }
   if (fieldName === "taxOffice") {
     return element.value.trim().length >= 2;
@@ -1167,7 +1229,7 @@ function validateField(fieldName) {
     }
   }
   if (fieldName === "lumpSumAmount" || fieldName === "monthlyAmount" || fieldName === "totalMonths") {
-    if (Number(element.value) <= 0) {
+    if (parseNumericInput(element.value) <= 0) {
       showToast("1 이상의 금액이나 기간을 입력하세요.");
       element.focus();
       return false;
@@ -1249,12 +1311,18 @@ function isValidPhoneInput(value) {
 }
 
 function updateAccountCta() {
-  form.elements.accountReady.checked = form.elements.accountReady.checked || form.elements.recipientHasAccount.value === "yes";
+  const hasAccount = form.elements.recipientHasAccount.value === "yes";
+  if (!hasAccount) {
+    form.elements.accountReady.checked = false;
+  } else {
+    form.elements.accountReady.checked = true;
+  }
 }
 
 function markAccountReady() {
   form.elements.accountReady.checked = true;
   form.elements.recipientHasAccount.value = "yes";
+  recalculate();
   updateProgressiveFields();
   showToast("계좌 준비 완료로 표시했어요.");
 }

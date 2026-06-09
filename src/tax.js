@@ -432,9 +432,15 @@ function stringValue(value) {
 }
 
 function positiveInteger(value) {
-  return Math.max(0, Math.floor(Number(value) || 0));
+  return Math.max(0, Math.floor(numericValue(value)));
 }
 
 function nonNegativeInteger(value) {
-  return Math.max(0, Math.floor(Number(value) || 0));
+  return Math.max(0, Math.floor(numericValue(value)));
+}
+
+function numericValue(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  const numeric = stringValue(value).replace(/[^\d.-]/g, "");
+  return Number(numeric) || 0;
 }

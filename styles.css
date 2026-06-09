@@ -2560,18 +2560,23 @@ select {
   gap: 0;
   margin: 8px -28px 0;
   padding: 12px 28px;
+  background: #ffffff;
   border-top: 12px solid #f2f4f6;
   border-bottom: 12px solid #f2f4f6;
+  box-shadow: none;
 }
 
 .metric {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(max-content, 48%);
   column-gap: 14px;
-  padding: 17px 0;
+  row-gap: 4px;
+  align-items: center;
+  padding: 18px 0;
   border-bottom: 1px solid #eef0f3;
   border-radius: 0;
   background: transparent;
+  box-shadow: none;
 }
 
 .metric:last-child {
@@ -2583,14 +2588,29 @@ select {
   font-weight: 400;
 }
 
+.metric .label {
+  color: #4e5968;
+  font-size: 0.88rem;
+}
+
+.metric .sub {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  color: #8b95a1;
+  font-size: 0.84rem;
+}
+
 .metric .value {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   align-self: center;
+  justify-self: end;
   margin-top: 0;
   color: #191f28;
   font-size: 1.02rem;
   font-weight: 650;
+  text-align: right;
+  word-break: keep-all;
 }
 
 .result-action-card,
