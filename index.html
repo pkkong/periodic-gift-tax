@@ -9,9 +9,9 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=35" />
+    <link rel="stylesheet" href="./styles.css?v=36" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "35";
+      window.__PROJECT_TAX_VERSION__ = "36";
       window.__PROJECT_TAX_PUBLIC_URL__ = "https://pkkong.github.io/periodic-gift-tax/";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
@@ -60,6 +60,22 @@
           <strong id="stepTitle">증여자 정보</strong>
         </div>
         <div class="progress-track"><span id="progressBar"></span></div>
+      </div>
+
+      <div class="baby-mascot" id="babyMascot" hidden aria-live="polite">
+        <div class="baby-face" aria-hidden="true">
+          <span class="baby-hair"></span>
+          <span class="baby-eye baby-eye-left"></span>
+          <span class="baby-eye baby-eye-right"></span>
+          <span class="baby-mouth"></span>
+          <span class="baby-tear"></span>
+          <span class="baby-arm"></span>
+          <span class="baby-ring"></span>
+        </div>
+        <div class="baby-mascot-copy">
+          <span id="babyMascotStage">시작했어요</span>
+          <strong id="babyMascotText">하나씩 확인하면 표정이 밝아져요.</strong>
+        </div>
       </div>
 
       <main>
@@ -639,6 +655,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=35"></script>
+    <script type="module" src="./src/app.js?v=36"></script>
   </body>
 </html>

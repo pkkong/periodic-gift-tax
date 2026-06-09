@@ -7,8 +7,8 @@ import {
   getSafeAssessmentLimit,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=35";
-import { renderDocumentPack } from "./documents.js?v=35";
+} from "./tax.js?v=36";
+import { renderDocumentPack } from "./documents.js?v=36";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -44,6 +44,9 @@ const stepElements = Array.from(document.querySelectorAll(".wizard-step"));
 const progressiveFields = Array.from(document.querySelectorAll("[data-reveal-after]"));
 const fieldConfirmButtons = Array.from(document.querySelectorAll("[data-confirm-field]"));
 const wizardProgress = document.querySelector(".wizard-progress");
+const babyMascot = document.querySelector("#babyMascot");
+const babyMascotStage = document.querySelector("#babyMascotStage");
+const babyMascotText = document.querySelector("#babyMascotText");
 const wizardNav = document.querySelector(".wizard-nav");
 const utilityActions = document.querySelector(".utility-actions");
 const stepCount = document.querySelector("#stepCount");
@@ -962,6 +965,7 @@ function renderStep() {
   stepCount.textContent = `${progressIndex} / ${progressTotal}`;
   stepTitle.textContent = step.title;
   progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;
+  renderBabyMascot(step.key, progressIndex, progressTotal);
   backButton.hidden = isIntro;
   backButton.disabled = isIntro;
   nextButton.textContent = getNextButtonText(step.key);
@@ -972,6 +976,31 @@ function renderStep() {
     updateModeUi();
   }
   updateProgressiveFields();
+}
+
+function renderBabyMascot(stepKey, progressIndex, progressTotal) {
+  if (!babyMascot || !babyMascotStage || !babyMascotText) return;
+  const isIntro = stepKey === "intro";
+  babyMascot.hidden = isIntro;
+  if (isIntro) return;
+
+  const states = {
+    donor: ["cry", "처음엔 울상", "보내는 분부터 천천히 확인해요."],
+    recipient: ["calm", "조금 안심", "받는 분 정보가 채워지고 있어요."],
+    account: ["calm", "기록 준비", "계좌 흐름까지 잡히고 있어요."],
+    history: ["smile", "공제 확인 중", "이전 증여까지 보면 더 정확해져요."],
+    safe: ["smile", "기준 확인", "세금 없는 범위가 보이기 시작했어요."],
+    giftMode: ["happy", "방식 선택", "한 번에 보낼지 매월 보낼지 정하면 돼요."],
+    amount: ["happy", "거의 다 왔어요", "금액을 넣으면 결과가 바로 나와요."],
+    result: ["proud", "계산 완료", "예상 세금과 신고기한을 확인했어요."],
+    execute: ["proud", "송금 준비", "이체내역만 챙기면 신고 준비가 쉬워져요."],
+    hometaxFlow: ["flex", "돌반지 플렉스", "신고 준비까지 마무리해볼게요."]
+  };
+  const [mood, stage, text] = states[stepKey] ?? ["smile", `${progressIndex} / ${progressTotal}`, "하나씩 확인하고 있어요."];
+  babyMascot.dataset.mood = mood;
+  babyMascot.style.setProperty("--mascot-progress", `${Math.min(100, Math.round((progressIndex / progressTotal) * 100))}%`);
+  babyMascotStage.textContent = stage;
+  babyMascotText.textContent = text;
 }
 
 function getNextButtonText(stepKey) {
