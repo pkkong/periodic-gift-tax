@@ -83,11 +83,13 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 
 Captured from the Apps in Toss Console on `2026-06-14 KST`. These rows are Console-uploaded bundles, so the Console bundle/deployment is the source of truth for rollback. Earlier uploads were not committed and tagged at the exact upload moment, so do not claim source-level reproducibility for those builds.
 
+Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.github.io/periodic-gift-tax/` served `window.__PROJECT_TAX_VERSION__ = "40"` from `origin/main` commit `1879898ee49332853935471b24480d12762b3522`. Preserve this source baseline as tags `webapp/v40-public-20260614` and `apps-in-toss/20260610-4-webapp-baseline`. Build `20260610-4` is the closest Apps in Toss Console bundle to this public webapp UX, but it remains a Console bundle reference, not a proven source-rebuildable artifact.
+
 | Build | Created | SDK | Console status | Deployment ID | Rollback note |
 | --- | --- | --- | --- | --- | --- |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
 | `20260612-5` | `2026. 06. 12` | `2.6.1` | `검토 필요` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
-| `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target. PDF save fix candidate. |
+| `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target. PDF save fix candidate; closest Console bundle to the public webapp v40 UX baseline. |
 | `20260610-3` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaeec-baa9-750a-8d0b-451e825324d2` | Superseded UX-preserving candidate. Review button is disabled in Console. |
 | `20260610-2` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaeea-2d57-7bcb-a70c-dd40539b2d5a` | Superseded UX-preserving re-upload candidate. Review button is disabled in Console. |
 | `20260610-1` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eacca-a95e-702e-96cd-ba664f0ee9e5` | Superseded first Apps in Toss candidate. Review button is disabled in Console. |

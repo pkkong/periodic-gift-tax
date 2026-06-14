@@ -163,11 +163,13 @@ intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae
 
 Apps in Toss Console build registry captured on `2026-06-14 KST`:
 
+Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.github.io/periodic-gift-tax/` served `window.__PROJECT_TAX_VERSION__ = "40"` from `origin/main` commit `1879898ee49332853935471b24480d12762b3522`. Preserve this as tags `webapp/v40-public-20260614` and `apps-in-toss/20260610-4-webapp-baseline`. Build `20260610-4` is the closest Apps in Toss Console bundle to this public webapp UX, but it is still a Console bundle reference rather than a source-rebuildable Apps in Toss artifact.
+
 | Build | Deployment ID | Rollback status |
 | --- | --- | --- |
 | `20260613-6` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate; do not use unless explicitly reselected. |
 | `20260612-5` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
-| `20260610-4` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target. |
+| `20260610-4` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target; closest Console bundle to public webapp v40. |
 | `20260610-3` | `019eaeec-baa9-750a-8d0b-451e825324d2` | Superseded; Console review button disabled. |
 | `20260610-2` | `019eaeea-2d57-7bcb-a70c-dd40539b2d5a` | Superseded; Console review button disabled. |
 | `20260610-1` | `019eacca-a95e-702e-96cd-ba664f0ee9e5` | Superseded; Console review button disabled. |
