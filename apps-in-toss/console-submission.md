@@ -70,12 +70,14 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Temporary Console API key names used during upload: `codexupload0610`, `codexux0610`, `codexpdf0610`
 - Cleanup: revoke or delete all temporary keys in the Apps in Toss Console after verifying the candidate.
 
-## Latest Restored Calculator Candidate
+## Current Console Review Target
 
-- Uploaded at: `2026-06-13 KST`
-- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583`
-- Upload memo: `계산기 복원 후보: 현금 일시증여와 매월 정기증여의 평가액, 예상 증여세, 신고기한, 홈택스 준비 순서, PDF 저장을 제공합니다. 자동 신고, 세무 대리, 확정 세액 보증, 서버 저장은 지원하지 않습니다.`
-- Cleanup: revoke or delete the one-time Console API key after verifying the candidate and finishing review submission.
+- Target build: `20260610-4`
+- Uploaded at: `2026-06-10 KST`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019eaf09-214e-7d28-95f2-8a023568ea63`
+- Upload memo: `PDF 저장 수정 후보: 기존 UX는 유지하고 Apps in Toss WebView에서 PDF 저장 버튼이 실제 PDF를 생성해 네이티브 저장/뷰어로 열리도록 수정했습니다.`
+- User correction on `2026-06-14 KST`: the intended rollback/review target is the already uploaded Console build `20260610-4`, not a new `20260613-6` candidate.
+- Superseded candidate: `20260613-6` / `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583` is not the active review target unless the user explicitly changes direction again.
 
 ## Console Review State
 
@@ -92,11 +94,11 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - First logo correction on `2026-06-11 KST`: `console-assets/app-icon-600.png` was changed from a rounded white-card background to a full square white background and uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted. This was still invalid because the logo background cannot be white or transparent.
 - Current logo correction completed on `2026-06-11 KST`: `console-assets/app-icon-source.svg` now renders the in-app baby mascot on a solid brand-blue `#3182f6` background, and `console-assets/app-icon-600.png` is the generated 600 x 600 PNG. The PNG was uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted again. The Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
 - Asset upload preflight for future Console edits: check the official Apps in Toss console registration guide and linked asset guides before upload, then verify dimensions, format, background color, corner shape, and brand/resource restrictions against the current guide.
-- Latest uploaded build before policy correction: `20260610-4`.
-- Build review is not submitted yet. The restored calculator candidate was uploaded on `2026-06-13 KST`; Console lists the latest build as `20260613-6`.
-- Calculation restore on `2026-06-13 KST`: the user decided to challenge the tax-calculator rejection because other Apps in Toss tax calculators appear to be listed. The Apps in Toss miniapp was restored to a calculator experience using the shared `src/tax.js` engine. New local `.ait` build completed, new calculator thumbnail/screenshots were generated, and the restored calculator candidate was uploaded as `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583`. Review risk remains because ChannelTalk previously said tax calculators are not currently allowed regardless of type.
-- Console state on `2026-06-14 KST`: the user restored the Chrome login session. The app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. On the App Release page, build `20260613-6` was visible, the Console push test was sent successfully, and `검토 요청` was enabled, but clicking it showed `앱 정보 검토를 먼저 완료해 주세요`. Build review cannot be submitted until Apps in Toss finishes, cancels, or rejects the pending app-info review.
-- ChannelTalk blocker follow-up on `2026-06-14 KST`: after the release-review block, the agent opened the support widget, selected `미니앱 관련 문의` > `앱 출시 문의` > `상담원 연결`, submitted partner `SOULIB` and miniapp `우리 아기 증여 도우미`, then sent a message requesting app-info cancellation/rejection/unlock or release-review enablement. The message explicitly asked for replies to `kongncompany@naver.com`.
+- Active target build: `20260610-4`.
+- Build review is not submitted yet. On `2026-06-14 KST`, after the user clarified the rollback target, the agent selected `20260610-4`, sent its Console push test successfully, then clicked `검토 요청`. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
+- Superseded calculation restore on `2026-06-13 KST`: a later local `.ait` candidate was uploaded as build `20260613-6`, but the user clarified on `2026-06-14 KST` that this should not be the review target. Do not continue against `20260613-6` unless the user explicitly reselects it.
+- Console state on `2026-06-14 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. Build `20260610-4` is visible and its `검토 요청` button is enabled, but release review remains blocked until Apps in Toss finishes, cancels, or rejects the pending app-info review.
+- ChannelTalk blocker follow-up on `2026-06-14 KST`: the initial blocker message incorrectly referenced `20260613-6`; a correction was then sent saying the target is `20260610-4` / deployment `019eaf09-214e-7d28-95f2-8a023568ea63`, that its Console push test was sent, and that its review request is blocked by pending app-info review. The message explicitly asked for replies to `kongncompany@naver.com`.
 - Mac/device test environment on `2026-06-13 KST`: official sandbox testing was checked. This Mac has only Command Line Tools, not full Xcode/Simulator (`xcrun simctl` unavailable), and Android `adb` is not installed. Opening the `intoss-private://` scheme on macOS fails because no Toss protocol handler is installed. Therefore the remaining real Toss app/sandbox execution needs a logged-in mobile Toss app, iOS Simulator with the sandbox app installed, or Android device/emulator with `adb`.
 - Local automated WebView QA passed on `2026-06-13 KST` against `http://127.0.0.1:5173/` in headless Chrome at 390px: one-time 10,000,000 KRW sample showed `예상 납부세액 0원`, one-time 50,000,000 KRW sample showed `2,910,000원`, no horizontal overflow was detected, PDF preview contained `증여세 신고 준비`, PDF save fallback showed `PDF 저장을 열었어요.`, and no browser console errors were captured.
 - Challenge application form submitted on `2026-06-11 KST`. The success page showed `답변을 제출했어요`.
@@ -120,6 +122,16 @@ ChannelTalk blocker message sent on `2026-06-14 KST`:
 현재 앱 정보가 '검토 중이에요' 상태라 앱 출시 화면에서 최신 빌드 20260613-6 검토 요청을 누르면 '앱 정보 검토를 먼저 완료해 주세요' 모달이 떠서 제출이 막힙니다. 최신 빌드는 intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583 이고, 콘솔 푸시 테스트까지 발송했습니다.
 
 사용자 요청으로 계산기 복원 후보를 정확한 설명으로 재검토받으려 합니다. 현재 검토 중인 앱 정보를 취소/반려 처리해 수정 가능 상태로 열어주시거나, 최신 빌드 검토 요청이 가능하도록 조치 부탁드립니다. 회신은 kongncompany@naver.com 로 부탁드립니다.
+```
+
+ChannelTalk correction message sent on `2026-06-14 KST`:
+
+```text
+정정드립니다. 위 메시지의 검토 요청 대상 빌드는 20260613-6이 아니라 기존 후보 20260610-4입니다.
+
+검토 대상은 20260610-4 / intoss-private://baby-gift-tax-helper?_deploymentId=019eaf09-214e-7d28-95f2-8a023568ea63 입니다. 방금 이 버전으로 콘솔 푸시 테스트를 다시 발송했고, 20260610-4 행의 검토 요청을 눌렀지만 동일하게 '앱 정보 검토를 먼저 완료해 주세요' 모달로 막혔습니다.
+
+따라서 현재 요청은 20260610-4 빌드 검토 요청이 가능하도록 앱 정보 검토를 완료/취소/반려 처리해 주시거나 수정 가능 상태로 열어달라는 내용입니다. 회신은 kongncompany@naver.com 로 부탁드립니다.
 ```
 
 ## Review Notes
