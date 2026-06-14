@@ -161,6 +161,19 @@ Superseded candidate uploaded on `2026-06-13 KST` but no longer the active revie
 intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583
 ```
 
+Apps in Toss Console build registry captured on `2026-06-14 KST`:
+
+| Build | Deployment ID | Rollback status |
+| --- | --- | --- |
+| `20260613-6` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate; do not use unless explicitly reselected. |
+| `20260612-5` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
+| `20260610-4` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target. |
+| `20260610-3` | `019eaeec-baa9-750a-8d0b-451e825324d2` | Superseded; Console review button disabled. |
+| `20260610-2` | `019eaeea-2d57-7bcb-a70c-dd40539b2d5a` | Superseded; Console review button disabled. |
+| `20260610-1` | `019eacca-a95e-702e-96cd-ba664f0ee9e5` | Superseded; Console review button disabled. |
+
+Important versioning caveat: these Console builds can be selected or tested by deployment ID while the Console keeps them, but earlier uploads were not committed and tagged at the exact upload moment. Do not claim exact source-level reproducibility for historical Console builds. Future Apps in Toss uploads must commit the exact source first, build from that commit, upload, record the Console build/deployment ID, then tag the commit as `apps-in-toss/<bundle-version>`.
+
 Apps in Toss QA:
 
 - Local app runs from `apps-in-toss/`.

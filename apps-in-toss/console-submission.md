@@ -79,6 +79,29 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - User correction on `2026-06-14 KST`: the intended rollback/review target is the already uploaded Console build `20260610-4`, not a new `20260613-6` candidate.
 - Superseded candidate: `20260613-6` / `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583` is not the active review target unless the user explicitly changes direction again.
 
+## Console Build Registry
+
+Captured from the Apps in Toss Console on `2026-06-14 KST`. These rows are Console-uploaded bundles, so the Console bundle/deployment is the source of truth for rollback. Earlier uploads were not committed and tagged at the exact upload moment, so do not claim source-level reproducibility for those builds.
+
+| Build | Created | SDK | Console status | Deployment ID | Rollback note |
+| --- | --- | --- | --- | --- | --- |
+| `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
+| `20260612-5` | `2026. 06. 12` | `2.6.1` | `검토 필요` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
+| `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target. PDF save fix candidate. |
+| `20260610-3` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaeec-baa9-750a-8d0b-451e825324d2` | Superseded UX-preserving candidate. Review button is disabled in Console. |
+| `20260610-2` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaeea-2d57-7bcb-a70c-dd40539b2d5a` | Superseded UX-preserving re-upload candidate. Review button is disabled in Console. |
+| `20260610-1` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eacca-a95e-702e-96cd-ba664f0ee9e5` | Superseded first Apps in Toss candidate. Review button is disabled in Console. |
+
+To test a specific Console bundle, use `intoss-private://baby-gift-tax-helper?_deploymentId=<Deployment ID>`.
+
+Future uploads must be versioned in this order:
+
+1. Commit the exact source state.
+2. Build the `.ait` bundle from that commit.
+3. Upload the bundle and capture the Console build number plus deployment ID.
+4. Tag the commit as `apps-in-toss/<bundle-version>`.
+5. Update this registry before asking for review.
+
 ## Console Review State
 
 - App info submitted for review at `2026-06-10 KST`.
