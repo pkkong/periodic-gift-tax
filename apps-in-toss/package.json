@@ -1,0 +1,38 @@
+{
+  "name": "apps-in-toss",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "granite dev",
+    "build": "ait build",
+    "deploy": "ait deploy",
+    "deploy:candidate": "ait deploy --location ./baby-gift-tax-helper.ait -m \"계산기 복원 후보: 현금 일시증여와 매월 정기증여의 평가액, 예상 증여세, 신고기한, 홈택스 준비 순서, PDF 저장을 제공합니다. 자동 신고, 세무 대리, 확정 세액 보증, 서버 저장은 지원하지 않습니다.\"",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@apps-in-toss/web-framework": "^2.6.1",
+    "@emotion/react": "^11.14.0",
+    "@toss/tds-mobile": "^2.4.1",
+    "@toss/tds-mobile-ait": "^2.4.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.15.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.24.1",
+    "vite": "^6.2.0"
+  }
+}

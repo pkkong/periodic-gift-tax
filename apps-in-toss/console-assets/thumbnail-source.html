@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1932px;
+        height: 828px;
+        margin: 0;
+        overflow: hidden;
+        background: #3182f6;
+        color: #ffffff;
+        font-family:
+          Pretendard,
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+      }
+
+      .canvas {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 630px;
+        gap: 110px;
+        width: 1932px;
+        height: 828px;
+        padding: 104px 120px;
+      }
+
+      .copy {
+        align-self: center;
+      }
+
+      .kicker {
+        margin: 0 0 28px;
+        font-size: 36px;
+        font-weight: 760;
+        opacity: 0.84;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 94px;
+        font-weight: 760;
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .summary {
+        margin: 40px 0 0;
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 42px;
+        font-weight: 650;
+        line-height: 1.35;
+      }
+
+      .pill-row {
+        display: flex;
+        gap: 18px;
+        margin-top: 52px;
+      }
+
+      .pill {
+        padding: 22px 30px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 31px;
+        font-weight: 720;
+      }
+
+      .phone {
+        align-self: center;
+        width: 630px;
+        padding: 42px;
+        border-radius: 44px;
+        background: #ffffff;
+        color: #191f28;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.22);
+      }
+
+      .phone-head {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 34px;
+      }
+
+      .baby {
+        display: grid;
+        width: 132px;
+        height: 132px;
+        place-items: center;
+        border-radius: 50%;
+        background: #e8f3ff;
+      }
+
+      .baby svg {
+        width: 102px;
+        height: 102px;
+      }
+
+      .phone h2 {
+        margin: 0;
+        font-size: 44px;
+        line-height: 1.18;
+      }
+
+      .card {
+        margin-top: 18px;
+        padding: 24px;
+        border-radius: 8px;
+        background: #f2f6fb;
+      }
+
+      .card span {
+        display: block;
+        color: #6b7684;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .card strong {
+        display: block;
+        margin-top: 8px;
+        color: #191f28;
+        font-size: 36px;
+        font-weight: 760;
+      }
+
+      .check {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 16px;
+        align-items: center;
+        margin-top: 22px;
+        font-size: 28px;
+        font-weight: 650;
+      }
+
+      .check i {
+        position: relative;
+        display: block;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #e8f3ff;
+      }
+
+      .check i::after {
+        position: absolute;
+        top: 8px;
+        left: 12px;
+        width: 8px;
+        height: 14px;
+        border-right: 3px solid #3182f6;
+        border-bottom: 3px solid #3182f6;
+        content: "";
+        transform: rotate(40deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <section class="copy">
+        <p class="kicker">증여세 시뮬레이션</p>
+        <h1>우리 아기<br />증여 도우미</h1>
+        <p class="summary">현금 증여와 매월 정기증여의<br />예상 세금과 신고기한을 확인해요.</p>
+        <div class="pill-row">
+          <div class="pill">예상 증여세 계산</div>
+          <div class="pill">PDF 준비자료 저장</div>
+        </div>
+      </section>
+
+      <section class="phone">
+        <div class="phone-head">
+          <div class="baby" aria-hidden="true">
+            <svg viewBox="0 0 120 120" focusable="false">
+              <circle cx="60" cy="60" r="58" fill="#e8f3ff" />
+              <path d="M28 78c0-20 15-33 32-33s32 13 32 33v7c0 14-13 23-32 23s-32-9-32-23v-7Z" fill="#b9dcff" />
+              <path d="M31 43c-8 1-11 7-8 13 3 7 10 8 15 3" fill="#ffd9bd" />
+              <path d="M89 43c8 1 11 7 8 13-3 7-10 8-15 3" fill="#ffd9bd" />
+              <path d="M60 15c20 0 34 14 34 34S80 84 60 84 26 69 26 49 40 15 60 15Z" fill="#ffe7d0" />
+              <path d="M52 18c11-3 19 3 12 11 9 0 15 8 5 15" fill="none" stroke="#7b4b2a" stroke-width="5" stroke-linecap="round" />
+              <circle cx="45" cy="58" r="7" fill="#ffb6ad" opacity=".65" />
+              <circle cx="75" cy="58" r="7" fill="#ffb6ad" opacity=".65" />
+              <circle cx="49" cy="47" r="4" fill="#25313d" />
+              <circle cx="71" cy="47" r="4" fill="#25313d" />
+              <path d="M51 65c6 7 14 7 20 0" fill="none" stroke="#25313d" stroke-width="4" stroke-linecap="round" />
+              <path d="M88 28l3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#ffd84d" />
+            </svg>
+          </div>
+          <h2>보내기 전<br />계산 결과</h2>
+        </div>
+        <div class="card">
+          <span>예상 납부세액</span>
+          <strong>0원부터 확인</strong>
+        </div>
+        <div class="check"><i></i><p>세금 없는 기준</p></div>
+        <div class="check"><i></i><p>신고기한과 공제</p></div>
+        <div class="check"><i></i><p>홈택스 입력 순서</p></div>
+      </section>
+    </div>
+  </body>
+</html>

@@ -27,6 +27,7 @@ If no documentation change is needed, say that explicitly in the final response.
 
 This app should feel like a Toss mobile service, not like a form demo.
 
+- For Apps in Toss conversion, UX preservation is the default. The `2026-06-12 KST` ChannelTalk review said tax calculators are not currently allowed in Apps in Toss regardless of type, and gift tax calculators are included. However, on `2026-06-13 KST` the user decided to restore the original calculator direction and challenge the rejection because other tax calculator miniapps appear to be listed. When submitting this restored version, do not disguise it as information-only: Console copy, screenshots, release notes, and in-app feature text must accurately describe a reference gift-tax estimate, while clearly saying it is not automatic filing, tax agency work, confirmed tax, HomeTax login/submission, or server storage.
 - First screen must be a polished landing flow with short copy, generous white space, a relevant visual asset, and a clear start action.
 - Wizard pages should show only what the user needs now. Reveal the next input after the current value is valid and confirmed.
 - If a step is incomplete, the primary next button should not look available. Hide it and keep only the previous button.
@@ -46,6 +47,12 @@ This app should feel like a Toss mobile service, not like a form demo.
 - `src/app.js`: state, progressive input flow, validation, rendering, local save/export/import, print actions.
 - `src/tax.js`: valuation and gift tax calculation engine. Keep this pure and covered by tests.
 - `src/documents.js`: printable HomeTax prep document pack.
+- `apps-in-toss/`: separate Apps in Toss WebView miniapp. As of `2026-06-13 KST`, it is restored to a reference gift-tax calculator for resubmission/challenge despite the prior ChannelTalk policy risk.
+- `apps-in-toss/granite.config.ts`: Apps in Toss config. Current appName is `baby-gift-tax-helper`, display name is `우리 아기 증여 도우미`, Console app ID is `40739`, and the app requests no Apps in Toss permissions.
+- `apps-in-toss/src/main.tsx`: Apps in Toss React entry. It imports the shared `src/tax.js` engine, renders the reference gift-tax estimate flow, and creates a PDF with `html2canvas`, `jspdf`, `saveBase64Data`, and `openPDFViewer`.
+- `apps-in-toss/scripts/capture-console-assets.mjs`: Chrome DevTools Protocol screenshot script for QA viewport captures and Console screenshots.
+- `apps-in-toss/console-submission.md`: console copy, in-app feature, release notes, and review notes.
+- `apps-in-toss/console-assets/`: submission assets such as the 600px logo, 1932x828 thumbnail, QA viewport captures, and Apps in Toss console screenshot assets.
 - `tests/tax.test.js`: Node test suite for valuation, tax calculation, filing deadline, validation.
 - `assets/baby-gift-hero.png`: landing visual asset.
 - `manifest.webmanifest`, `sw.js`, `icon.svg`: PWA/static hosting assets.
@@ -104,6 +111,15 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Enter handling lives in `handleFormEnterKey`, `handleFormLineBreak`, `handleFormSubmit`, and `scheduleAutoConfirmField`.
 - Validation toasts must stay above the mobile keyboard and bottom browser bar. `syncViewportInset` updates `--visual-viewport-bottom`; do not replace it with a hardcoded bottom value.
 - When changing CSS/JS, bump the query version in `index.html`, `src/app.js`, and `src/documents.js` imports so GitHub Pages and mobile browsers do not serve stale assets.
+- Apps in Toss WebView builds may fail under the Codex app embedded Node because Rollup native modules can be blocked by macOS library validation. Use the bundled runtime Node at `/Users/pkkong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node` for Vite, typecheck, and build commands if that happens.
+- The local shell may not have `npm` or `npx`. This repo used a repo-external npm CLI tarball under `/Users/pkkong/.cache/codex-tooling/npm/` during setup. Do not commit that cache.
+- `apps-in-toss/src/main.tsx` currently imports shared `src/tax.js` so the Apps in Toss calculation matches the GitHub Pages calculator. This is intentional for the `2026-06-13 KST` calculator resubmission, but remains a known review risk because ChannelTalk previously rejected tax calculators.
+- Apps in Toss WebView may not respond to `window.print()`. Keep the miniapp PDF path in `apps-in-toss/src/main.tsx`: it renders the checklist preview with `html2canvas`, creates a PDF with `jspdf`, then calls `saveBase64Data` for `PDF 저장` and `openPDFViewer` for preview, with browser download fallback for local QA.
+- Apps in Toss upload can use a local token registered by the user with `ait token add` or a one-time Console API key passed directly to `ait deploy --api-key`. Do not ask for, print, commit, or store API keys, passwords, OTPs, or console sessions. If a temporary key is created only for agent upload, revoke it in the Apps in Toss Console after the candidate is verified.
+- Apps in Toss AX is installed for Codex at `/Users/pkkong/.codex/tools/bin/ax` and registered in `/Users/pkkong/.codex/config.toml` as the `apps-in-toss` MCP server. Restart Codex or open a new session before expecting MCP tools to appear. Without restarting, use the CLI directly, for example `~/.codex/tools/bin/ax search docs --query "WebView PDF 저장" --limit 5`.
+- Chrome extension file upload through Playwright `filechooser.setFiles` can be blocked with `Not allowed` unless the Codex extension has local file access. For Apps in Toss Console asset uploads, a working fallback was native Chrome file picker automation: click the visible file button, use macOS Go to Folder, enter the absolute PNG path, press Return, then press Return again to open.
+- Official Apps in Toss sandbox testing supports iOS Simulator, iOS real device, Android emulator, or Android real device. The current Mac check on `2026-06-13 KST` found no full Xcode/Simulator (`xcrun simctl` unavailable) and no Android `adb`. Opening `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583` directly on macOS fails because no Toss protocol handler is installed. Real Toss app/sandbox verification therefore needs a configured simulator, Android tooling, or a logged-in mobile Toss app.
+- Chrome login was restored by the user on `2026-06-14 KST`. The Console app info page was still `검토 중이에요`, with the prior information-only copy visible and no edit/cancel action. The latest restored calculator build `20260613-6` was visible in App Release, Console push test was sent successfully, and `검토 요청` was enabled, but clicking it showed `앱 정보 검토를 먼저 완료해 주세요`. Build review therefore cannot be submitted until Apps in Toss finishes, cancels, or rejects the pending app-info review.
 
 ## Verification Checklist
 
@@ -115,6 +131,68 @@ node --check src/documents.js
 node --test
 git diff --check
 ```
+
+Apps in Toss checks:
+
+```sh
+cd apps-in-toss
+/Users/pkkong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node ./node_modules/typescript/bin/tsc -b
+/Users/pkkong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node ./node_modules/eslint/bin/eslint.js .
+/Users/pkkong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node ./node_modules/vite/bin/vite.js build
+PATH="/Users/pkkong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH" node /Users/pkkong/.cache/codex-tooling/npm/npm-11.16.0/bin/npm-cli.js run build
+```
+
+After a local deployment API key is registered with `ait token add`, upload the current release candidate with:
+
+```sh
+cd apps-in-toss
+PATH="/Users/pkkong/.cache/codex-tooling/bin:/Users/pkkong/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH" npm run deploy:candidate
+```
+
+The final `2026-06-10 KST` UX-preserving candidate was uploaded through the Apps in Toss Console API as:
+
+```text
+intoss-private://baby-gift-tax-helper?_deploymentId=019eaf09-214e-7d28-95f2-8a023568ea63
+```
+
+The restored calculator candidate requested by the user on `2026-06-13 KST` was uploaded through the Apps in Toss Console API as:
+
+```text
+intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583
+```
+
+Apps in Toss QA:
+
+- Local app runs from `apps-in-toss/`.
+- Production build creates an `.ait` candidate.
+- 360px, 390px, and 430px screenshots do not show horizontal overflow or bottom CTA overlap.
+- PDF 저장 creates a real PDF in local fallback and opens the Apps in Toss native save/view path in the miniapp.
+- Relationship, prior gift, account, gift mode, amount, result, PDF preview, explicit temporary save/load/reset all work.
+- The GitHub Pages calculator samples still match `tests/tax.test.js`. The restored Apps in Toss app uses the same `src/tax.js` engine and exposes reference gift-tax estimates again.
+- Local restored Apps in Toss automated QA passed on `2026-06-13 KST` at 390px in headless Chrome: one-time 10,000,000 KRW sample showed `예상 납부세액 0원`, one-time 50,000,000 KRW sample showed `2,910,000원`, no horizontal overflow was detected, PDF preview contained `증여세 신고 준비`, PDF save fallback showed `PDF 저장을 열었어요.`, and no browser console errors were captured.
+- Console assets are present: 600 x 600 icon and 1932 x 828 thumbnail.
+- Console screenshot assets are present: `screenshot-vertical-1.png`, `screenshot-vertical-2.png`, `screenshot-vertical-3.png` at 636 x 1048, plus `screenshot-horizontal-1.png` at 1504 x 741.
+- Before uploading Console display assets, check the official Apps in Toss console registration guide and asset guide links from the Console. App logos must be validated against the current guide before upload; do not rely on generic mobile app icon assumptions.
+
+Apps in Toss Console state as of `2026-06-14 KST`:
+
+- App info was rejected. The rejection reason shown in the Console edit page was: `정확한 서비스 확인을 위해 채널톡으로 진행 예정인 서비스 내용을 말씀해 주세요.`
+- The ChannelTalk workflow URL opened from the rejection reason is `https://apps-in-toss.channel.io/workflows/787658`. After the user clicked `동의하고 계속하기`, the agent selected `미니앱 관련 문의`, `앱정보 문의`, and `상담원 연결`, then submitted partner `SOULIB`, app `우리 아기 증여 도우미`, and reply email `kongncompany@naver.com`.
+- ChannelTalk message sent:
+  `안녕하세요. appName baby-gift-tax-helper / 한국어 앱 이름 우리 아기 증여 도우미입니다. 이 미니앱은 부모·자녀·조부모·손자녀 사이 현금 증여를 준비하는 사용자가 증여액, 관계, 과거 10년 동일인 증여 여부를 입력하면 예상 증여세, 신고기한, 송금 후 확인할 일, 홈택스 입력 순서, 신고 준비 PDF를 한 흐름으로 확인하도록 돕는 서비스입니다. 앱 안에서 자동 신고, 홈택스 로그인/제출, 세무 대리, 확정 세액 보증, Toss Login, 결제, 서버 저장, 분석 SDK는 제공하지 않습니다. 개인정보는 기본적으로 기기 안에서만 처리하고, 임시저장/백업/PDF 저장은 사용자 명시 액션으로만 동작합니다. 비사업자 개인 개발자로 수익화 기능 없이 제출 예정입니다. 앱 정보 반려 사유에 따라 진행 예정인 서비스 내용을 설명드립니다. 추가로 확인이 필요한 항목을 알려주시면 바로 보완하겠습니다.`
+- App info was re-submitted after the ChannelTalk message. The console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
+- App info was rejected again for the logo asset: `앱 로고: 로고 배경의 모서리는 둥근 형태 없이 네 모서리가 직각인 형태로 제작해주세요.`
+- A first logo correction changed `apps-in-toss/console-assets/app-icon-600.png` from a rounded white-card background to a full square white background and was re-submitted, but this was still invalid because the logo background cannot be white or transparent.
+- App info was rejected again for the logo background color: `앱 로고: 로고 배경에 투명색과 흰색은 사용할 수 없어요. 브랜드 대표 컬러로 배경색을 설정해주세요.`
+- The logo was changed to use the in-app baby mascot only, without the prior `증여` text badge. `apps-in-toss/console-assets/app-icon-source.svg` is the source SVG and `apps-in-toss/console-assets/app-icon-600.png` is the rendered 600 x 600 PNG. The background is solid brand blue `#3182f6`, not white or transparent, and the same PNG was uploaded to both app logo and dark-mode app logo fields. App info was re-submitted again and the console returned to `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with `검토를 요청했어요.`
+- App info was rejected again with `채널톡으로 안내되어 반려합니다.`
+- The prior ChannelTalk conversation contained the detailed reason: `세금 관련 계산기는 종류와 무관하게 현재 앱인토스 정책상 허용하지 않고 있으며, 증여세 계산기도 이에 해당합니다. 증여세 계산 기능을 제거하고 신고기한 안내, 홈택스 입력 순서 가이드, 송금 후 체크리스트 등 정보 제공 중심으로 재구성하신다면 재검토가 가능합니다.`
+- Apps in Toss code was changed on `2026-06-12 KST` to remove gift tax calculation and become an information-only guide.
+- On `2026-06-13 KST`, the user requested reverting to the original calculator direction and resubmitting. The restored app should use English name `Baby Gift Tax Helper`, keywords `증여, 증여세, 세금계산, 신고기한, 홈택스`, and a description centered on reference estimated gift tax, filing deadline, HomeTax input order, and PDF preparation. Upload the restored calculator candidate and request review with accurate calculator copy.
+- Latest uploaded build before policy correction was `20260610-4`. A new restored calculator `.ait` was built and uploaded on `2026-06-13 KST` as `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583`; the Console lists it as build `20260613-6`. On `2026-06-14 KST`, after the user restored the Chrome login session, the agent sent the Console push test for this build and attempted `검토 요청`, but the Console blocked release review with `앱 정보 검토를 먼저 완료해 주세요` because app info was still pending. A new ChannelTalk message was sent requesting app-info cancellation/rejection/unlock or release-review enablement; continue once Toss responds or the app-info state changes.
+- ChannelTalk blocker message sent on `2026-06-14 KST`:
+  `안녕하세요. 파트너 SOULIB / appName baby-gift-tax-helper / 앱 ID 40739 / 한국어 앱 이름 우리 아기 증여 도우미입니다. 현재 앱 정보가 '검토 중이에요' 상태라 앱 출시 화면에서 최신 빌드 20260613-6 검토 요청을 누르면 '앱 정보 검토를 먼저 완료해 주세요' 모달이 떠서 제출이 막힙니다. 최신 빌드는 intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583 이고, 콘솔 푸시 테스트까지 발송했습니다. 사용자 요청으로 계산기 복원 후보를 정확한 설명으로 재검토받으려 합니다. 현재 검토 중인 앱 정보를 취소/반려 처리해 수정 가능 상태로 열어주시거나, 최신 빌드 검토 요청이 가능하도록 조치 부탁드립니다. 회신은 kongncompany@naver.com 로 부탁드립니다.`
+- Challenge application form was submitted on `2026-06-11 KST` with submitter `공평근` and email `kongncompany@naver.com`; the success page showed `답변을 제출했어요`. The form required the phone number as digits only.
 
 Manual browser checks:
 
