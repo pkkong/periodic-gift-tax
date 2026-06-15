@@ -414,6 +414,73 @@ function PrintPack({ form, guide }: { form: FormState; guide: GuideSummary }) {
         </ol>
         <footer>이 문서는 신고 준비를 돕는 참고용 안내입니다. 세무 대리, 자동 신고, 확정 세액 안내가 아닙니다.</footer>
       </section>
+      <section className="print-page contract-page">
+        <header>
+          <p>참고 양식</p>
+          <h2>현금 증여 계약서/확인서 초안</h2>
+        </header>
+        <p className="print-note">
+          이 양식은 증여 의사와 송금 사실을 정리하기 위한 참고용 빈칸입니다. 실제 제출 필요 여부와 문구는
+          홈택스 안내 또는 전문가와 확인해 주세요.
+        </p>
+        <dl>
+          <div>
+            <dt>증여자</dt>
+            <dd>{form.donorName || "________________"}</dd>
+          </div>
+          <div>
+            <dt>수증자</dt>
+            <dd>{form.recipientName || "________________"}</dd>
+          </div>
+          <div>
+            <dt>관계</dt>
+            <dd>{guide.relationshipLabel}</dd>
+          </div>
+          <div>
+            <dt>증여재산</dt>
+            <dd>현금</dd>
+          </div>
+          <div>
+            <dt>증여일</dt>
+            <dd>________년 ____월 ____일</dd>
+          </div>
+          <div>
+            <dt>증여금액</dt>
+            <dd>금 __________________ 원</dd>
+          </div>
+          <div>
+            <dt>송금 계좌</dt>
+            <dd>수증자 명의 계좌 또는 법정대리인이 확인한 계좌</dd>
+          </div>
+          <div>
+            <dt>최근 10년 이력</dt>
+            <dd>{form.priorGiftState === "yes" ? "같은 증여자에게 받은 증여 있음" : "같은 증여자에게 받은 증여 없음"}</dd>
+          </div>
+        </dl>
+        <h3>확인 내용</h3>
+        <ol>
+          <li>증여자는 위 현금을 수증자에게 무상으로 증여할 의사가 있습니다.</li>
+          <li>수증자 또는 법정대리인은 위 증여를 확인하고 관련 증빙을 보관합니다.</li>
+          <li>이체확인증, 가족관계증명서, 홈택스 입력 내용은 별도로 확인합니다.</li>
+          <li>이 문서는 신고 준비용 초안이며 세무 신고서 제출을 대신하지 않습니다.</li>
+        </ol>
+        <div className="signature-grid">
+          <div>
+            <span>증여자</span>
+            <strong>{form.donorName || "________________"}</strong>
+            <em>서명 또는 인</em>
+          </div>
+          <div>
+            <span>수증자 또는 법정대리인</span>
+            <strong>{form.recipientName || "________________"}</strong>
+            <em>서명 또는 인</em>
+          </div>
+        </div>
+        <footer>
+          국세청 안내의 제출서류 중 기타 입증서류 성격으로 참고할 수 있는 양식입니다. 필수 제출서류라고 단정하지
+          않습니다.
+        </footer>
+      </section>
     </div>
   );
 }
@@ -473,20 +540,27 @@ async function createPdfBase64() {
   document.body.append(renderRoot);
 
   try {
-    const page = renderRoot.querySelector<HTMLElement>(".print-page");
-    if (!page) throw new Error("Document page is missing");
-
-    const canvas = await html2canvas(page, {
-      backgroundColor: "#ffffff",
-      scale: 2,
-      useCORS: true,
-    });
+    const pages = Array.from(renderRoot.querySelectorAll<HTMLElement>(".print-page"));
+    if (pages.length === 0) throw new Error("Document page is missing");
 
     const pdf = new jsPDF({ format: "a4", orientation: "portrait", unit: "mm" });
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const imageHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, imageHeight, undefined, "FAST");
+    for (const [index, page] of pages.entries()) {
+      const canvas = await html2canvas(page, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+      });
+      const imageHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      if (index > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, imageHeight, undefined, "FAST");
+    }
+
     return pdf.output("datauristring").split(",")[1] ?? "";
   } finally {
     renderRoot.remove();

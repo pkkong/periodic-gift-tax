@@ -601,6 +601,59 @@ button {
   line-height: 1.45;
 }
 
+.print-pack {
+  display: grid;
+  gap: 14px;
+}
+
+.print-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #4e5968;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.signature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.signature-grid div {
+  display: grid;
+  min-height: 108px;
+  align-content: end;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+}
+
+.signature-grid span {
+  color: #6b7684;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.signature-grid strong {
+  min-height: 28px;
+  border-bottom: 1px solid #191f28;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.signature-grid em {
+  color: #8b95a1;
+  font-size: 12px;
+  font-style: normal;
+  text-align: right;
+}
+
 .pdf-render-root {
   position: fixed;
   top: 0;
@@ -615,6 +668,10 @@ button {
   padding: 42px;
   border: 0;
   border-radius: 0;
+}
+
+.pdf-render-root .print-pack {
+  gap: 0;
 }
 
 .toast {
