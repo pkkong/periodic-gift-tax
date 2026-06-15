@@ -33,18 +33,18 @@
 
 ## App Description
 
-`우리 아기 증여 도우미`는 아이에게 현금을 보내기 전 미성년 자녀 증여재산공제 2,000만원 기준, 과세표준 50만원 미만 기준, 한 번에 보내기와 매월 보내기 대표 예시, 홈택스 준비 순서, 송금 전 체크리스트를 확인하는 미니앱입니다. 사용자가 금액을 입력해 세액을 계산하는 기능, 자동 신고, 세무 대리, 확정 세액 안내, 홈택스 로그인/제출, 서버 저장은 제공하지 않습니다.
+`우리 아기 증여 도우미`는 공개 웹앱의 모바일 흐름과 디자인을 유지하면서, 아이에게 현금을 보내기 전 미성년 자녀 증여재산공제 2,000만원 기준, 과세표준 50만원 미만 기준, 한 번에 보내기와 매월 보내기 준비 흐름, 홈택스 준비 순서, 송금 전 체크리스트를 확인하는 미니앱입니다. 사용자가 금액을 입력해 세액을 계산하는 화면, 세액이 없다고 확정하는 안내, 자동 신고, 세무 대리, 확정 세액 안내, 홈택스 로그인/제출, 서버 저장은 제공하지 않습니다.
 
 ## In-App Feature
 
 - Korean feature name: `증여 준비 안내`
 - English feature name: `Gift prep guide`
 - Path: `/`
-- Description: 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 확인합니다.
+- Description: 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 한 번에 보내기와 매월 보내기 준비 흐름, 홈택스 준비 순서, PDF 체크리스트와 증여 약정서/확인서 초안을 확인합니다.
 
 ## Release Notes
 
-정책 반영 후보입니다. 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다. 자동 신고, 세무 대리, 확정 세액 안내, 홈택스 자동 제출, 서버 저장은 지원하지 않습니다.
+웹앱 UX 보존 정책 반영 후보입니다. 공개 웹앱의 모바일 흐름과 디자인을 복제하고, 금액 입력 계산 화면과 세액을 확정하는 문구를 제거했습니다. 기본공제와 과세표준 50만원 미만 법령 근거, 홈택스 준비 순서, PDF 체크리스트와 증여 약정서/확인서 초안을 제공합니다. 자동 신고, 세무 대리, 확정 세액 안내, 홈택스 자동 제출, 서버 저장은 지원하지 않습니다.
 
 ## Challenge Application Draft
 
@@ -60,7 +60,7 @@
 Use a one-time Console API key or a locally registered profile. Do not commit or print the key.
 
 ```sh
-./node_modules/.bin/ait deploy --api-key "$AITS_CONSOLE_API_KEY" --location ./baby-gift-tax-helper.ait -m "정책 반영 후보: 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다."
+./node_modules/.bin/ait deploy --api-key "$AITS_CONSOLE_API_KEY" --location ./baby-gift-tax-helper.ait -m "웹앱 UX 보존 정책 반영 후보: 공개 웹앱의 모바일 흐름과 디자인을 복제하고, 금액 입력 계산 화면과 세액을 확정하는 문구를 제거했습니다. 기본공제와 과세표준 50만원 미만 법령 근거, 홈택스 준비 순서, PDF 체크리스트와 증여 약정서/확인서 초안을 제공합니다."
 ```
 
 ## Uploaded Candidate
@@ -70,6 +70,16 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Temporary Console API key names used during upload: `codexupload0610`, `codexux0610`, `codexpdf0610`
 - Cleanup: revoke or delete all temporary keys in the Apps in Toss Console after verifying the candidate.
 
+## Current Local Release Candidate
+
+- Source status: local working tree, not yet committed or uploaded.
+- Built at: `2026-06-15 KST`
+- Local `.ait`: `baby-gift-tax-helper.ait`
+- AIT build deploymentId: `019ecbaa-5aad-7b43-89e0-9bb270391877`
+- Upload status: not uploaded to Apps in Toss Console yet.
+- Candidate note: public-webapp UX clone for Apps in Toss. Keeps the landing, progressive wizard, mascot, result, execution, HomeTax, and PDF flow; removes the visible amount-entry page after gift mode; removes `예상 세금 0원` / `예상 납부세액이 0원이에요`; adds law-basis copy for 상속세 및 증여세법 제53조 and 제55조 제2항; PDF contains checklist, law memo, HomeTax prep checklist, and blank optional 증여 약정서/확인서 초안.
+- Local QA: `tsc -b`, `eslint .`, `vite build`, and `ait build` passed. In-app browser QA at 360px/390px/430px found no horizontal overflow on landing/result, verified `giftMode` skips the amount page, verified safe-limit law copy, and verified PDF save generated four pages with no console errors.
+
 ## Current Uploaded Release Candidate
 
 - Source commit: `1b69417` (`Add gift agreement draft to PDF pack`)
@@ -78,7 +88,7 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Console build: `20260615-8`
 - Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb91-f473-7225-9436-254474e225ae`
 - Upload status: uploaded through the logged-in Apps in Toss Console on `2026-06-15 KST`.
-- Candidate note: keep the `20260610-4` style structure, remove user-entered amount calculation, estimated tax result text, and PDF calculation tables, and add a blank optional cash-gift contract/confirmation draft to the PDF pack.
+- Candidate note: simplified React policy candidate. Superseded by the current local webapp-clone candidate unless explicitly reselected.
 
 ## Historical Console Review Target
 
@@ -109,8 +119,9 @@ Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.githu
 
 | Build | Created | SDK | Console status | Deployment ID | Rollback note |
 | --- | --- | --- | --- | --- | --- |
-| `20260615-8` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb91-f473-7225-9436-254474e225ae` | Current policy-adjusted candidate from commit `1b69417`. Adds optional PDF cash-gift contract/confirmation draft. Console push test sent; review request blocked by pending app-info review. |
-| `20260615-7` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb88-ac50-7f9a-8359-a5afc0571d86` | Current policy-adjusted candidate from commit `e3d5183`. Console push test sent; review request blocked by pending app-info review. |
+| Local webapp-clone candidate | `2026. 06. 15` | `2.6.1` | not uploaded | `019ecbaa-5aad-7b43-89e0-9bb270391877` | Built locally as `baby-gift-tax-helper.ait`; current source direction; upload pending. |
+| `20260615-8` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb91-f473-7225-9436-254474e225ae` | Uploaded simplified React policy candidate from commit `1b69417`; superseded by local webapp-clone candidate unless explicitly reselected. Console push test sent; review request blocked by pending app-info review. |
+| `20260615-7` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb88-ac50-7f9a-8359-a5afc0571d86` | Uploaded simplified React policy candidate from commit `e3d5183`; superseded by local webapp-clone candidate unless explicitly reselected. Console push test sent; review request blocked by pending app-info review. |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
 | `20260612-5` | `2026. 06. 12` | `2.6.1` | `검토 필요` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
 | `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Historical rollback target. PDF save fix candidate; closest Console bundle to the public webapp v40 UX baseline. |
@@ -146,6 +157,7 @@ Future uploads must be versioned in this order:
 - Current release candidate on `2026-06-15 KST`: commit `1b69417`, Console build `20260615-8`, deploymentId `019ecb91-f473-7225-9436-254474e225ae`. The `.ait` was uploaded through the logged-in Apps in Toss Console after Playwright file upload failed with `Not allowed`; native Chrome file picker upload worked.
 - Previous active target build: `20260610-4`.
 - Build review for `20260615-8` is not submitted yet. The Console push test was sent, then `검토 요청` was clicked. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
+- Current local webapp-clone candidate has not been uploaded yet. Upload it only after committing/tagging this exact source state or if the user explicitly asks to upload immediately from the working tree.
 - Superseded calculation restore on `2026-06-13 KST`: a later local `.ait` candidate was uploaded as build `20260613-6`, but the user clarified on `2026-06-14 KST` that this should not be the review target. Do not continue against `20260613-6` unless the user explicitly reselects it.
 - Console state on `2026-06-14 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. Build `20260610-4` is visible and its `검토 요청` button is enabled, but release review remains blocked until Apps in Toss finishes, cancels, or rejects the pending app-info review.
 - Console state on `2026-06-15 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with no edit/cancel action visible. ChannelTalk unread items were promotional webinar/challenge notices, not review feedback.
