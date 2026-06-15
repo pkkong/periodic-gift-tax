@@ -72,13 +72,13 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 
 ## Current Uploaded Release Candidate
 
-- Source commit: `e3d5183` (`Remove Apps in Toss tax calculator UI`)
+- Source commit: `1b69417` (`Add gift agreement draft to PDF pack`)
 - Built at: `2026-06-15 KST`
 - Local `.ait`: `baby-gift-tax-helper.ait`
-- Console build: `20260615-7`
-- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb88-ac50-7f9a-8359-a5afc0571d86`
+- Console build: `20260615-8`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb91-f473-7225-9436-254474e225ae`
 - Upload status: uploaded through the logged-in Apps in Toss Console on `2026-06-15 KST`.
-- Candidate note: keep the `20260610-4` style structure, but remove user-entered amount calculation, estimated tax result text, and PDF calculation tables.
+- Candidate note: keep the `20260610-4` style structure, remove user-entered amount calculation, estimated tax result text, and PDF calculation tables, and add a blank optional cash-gift contract/confirmation draft to the PDF pack.
 
 ## Historical Console Review Target
 
@@ -92,11 +92,11 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 
 ## Current Console Review Target
 
-- Target build: `20260615-7`
+- Target build: `20260615-8`
 - Uploaded at: `2026-06-15 KST`
-- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb88-ac50-7f9a-8359-a5afc0571d86`
-- Source commit: `e3d5183`
-- Upload memo: `정책 반영 후보: 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다.`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb91-f473-7225-9436-254474e225ae`
+- Source commit: `1b69417`
+- Upload memo: `정책 반영 후보: 세액 계산 입력과 예상 세액 결과를 제거하고, 공제 기준 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트와 현금 증여 계약서 초안을 제공합니다.`
 - Console push test: sent.
 - Release review: attempted, but blocked by the app-info gate: `앱 정보 검토를 먼저 완료해 주세요`.
 - App info state after the attempt: `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` No edit/cancel action was visible.
@@ -109,6 +109,7 @@ Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.githu
 
 | Build | Created | SDK | Console status | Deployment ID | Rollback note |
 | --- | --- | --- | --- | --- | --- |
+| `20260615-8` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb91-f473-7225-9436-254474e225ae` | Current policy-adjusted candidate from commit `1b69417`. Adds optional PDF cash-gift contract/confirmation draft. Console push test sent; review request blocked by pending app-info review. |
 | `20260615-7` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb88-ac50-7f9a-8359-a5afc0571d86` | Current policy-adjusted candidate from commit `e3d5183`. Console push test sent; review request blocked by pending app-info review. |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
 | `20260612-5` | `2026. 06. 12` | `2.6.1` | `검토 필요` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
@@ -142,9 +143,9 @@ Future uploads must be versioned in this order:
 - First logo correction on `2026-06-11 KST`: `console-assets/app-icon-600.png` was changed from a rounded white-card background to a full square white background and uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted. This was still invalid because the logo background cannot be white or transparent.
 - Current logo correction completed on `2026-06-11 KST`: `console-assets/app-icon-source.svg` now renders the in-app baby mascot on a solid brand-blue `#3182f6` background, and `console-assets/app-icon-600.png` is the generated 600 x 600 PNG. The PNG was uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted again. The Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
 - Asset upload preflight for future Console edits: check the official Apps in Toss console registration guide and linked asset guides before upload, then verify dimensions, format, background color, corner shape, and brand/resource restrictions against the current guide.
-- Current release candidate on `2026-06-15 KST`: commit `e3d5183`, Console build `20260615-7`, deploymentId `019ecb88-ac50-7f9a-8359-a5afc0571d86`. The `.ait` was uploaded through the logged-in Apps in Toss Console after Playwright file upload failed with `Not allowed`; native Chrome file picker upload worked.
+- Current release candidate on `2026-06-15 KST`: commit `1b69417`, Console build `20260615-8`, deploymentId `019ecb91-f473-7225-9436-254474e225ae`. The `.ait` was uploaded through the logged-in Apps in Toss Console after Playwright file upload failed with `Not allowed`; native Chrome file picker upload worked.
 - Previous active target build: `20260610-4`.
-- Build review for `20260615-7` is not submitted yet. The Console push test was sent, then `검토 요청` was clicked. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
+- Build review for `20260615-8` is not submitted yet. The Console push test was sent, then `검토 요청` was clicked. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
 - Superseded calculation restore on `2026-06-13 KST`: a later local `.ait` candidate was uploaded as build `20260613-6`, but the user clarified on `2026-06-14 KST` that this should not be the review target. Do not continue against `20260613-6` unless the user explicitly reselects it.
 - Console state on `2026-06-14 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. Build `20260610-4` is visible and its `검토 요청` button is enabled, but release review remains blocked until Apps in Toss finishes, cancels, or rejects the pending app-info review.
 - Console state on `2026-06-15 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with no edit/cancel action visible. ChannelTalk unread items were promotional webinar/challenge notices, not review feedback.
