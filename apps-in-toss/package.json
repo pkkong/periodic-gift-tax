@@ -7,7 +7,7 @@
     "dev": "granite dev",
     "build": "ait build",
     "deploy": "ait deploy",
-    "deploy:candidate": "ait deploy --location ./baby-gift-tax-helper.ait -m \"계산기 복원 후보: 현금 일시증여와 매월 정기증여의 평가액, 예상 증여세, 신고기한, 홈택스 준비 순서, PDF 저장을 제공합니다. 자동 신고, 세무 대리, 확정 세액 보증, 서버 저장은 지원하지 않습니다.\"",
+    "deploy:candidate": "ait deploy --location ./baby-gift-tax-helper.ait -m \"정책 반영 후보: 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다.\"",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

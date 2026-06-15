@@ -33,18 +33,18 @@
 
 ## App Description
 
-`우리 아기 증여 도우미`는 아이에게 현금을 보내기 전 증여금액, 관계, 최근 10년 동일인 증여 이력을 입력해 참고용 예상 증여세, 신고기한, 홈택스 입력 순서, 신고 준비 PDF를 확인하는 미니앱입니다. 일시 현금 증여와 매월 정기 증여를 모두 지원하며, 계산 로직은 공개 웹앱과 같은 엔진을 사용합니다. 자동 신고, 세무 대리, 확정 세액 보증, 홈택스 로그인/제출, 서버 저장은 제공하지 않습니다.
+`우리 아기 증여 도우미`는 아이에게 현금을 보내기 전 미성년 자녀 증여재산공제 2,000만원 기준, 과세표준 50만원 미만 기준, 한 번에 보내기와 매월 보내기 대표 예시, 홈택스 준비 순서, 송금 전 체크리스트를 확인하는 미니앱입니다. 사용자가 금액을 입력해 세액을 계산하는 기능, 자동 신고, 세무 대리, 확정 세액 안내, 홈택스 로그인/제출, 서버 저장은 제공하지 않습니다.
 
 ## In-App Feature
 
-- Korean feature name: `증여세 계산`
-- English feature name: `Gift tax estimate`
+- Korean feature name: `증여 준비 안내`
+- English feature name: `Gift prep guide`
 - Path: `/`
-- Description: 증여 관계와 금액을 입력해 참고용 예상 증여세, 신고기한, 홈택스 입력 순서, PDF 준비자료를 확인합니다.
+- Description: 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 확인합니다.
 
 ## Release Notes
 
-계산기 복원 후보입니다. 현금 일시증여와 매월 정기증여의 평가액, 참고용 예상 증여세, 신고기한, 홈택스 준비 순서, PDF 저장을 제공합니다. 자동 신고, 세무 대리, 확정 세액 보증, 홈택스 자동 제출, 서버 저장은 지원하지 않습니다.
+정책 반영 후보입니다. 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다. 자동 신고, 세무 대리, 확정 세액 안내, 홈택스 자동 제출, 서버 저장은 지원하지 않습니다.
 
 ## Challenge Application Draft
 
@@ -60,7 +60,7 @@
 Use a one-time Console API key or a locally registered profile. Do not commit or print the key.
 
 ```sh
-./node_modules/.bin/ait deploy --api-key "$AITS_CONSOLE_API_KEY" --location ./baby-gift-tax-helper.ait -m "계산기 복원 후보: 현금 일시증여와 매월 정기증여의 평가액, 예상 증여세, 신고기한, 홈택스 준비 순서, PDF 저장을 제공합니다. 자동 신고, 세무 대리, 확정 세액 보증, 서버 저장은 지원하지 않습니다."
+./node_modules/.bin/ait deploy --api-key "$AITS_CONSOLE_API_KEY" --location ./baby-gift-tax-helper.ait -m "정책 반영 후보: 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다."
 ```
 
 ## Uploaded Candidate
@@ -126,6 +126,7 @@ Future uploads must be versioned in this order:
 - ChannelTalk blocker follow-up on `2026-06-14 KST`: the initial blocker message incorrectly referenced `20260613-6`; a correction was then sent saying the target is `20260610-4` / deployment `019eaf09-214e-7d28-95f2-8a023568ea63`, that its Console push test was sent, and that its review request is blocked by pending app-info review. The message explicitly asked for replies to `kongncompany@naver.com`.
 - Mac/device test environment on `2026-06-13 KST`: official sandbox testing was checked. This Mac has only Command Line Tools, not full Xcode/Simulator (`xcrun simctl` unavailable), and Android `adb` is not installed. Opening the `intoss-private://` scheme on macOS fails because no Toss protocol handler is installed. Therefore the remaining real Toss app/sandbox execution needs a logged-in mobile Toss app, iOS Simulator with the sandbox app installed, or Android device/emulator with `adb`.
 - Local automated WebView QA passed on `2026-06-13 KST` against `http://127.0.0.1:5173/` in headless Chrome at 390px: one-time 10,000,000 KRW sample showed `예상 납부세액 0원`, one-time 50,000,000 KRW sample showed `2,910,000원`, no horizontal overflow was detected, PDF preview contained `증여세 신고 준비`, PDF save fallback showed `PDF 저장을 열었어요.`, and no browser console errors were captured.
+- Local automated WebView QA passed on `2026-06-15 KST` against `http://127.0.0.1:5173/` in headless Chrome at 360px, 390px, and 430px: amount inputs and estimated-tax result text were absent, `2,050만원 미만`, `월 19만 6천원대`, `준비 요약`, and `PDF 저장` were present, no horizontal overflow was detected, and PDF preview contained checklist content without calculation-table fields.
 - Challenge application form submitted on `2026-06-11 KST`. The success page showed `답변을 제출했어요`.
 - Challenge submitter: `공평근`, `kongncompany@naver.com`; phone was submitted as digits only, as required by the form.
 

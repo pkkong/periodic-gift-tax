@@ -5,12 +5,15 @@ import { jsPDF } from "jspdf";
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-// Keep the Apps in Toss calculation engine identical to the public webapp.
-import { calculateGiftTax, calculateValuation, getSafeAssessmentLimit, validateGiftInput } from "../../src/tax.js";
-
 import "./index.css";
 
-const PDF_FILE_NAME = "우리-아기-증여-신고-준비.pdf";
+const PDF_FILE_NAME = "우리-아기-증여-준비-체크리스트.pdf";
+const GUIDE_BASE_DATE = "2026.06.15";
+const MINOR_DEDUCTION_LABEL = "2,000만원";
+const MINOR_SAFE_LIMIT_LABEL = "2,050만원 미만";
+const ADULT_DEDUCTION_LABEL = "5,000만원";
+const ADULT_SAFE_LIMIT_LABEL = "5,050만원 미만";
+const PERIODIC_MINOR_EXAMPLE = "월 19만 6천원대";
 
 type GiftMode = "lump_sum" | "periodic";
 type RelationshipType =
@@ -27,62 +30,17 @@ type FormState = {
   recipientName: string;
   relationshipType: RelationshipType;
   giftMode: GiftMode;
-  giftDate: string;
-  firstPaymentDate: string;
-  lumpSumAmount: string;
-  monthlyAmount: string;
-  totalMonths: string;
   priorGiftState: PriorGiftState;
-  priorSameDonorGiftValue: string;
-  priorDeductionUsed: string;
-  priorGiftTaxPaid: string;
 };
 
-type ValuationResult = {
-  presentValue: number;
-  presentValueRounded: number;
-  capValue: number;
-  assessedValue: number;
-  totalPayments: number;
-  paymentEndDate: string;
-  capApplied: boolean;
-  schedule: Array<{
-    paymentYear: number;
-    yearOffset: number;
-    periodStartDate: string;
-    periodEndDate: string;
-    months: number;
-    periodPayment: number;
-    discountFactor: number;
-    presentValue: number;
-  }>;
-};
-
-type TaxResult = {
-  availableDeduction: number;
-  deductionApplied: number;
-  taxBase: number;
-  calculatedTax: number;
-  priorTaxCredit: number;
-  filingCredit: number;
-  payableTax: number;
-  generationSkippingTax: number;
-  generationSkippingRate: number;
+type GuideSummary = {
   relationshipLabel: string;
-  rate: number;
-  progressiveDeduction: number;
-  minimumRuleApplied: boolean;
-  filingCreditApplied: boolean;
-  filingDeadline: string;
-};
-
-type CalculationResult = {
-  input: Record<string, unknown>;
-  valuation: ValuationResult;
-  tax: TaxResult;
-  safeLimit: number;
-  errors: string[];
-  warnings: string[];
+  deductionLabel: string;
+  safeLimitLabel: string;
+  modeTitle: string;
+  modeDescription: string;
+  modeBullets: string[];
+  cautionBullets: string[];
 };
 
 const relationships: Array<{ value: RelationshipType; label: string; helper: string }> = [
@@ -93,29 +51,18 @@ const relationships: Array<{ value: RelationshipType; label: string; helper: str
   { value: "grandparent_adult_grandchild", label: "조부모가 성년 손자녀에게", helper: "5천만원 공제와 세대생략 할증 확인" },
 ];
 
-const today = formatDate(new Date());
-
 const initialForm: FormState = {
   donorName: "",
   recipientName: "",
   relationshipType: "parent_minor_child",
   giftMode: "periodic",
-  giftDate: today,
-  firstPaymentDate: today,
-  lumpSumAmount: "20000000",
-  monthlyAmount: "100000",
-  totalMonths: "120",
   priorGiftState: "no",
-  priorSameDonorGiftValue: "0",
-  priorDeductionUsed: "0",
-  priorGiftTaxPaid: "0",
 };
 
 const hometaxSteps = [
   "증여세 정기신고 메뉴로 이동",
   "증여자와 수증자 기본 정보 입력",
-  "현금 또는 정기금 평가액 입력",
-  "증여재산공제와 기납부세액 대조",
+  "현금 증여 금액과 공제 항목 확인",
   "이체확인증과 가족관계 증빙 첨부",
   "제출 전 세무서 또는 전문가와 최종 확인",
 ];
@@ -126,23 +73,10 @@ function App() {
   const [isPdfBusy, setIsPdfBusy] = useState(false);
   const [toast, setToast] = useState("");
 
-  const result = useMemo(() => calculateCurrent(form), [form]);
-  const hasTax = result.tax.payableTax > 0;
-  const canShowPdf = result.errors.length === 0;
+  const guide = useMemo(() => getGuideSummary(form), [form]);
 
   const update = <Key extends keyof FormState>(key: Key, value: FormState[Key]) => {
-    setForm((current) => {
-      const next = { ...current, [key]: value };
-      if (key === "giftDate" && !current.firstPaymentDate) {
-        next.firstPaymentDate = String(value);
-      }
-      if (key === "priorGiftState" && value === "no") {
-        next.priorSameDonorGiftValue = "0";
-        next.priorDeductionUsed = "0";
-        next.priorGiftTaxPaid = "0";
-      }
-      return next;
-    });
+    setForm((current) => ({ ...current, [key]: value }));
   };
 
   const showToast = (message: string) => {
@@ -154,10 +88,6 @@ function App() {
 
   const runPdfAction = async (action: "preview" | "save") => {
     if (isPdfBusy) return;
-    if (!canShowPdf) {
-      showToast("필수 값을 먼저 확인해주세요.");
-      return;
-    }
 
     setIsPdfBusy(true);
     setIsPreviewVisible(true);
@@ -186,19 +116,19 @@ function App() {
     <main className="app">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">증여세 시뮬레이션</p>
-          <h1>아이에게 보낼 금액, 세금과 신고기한을 먼저 확인해요</h1>
-          <p>현금 증여와 매월 정기 증여를 같은 계산 기준으로 비교하고 신고 준비 PDF까지 저장해요.</p>
+          <p className="eyebrow">증여 준비 안내</p>
+          <h1>아이에게 보내기 전, 기준과 준비 순서를 확인해요</h1>
+          <p>미성년 자녀 공제 기준, 한 번에 보내기와 나누어 보내기, 홈택스 준비 순서를 정리해요.</p>
         </div>
         <BabyMascot />
       </section>
 
-      <section className={`result-banner ${hasTax ? "has-tax" : ""}`}>
-        <span>{hasTax ? "세금이 나올 수 있어요" : "예상 납부세액 0원"}</span>
-        <strong>{result.errors.length ? "입력값 확인 필요" : formatWon(result.tax.payableTax)}</strong>
+      <section className="result-banner">
+        <span>처음 증여 기준 안내</span>
+        <strong>{guide.safeLimitLabel}</strong>
         <p>
-          신고기한 {result.tax.filingDeadline ? formatKoreanDate(result.tax.filingDeadline) : "확인 필요"} · 평가액{" "}
-          {formatWon(result.valuation.assessedValue)}
+          {guide.deductionLabel} 공제와 과세표준 50만원 미만 기준을 함께 볼 때 납부세액이 생기지 않을 수 있는
+          범위예요.
         </p>
       </section>
 
@@ -222,7 +152,7 @@ function App() {
       </section>
 
       <section className="panel" aria-labelledby="amount-title">
-        <SectionHeading index="02" title="증여 방식과 금액" id="amount-title" />
+        <SectionHeading index="02" title="증여 방식" id="amount-title" />
         <div className="segmented" role="radiogroup" aria-label="증여 방식">
           <SegmentButton active={form.giftMode === "periodic"} onClick={() => update("giftMode", "periodic")}>
             매월 보내기
@@ -231,25 +161,7 @@ function App() {
             한번에 보내기
           </SegmentButton>
         </div>
-        <div className="field-grid">
-          <TextField type="date" label="증여일" value={form.giftDate} onChange={(value) => update("giftDate", value)} />
-          {form.giftMode === "periodic" ? (
-            <TextField
-              type="date"
-              label="첫 이체일"
-              value={form.firstPaymentDate}
-              onChange={(value) => update("firstPaymentDate", value)}
-            />
-          ) : null}
-        </div>
-        {form.giftMode === "periodic" ? (
-          <div className="field-grid">
-            <MoneyField label="월 납입액" value={form.monthlyAmount} onChange={(value) => update("monthlyAmount", value)} />
-            <MoneyField label="총 납입개월" value={form.totalMonths} onChange={(value) => update("totalMonths", value)} suffix="개월" />
-          </div>
-        ) : (
-          <MoneyField label="증여금액" value={form.lumpSumAmount} onChange={(value) => update("lumpSumAmount", value)} />
-        )}
+        <GuideCard title={guide.modeTitle} description={guide.modeDescription} bullets={guide.modeBullets} />
       </section>
 
       <section className="panel" aria-labelledby="history-title">
@@ -263,26 +175,27 @@ function App() {
           </SegmentButton>
         </div>
         {form.priorGiftState === "yes" ? (
-          <div className="field-grid">
-            <MoneyField
-              label="이전 증여가액"
-              value={form.priorSameDonorGiftValue}
-              onChange={(value) => update("priorSameDonorGiftValue", value)}
-            />
-            <MoneyField label="이미 쓴 공제" value={form.priorDeductionUsed} onChange={(value) => update("priorDeductionUsed", value)} />
-            <MoneyField
-              label="이미 낸 증여세"
-              value={form.priorGiftTaxPaid}
-              onChange={(value) => update("priorGiftTaxPaid", value)}
-            />
-          </div>
-        ) : null}
+          <GuideCard
+            tone="warning"
+            title="같은 사람에게 받은 증여가 있으면 달라져요"
+            description="최근 10년 안에 같은 증여자에게 받은 금액은 합산 확인이 필요해요."
+            bullets={[
+              "이 경우 2,050만원 미만 안내가 그대로 맞지 않을 수 있어요.",
+              "이전 신고 내역, 이체 기록, 공제 사용 여부를 홈택스에서 확인해 주세요.",
+            ]}
+          />
+        ) : (
+          <GuideCard
+            title="처음 증여라면 기준이 단순해요"
+            description={`${guide.deductionLabel} 공제와 과세표준 50만원 미만 기준을 먼저 확인하면 돼요.`}
+            bullets={["송금 기록과 가족관계 증빙은 따로 보관해 주세요.", "신고 여부는 홈택스에서 최종 확인해 주세요."]}
+          />
+        )}
       </section>
 
       <section className="panel" aria-labelledby="result-title">
-        <SectionHeading index="04" title="계산 결과" id="result-title" />
-        <MetricGrid result={result} />
-        <IssueList errors={result.errors} warnings={result.warnings} />
+        <SectionHeading index="04" title="준비 요약" id="result-title" />
+        <GuideSummaryCard form={form} guide={guide} />
       </section>
 
       <section className="panel" aria-labelledby="hometax-title">
@@ -299,22 +212,22 @@ function App() {
           <button className="secondary" type="button" onClick={() => setIsPreviewVisible((value) => !value)}>
             PDF 미리보기
           </button>
-          <button className="primary" type="button" disabled={isPdfBusy || !canShowPdf} onClick={() => void runPdfAction("save")}>
+          <button className="primary" type="button" disabled={isPdfBusy} onClick={() => void runPdfAction("save")}>
             PDF 저장
           </button>
         </div>
-        <button className="text-action" type="button" disabled={isPdfBusy || !canShowPdf} onClick={() => void runPdfAction("preview")}>
+        <button className="text-action" type="button" disabled={isPdfBusy} onClick={() => void runPdfAction("preview")}>
           PDF로 열기
         </button>
       </section>
 
       <section className="notice">
-        <strong>참고용 계산이에요</strong>
-        <p>자동 신고, 세무 대리, 확정 세액 보증, 홈택스 로그인/제출, 서버 저장은 제공하지 않아요.</p>
+        <strong>참고용 안내예요</strong>
+        <p>자동 신고, 세무 대리, 확정 세액 안내, 홈택스 로그인/제출, 서버 저장은 제공하지 않아요.</p>
       </section>
 
       <div className={`document-preview ${isPreviewVisible ? "is-visible" : ""}`} id="documentPreview">
-        <PrintPack form={form} result={result} />
+        <PrintPack form={form} guide={guide} />
       </div>
 
       <div className={`toast ${toast ? "is-visible" : ""}`} role="status">
@@ -336,40 +249,16 @@ function SectionHeading({ id, index, title }: { id: string; index: string; title
 function TextField({
   label,
   onChange,
-  type = "text",
   value,
 }: {
   label: string;
   onChange: (value: string) => void;
-  type?: "date" | "text";
   value: string;
 }) {
   return (
     <label className="text-field">
       <span>{label}</span>
-      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} />
-    </label>
-  );
-}
-
-function MoneyField({
-  label,
-  onChange,
-  suffix = "원",
-  value,
-}: {
-  label: string;
-  onChange: (value: string) => void;
-  suffix?: string;
-  value: string;
-}) {
-  return (
-    <label className="text-field money-field">
-      <span>{label}</span>
-      <div>
-        <input inputMode="numeric" value={formatInputNumber(value)} onChange={(event) => onChange(stripNumber(event.target.value))} />
-        <em>{suffix}</em>
-      </div>
+      <input type="text" value={value} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
 }
@@ -401,42 +290,49 @@ function ChoiceCard({
   );
 }
 
-function MetricGrid({ result }: { result: CalculationResult }) {
-  const metrics = [
-    ["증여재산 평가액", formatWon(result.valuation.assessedValue)],
-    ["세금 없는 기준", formatWon(result.safeLimit)],
-    ["사용 가능 공제", formatWon(result.tax.availableDeduction)],
-    ["과세표준", formatWon(result.tax.taxBase)],
-    ["예상 산출세액", formatWon(result.tax.calculatedTax)],
-    ["신고세액공제", formatWon(result.tax.filingCredit)],
-    ["예상 납부세액", formatWon(result.tax.payableTax)],
-    ["신고기한", result.tax.filingDeadline ? formatKoreanDate(result.tax.filingDeadline) : "확인 필요"],
-  ];
-
+function GuideCard({
+  bullets,
+  description,
+  title,
+  tone = "default",
+}: {
+  bullets: string[];
+  description: string;
+  title: string;
+  tone?: "default" | "warning";
+}) {
   return (
-    <div className="metric-grid">
-      {metrics.map(([label, value]) => (
-        <div key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
-        </div>
-      ))}
+    <div className={tone === "warning" ? "guide-card is-warning" : "guide-card"}>
+      <strong>{title}</strong>
+      <p>{description}</p>
+      <ul>
+        {bullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-function IssueList({ errors, warnings }: { errors: string[]; warnings: string[] }) {
-  if (errors.length === 0 && warnings.length === 0) return null;
+function GuideSummaryCard({ form, guide }: { form: FormState; guide: GuideSummary }) {
+  const rows = [
+    ["증여 관계", guide.relationshipLabel],
+    ["선택한 방식", form.giftMode === "periodic" ? "매월 보내기" : "한번에 보내기"],
+    ["공제 기준", guide.deductionLabel],
+    ["안내 범위", guide.safeLimitLabel],
+  ];
+
   return (
-    <div className="issue-list">
-      {errors.map((error) => (
-        <p className="error" key={error}>
-          {error}
-        </p>
-      ))}
-      {warnings.map((warning) => (
-        <p key={warning}>{warning}</p>
-      ))}
+    <div className="summary-card">
+      <dl>
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <GuideCard title="확인할 일" description="송금 전후로 아래 항목을 챙기면 홈택스 준비가 쉬워져요." bullets={guide.cautionBullets} />
     </div>
   );
 }
@@ -462,13 +358,13 @@ function BabyMascot() {
   );
 }
 
-function PrintPack({ form, result }: { form: FormState; result: CalculationResult }) {
+function PrintPack({ form, guide }: { form: FormState; guide: GuideSummary }) {
   return (
     <div className="print-pack">
       <section className="print-page">
         <header>
           <p>우리 아기 증여 도우미</p>
-          <h2>증여세 신고 준비 요약</h2>
+          <h2>아이 증여 준비 체크리스트</h2>
         </header>
         <dl>
           <div>
@@ -481,33 +377,34 @@ function PrintPack({ form, result }: { form: FormState; result: CalculationResul
           </div>
           <div>
             <dt>증여 관계</dt>
-            <dd>{result.tax.relationshipLabel}</dd>
+            <dd>{guide.relationshipLabel}</dd>
           </div>
           <div>
             <dt>증여 방식</dt>
-            <dd>{form.giftMode === "periodic" ? "매월 정기 증여" : "일시 현금 증여"}</dd>
+            <dd>{form.giftMode === "periodic" ? "매월 보내기" : "한번에 보내기"}</dd>
           </div>
           <div>
-            <dt>평가액</dt>
-            <dd>{formatWon(result.valuation.assessedValue)}</dd>
+            <dt>공제 기준</dt>
+            <dd>{guide.deductionLabel}</dd>
           </div>
           <div>
-            <dt>예상 납부세액</dt>
-            <dd>{formatWon(result.tax.payableTax)}</dd>
-          </div>
-          <div>
-            <dt>신고기한</dt>
-            <dd>{result.tax.filingDeadline ? formatKoreanDate(result.tax.filingDeadline) : "확인 필요"}</dd>
+            <dt>안내 범위</dt>
+            <dd>{guide.safeLimitLabel}</dd>
           </div>
         </dl>
-        <h3>계산 기준</h3>
+        <h3>기준 안내</h3>
         <ul>
-          <li>사용 가능 공제: {formatWon(result.tax.availableDeduction)}</li>
-          <li>공제 후 과세표준: {formatWon(result.tax.taxBase)}</li>
-          <li>세율과 누진공제: {(result.tax.rate * 100).toFixed(0)}%, {formatWon(result.tax.progressiveDeduction)}</li>
-          <li>세대생략 할증세액: {formatWon(result.tax.generationSkippingTax)}</li>
-          <li>기납부세액공제: {formatWon(result.tax.priorTaxCredit)}</li>
-          <li>신고세액공제: {formatWon(result.tax.filingCredit)}</li>
+          <li>{guide.deductionLabel} 공제와 과세표준 50만원 미만 기준을 함께 확인해요.</li>
+          <li>{guide.modeDescription}</li>
+          {guide.modeBullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
+          ))}
+        </ul>
+        <h3>송금 전 체크리스트</h3>
+        <ul>
+          {guide.cautionBullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
+          ))}
         </ul>
         <h3>홈택스 입력 순서</h3>
         <ol>
@@ -515,78 +412,51 @@ function PrintPack({ form, result }: { form: FormState; result: CalculationResul
             <li key={step}>{step}</li>
           ))}
         </ol>
-        <footer>이 문서는 사용자가 입력한 값으로 만든 참고용 자료입니다. 세무 대리나 확정 세액 보증이 아닙니다.</footer>
+        <footer>이 문서는 신고 준비를 돕는 참고용 안내입니다. 세무 대리, 자동 신고, 확정 세액 안내가 아닙니다.</footer>
       </section>
     </div>
   );
 }
 
-function calculateCurrent(form: FormState): CalculationResult {
-  const rawInput = {
-    donorName: form.donorName || "증여자",
-    donorId: "",
-    donorAddress: "",
-    donorPhone: "",
-    recipientName: form.recipientName || "수증자",
-    recipientId: "",
-    recipientAddress: "",
-    guardianName: "",
-    taxOffice: "",
-    giftDate: form.giftDate,
-    firstPaymentDate: form.firstPaymentDate || form.giftDate,
-    giftMode: form.giftMode,
-    lumpSumAmount: parseNumber(form.lumpSumAmount),
-    monthlyAmount: parseNumber(form.monthlyAmount),
-    totalMonths: parseNumber(form.totalMonths),
-    priorSameDonorGiftValue: form.priorGiftState === "yes" ? parseNumber(form.priorSameDonorGiftValue) : 0,
-    priorDeductionUsed: form.priorGiftState === "yes" ? parseNumber(form.priorDeductionUsed) : 0,
-    priorGiftTaxPaid: form.priorGiftState === "yes" ? parseNumber(form.priorGiftTaxPaid) : 0,
-    recipientHasAccount: "yes",
-    accountReady: true,
-    relationshipType: form.relationshipType,
+function getGuideSummary(form: FormState): GuideSummary {
+  const relationship = relationships.find((item) => item.value === form.relationshipType) ?? relationships[0];
+  const isMinor = form.relationshipType.includes("minor");
+  const isGrandparent = form.relationshipType.includes("grandparent");
+  const deductionLabel = isMinor ? MINOR_DEDUCTION_LABEL : ADULT_DEDUCTION_LABEL;
+  const safeLimitLabel = isMinor ? MINOR_SAFE_LIMIT_LABEL : ADULT_SAFE_LIMIT_LABEL;
+  const familyCaution = isGrandparent
+    ? "조부모가 증여하는 경우 세대생략 등 추가 확인이 필요할 수 있어요."
+    : "부모가 자녀에게 보내는 현금 증여 기준으로 먼저 확인해요.";
+  const modeDescription =
+    form.giftMode === "periodic"
+      ? `${GUIDE_BASE_DATE} 기준, 오늘부터 10년 동안 매월 보낸다면 ${PERIODIC_MINOR_EXAMPLE}가 ${MINOR_SAFE_LIMIT_LABEL} 범위의 대표 예시예요.`
+      : `처음 증여라면 ${deductionLabel} 이하가 가장 단순하고, 과세표준 50만원 미만 기준까지 함께 보면 ${safeLimitLabel}을 확인할 수 있어요.`;
+  const modeBullets =
+    form.giftMode === "periodic"
+      ? [
+          "사용자가 금액을 넣어 계산하는 기능은 제공하지 않아요.",
+          "대표 예시는 미성년 자녀에게 처음 증여하는 경우를 기준으로 봐주세요.",
+          "실제 신고 전에는 이체일, 과거 증여, 증빙을 홈택스에서 확인해야 해요.",
+        ]
+      : [
+          `${deductionLabel} 공제 기준을 넘기지 않는 방식이 가장 이해하기 쉬워요.`,
+          `${safeLimitLabel} 안내는 최근 10년 같은 증여자에게 받은 증여가 없다는 전제가 필요해요.`,
+          "송금 후 이체확인증과 가족관계 증빙을 보관해 주세요.",
+        ];
+
+  return {
+    relationshipLabel: relationship.label,
+    deductionLabel,
+    safeLimitLabel,
+    modeTitle: form.giftMode === "periodic" ? "매월 보내기 대표 예시" : "한번에 보내기 기준",
+    modeDescription,
+    modeBullets,
+    cautionBullets: [
+      familyCaution,
+      "최근 10년 같은 사람에게 받은 증여가 있으면 기준이 달라질 수 있어요.",
+      "이 앱은 자동 신고, 세무 대리, 확정 세액 안내를 제공하지 않아요.",
+    ],
   };
-  const validation = validateGiftInput(rawInput);
-  const valuation = calculateValuation(validation.input) as ValuationResult;
-  const tax = calculateGiftTax(validation.input, valuation) as TaxResult;
-  const safeLimit = getSafeAssessmentLimit(validation.input) as number;
-  return { input: validation.input, valuation, tax, safeLimit, errors: validation.errors, warnings: validation.warnings };
-}
-
-function parseNumber(value: string) {
-  const parsed = Number(stripNumber(value));
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function stripNumber(value: string) {
-  return value.replace(/[^\d]/g, "");
-}
-
-function formatInputNumber(value: string) {
-  const stripped = stripNumber(value);
-  return stripped ? Number(stripped).toLocaleString("ko-KR") : "";
-}
-
-function formatWon(value: number) {
-  return `${Math.round(value || 0).toLocaleString("ko-KR")}원`;
-}
-
-function formatKoreanDate(dateInput: string) {
-  if (!dateInput) return "";
-  const [year, month, day] = dateInput.split("-").map(Number);
-  if (!year || !month || !day) return dateInput;
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  }).format(new Date(year, month - 1, day));
-}
-
-function formatDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 async function createPdfBase64() {
