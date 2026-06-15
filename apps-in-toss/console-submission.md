@@ -70,13 +70,14 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Temporary Console API key names used during upload: `codexupload0610`, `codexux0610`, `codexpdf0610`
 - Cleanup: revoke or delete all temporary keys in the Apps in Toss Console after verifying the candidate.
 
-## Current Local Release Candidate
+## Current Uploaded Release Candidate
 
 - Source commit: `e3d5183` (`Remove Apps in Toss tax calculator UI`)
 - Built at: `2026-06-15 KST`
 - Local `.ait`: `baby-gift-tax-helper.ait`
-- Local build deploymentId: `019ecb88-ac50-7f9a-8359-a5afc0571d86`
-- Upload status: not uploaded yet. The CLI upload attempt reached `앱인토스 배포 API 키를 입력해주세요`, so a local Apps in Toss deployment API key must be registered before upload.
+- Console build: `20260615-7`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb88-ac50-7f9a-8359-a5afc0571d86`
+- Upload status: uploaded through the logged-in Apps in Toss Console on `2026-06-15 KST`.
 - Candidate note: keep the `20260610-4` style structure, but remove user-entered amount calculation, estimated tax result text, and PDF calculation tables.
 
 ## Historical Console Review Target
@@ -89,14 +90,26 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - User direction on `2026-06-15 KST`: create a small policy-adjusted change from the 04-style flow by removing the calculation feature and expanding the information-only guidance.
 - Superseded candidate: `20260613-6` / `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583` is not the current review target.
 
+## Current Console Review Target
+
+- Target build: `20260615-7`
+- Uploaded at: `2026-06-15 KST`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecb88-ac50-7f9a-8359-a5afc0571d86`
+- Source commit: `e3d5183`
+- Upload memo: `정책 반영 후보: 세액 계산 입력과 예상 세액 결과를 제거하고, 미성년 자녀 증여 공제 기준, 2,050만원 미만 안내, 매월 보내기 대표 예시, 홈택스 준비 순서, PDF 체크리스트를 제공합니다.`
+- Console push test: sent.
+- Release review: attempted, but blocked by the app-info gate: `앱 정보 검토를 먼저 완료해 주세요`.
+- App info state after the attempt: `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` No edit/cancel action was visible.
+
 ## Console Build Registry
 
-Captured from the Apps in Toss Console on `2026-06-14 KST`. These rows are Console-uploaded bundles, so the Console bundle/deployment is the source of truth for rollback. Earlier uploads were not committed and tagged at the exact upload moment, so do not claim source-level reproducibility for those builds.
+Captured from the Apps in Toss Console on `2026-06-15 KST`. These rows are Console-uploaded bundles, so the Console bundle/deployment is the source of truth for rollback. Earlier uploads were not committed and tagged at the exact upload moment, so do not claim source-level reproducibility for those builds.
 
 Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.github.io/periodic-gift-tax/` served `window.__PROJECT_TAX_VERSION__ = "40"` from `origin/main` commit `1879898ee49332853935471b24480d12762b3522`. Preserve this source baseline as tags `webapp/v40-public-20260614` and `apps-in-toss/20260610-4-webapp-baseline`. Build `20260610-4` is the closest Apps in Toss Console bundle to this public webapp UX, but it remains a Console bundle reference, not a proven source-rebuildable artifact.
 
 | Build | Created | SDK | Console status | Deployment ID | Rollback note |
 | --- | --- | --- | --- | --- | --- |
+| `20260615-7` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb88-ac50-7f9a-8359-a5afc0571d86` | Current policy-adjusted candidate from commit `e3d5183`. Console push test sent; review request blocked by pending app-info review. |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
 | `20260612-5` | `2026. 06. 12` | `2.6.1` | `검토 필요` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
 | `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Historical rollback target. PDF save fix candidate; closest Console bundle to the public webapp v40 UX baseline. |
@@ -129,11 +142,12 @@ Future uploads must be versioned in this order:
 - First logo correction on `2026-06-11 KST`: `console-assets/app-icon-600.png` was changed from a rounded white-card background to a full square white background and uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted. This was still invalid because the logo background cannot be white or transparent.
 - Current logo correction completed on `2026-06-11 KST`: `console-assets/app-icon-source.svg` now renders the in-app baby mascot on a solid brand-blue `#3182f6` background, and `console-assets/app-icon-600.png` is the generated 600 x 600 PNG. The PNG was uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted again. The Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
 - Asset upload preflight for future Console edits: check the official Apps in Toss console registration guide and linked asset guides before upload, then verify dimensions, format, background color, corner shape, and brand/resource restrictions against the current guide.
-- Current local release candidate on `2026-06-15 KST`: commit `e3d5183`, local build deploymentId `019ecb88-ac50-7f9a-8359-a5afc0571d86`, not uploaded yet because the CLI needs a locally registered deployment API key.
+- Current release candidate on `2026-06-15 KST`: commit `e3d5183`, Console build `20260615-7`, deploymentId `019ecb88-ac50-7f9a-8359-a5afc0571d86`. The `.ait` was uploaded through the logged-in Apps in Toss Console after Playwright file upload failed with `Not allowed`; native Chrome file picker upload worked.
 - Previous active target build: `20260610-4`.
-- Build review for the current local candidate is not submitted yet. On `2026-06-14 KST`, after the user clarified the historical rollback target, the agent selected `20260610-4`, sent its Console push test successfully, then clicked `검토 요청`. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
+- Build review for `20260615-7` is not submitted yet. The Console push test was sent, then `검토 요청` was clicked. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
 - Superseded calculation restore on `2026-06-13 KST`: a later local `.ait` candidate was uploaded as build `20260613-6`, but the user clarified on `2026-06-14 KST` that this should not be the review target. Do not continue against `20260613-6` unless the user explicitly reselects it.
 - Console state on `2026-06-14 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. Build `20260610-4` is visible and its `검토 요청` button is enabled, but release review remains blocked until Apps in Toss finishes, cancels, or rejects the pending app-info review.
+- Console state on `2026-06-15 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with no edit/cancel action visible. ChannelTalk unread items were promotional webinar/challenge notices, not review feedback.
 - ChannelTalk blocker follow-up on `2026-06-14 KST`: the initial blocker message incorrectly referenced `20260613-6`; a correction was then sent saying the target is `20260610-4` / deployment `019eaf09-214e-7d28-95f2-8a023568ea63`, that its Console push test was sent, and that its review request is blocked by pending app-info review. The message explicitly asked for replies to `kongncompany@naver.com`.
 - Mac/device test environment on `2026-06-13 KST`: official sandbox testing was checked. This Mac has only Command Line Tools, not full Xcode/Simulator (`xcrun simctl` unavailable), and Android `adb` is not installed. Opening the `intoss-private://` scheme on macOS fails because no Toss protocol handler is installed. Therefore the remaining real Toss app/sandbox execution needs a logged-in mobile Toss app, iOS Simulator with the sandbox app installed, or Android device/emulator with `adb`.
 - Local automated WebView QA passed on `2026-06-13 KST` against `http://127.0.0.1:5173/` in headless Chrome at 390px: one-time 10,000,000 KRW sample showed `예상 납부세액 0원`, one-time 50,000,000 KRW sample showed `2,910,000원`, no horizontal overflow was detected, PDF preview contained `증여세 신고 준비`, PDF save fallback showed `PDF 저장을 열었어요.`, and no browser console errors were captured.
