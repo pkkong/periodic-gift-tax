@@ -11,7 +11,7 @@
 - Age: Apps in Toss currently serves users aged 19 or older.
 - Customer support: `kongncompany@naver.com`
 - Console category: `생활 > 공공·행정 > 공공·행정`
-- Console keywords: `증여`, `증여세`, `세금계산`, `신고기한`, `홈택스`
+- Console keywords: `증여`, `신고준비`, `신고기한`, `홈택스`, `체크리스트`
 
 ## Assets
 
@@ -70,14 +70,24 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Temporary Console API key names used during upload: `codexupload0610`, `codexux0610`, `codexpdf0610`
 - Cleanup: revoke or delete all temporary keys in the Apps in Toss Console after verifying the candidate.
 
-## Current Console Review Target
+## Current Local Release Candidate
+
+- Source commit: `e3d5183` (`Remove Apps in Toss tax calculator UI`)
+- Built at: `2026-06-15 KST`
+- Local `.ait`: `baby-gift-tax-helper.ait`
+- Local build deploymentId: `019ecb88-ac50-7f9a-8359-a5afc0571d86`
+- Upload status: not uploaded yet. The CLI upload attempt reached `앱인토스 배포 API 키를 입력해주세요`, so a local Apps in Toss deployment API key must be registered before upload.
+- Candidate note: keep the `20260610-4` style structure, but remove user-entered amount calculation, estimated tax result text, and PDF calculation tables.
+
+## Historical Console Review Target
 
 - Target build: `20260610-4`
 - Uploaded at: `2026-06-10 KST`
 - Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019eaf09-214e-7d28-95f2-8a023568ea63`
 - Upload memo: `PDF 저장 수정 후보: 기존 UX는 유지하고 Apps in Toss WebView에서 PDF 저장 버튼이 실제 PDF를 생성해 네이티브 저장/뷰어로 열리도록 수정했습니다.`
-- User correction on `2026-06-14 KST`: the intended rollback/review target is the already uploaded Console build `20260610-4`, not a new `20260613-6` candidate.
-- Superseded candidate: `20260613-6` / `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583` is not the active review target unless the user explicitly changes direction again.
+- User correction on `2026-06-14 KST`: the intended rollback/review target was the already uploaded Console build `20260610-4`, not a new `20260613-6` candidate.
+- User direction on `2026-06-15 KST`: create a small policy-adjusted change from the 04-style flow by removing the calculation feature and expanding the information-only guidance.
+- Superseded candidate: `20260613-6` / `intoss-private://baby-gift-tax-helper?_deploymentId=019ec152-19e3-76a8-bc3c-39ae750a7583` is not the current review target.
 
 ## Console Build Registry
 
@@ -89,7 +99,7 @@ Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.githu
 | --- | --- | --- | --- | --- | --- |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
 | `20260612-5` | `2026. 06. 12` | `2.6.1` | `검토 필요` | `019eba0a-c3dc-7f96-b12d-33ecece36535` | Superseded information-only policy candidate. |
-| `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Active rollback/review target. PDF save fix candidate; closest Console bundle to the public webapp v40 UX baseline. |
+| `20260610-4` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaf09-214e-7d28-95f2-8a023568ea63` | Historical rollback target. PDF save fix candidate; closest Console bundle to the public webapp v40 UX baseline. |
 | `20260610-3` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaeec-baa9-750a-8d0b-451e825324d2` | Superseded UX-preserving candidate. Review button is disabled in Console. |
 | `20260610-2` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eaeea-2d57-7bcb-a70c-dd40539b2d5a` | Superseded UX-preserving re-upload candidate. Review button is disabled in Console. |
 | `20260610-1` | `2026. 06. 10` | `2.6.1` | `검토 필요` | `019eacca-a95e-702e-96cd-ba664f0ee9e5` | Superseded first Apps in Toss candidate. Review button is disabled in Console. |
@@ -119,8 +129,9 @@ Future uploads must be versioned in this order:
 - First logo correction on `2026-06-11 KST`: `console-assets/app-icon-600.png` was changed from a rounded white-card background to a full square white background and uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted. This was still invalid because the logo background cannot be white or transparent.
 - Current logo correction completed on `2026-06-11 KST`: `console-assets/app-icon-source.svg` now renders the in-app baby mascot on a solid brand-blue `#3182f6` background, and `console-assets/app-icon-600.png` is the generated 600 x 600 PNG. The PNG was uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted again. The Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
 - Asset upload preflight for future Console edits: check the official Apps in Toss console registration guide and linked asset guides before upload, then verify dimensions, format, background color, corner shape, and brand/resource restrictions against the current guide.
-- Active target build: `20260610-4`.
-- Build review is not submitted yet. On `2026-06-14 KST`, after the user clarified the rollback target, the agent selected `20260610-4`, sent its Console push test successfully, then clicked `검토 요청`. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
+- Current local release candidate on `2026-06-15 KST`: commit `e3d5183`, local build deploymentId `019ecb88-ac50-7f9a-8359-a5afc0571d86`, not uploaded yet because the CLI needs a locally registered deployment API key.
+- Previous active target build: `20260610-4`.
+- Build review for the current local candidate is not submitted yet. On `2026-06-14 KST`, after the user clarified the historical rollback target, the agent selected `20260610-4`, sent its Console push test successfully, then clicked `검토 요청`. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
 - Superseded calculation restore on `2026-06-13 KST`: a later local `.ait` candidate was uploaded as build `20260613-6`, but the user clarified on `2026-06-14 KST` that this should not be the review target. Do not continue against `20260613-6` unless the user explicitly reselects it.
 - Console state on `2026-06-14 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. Build `20260610-4` is visible and its `검토 요청` button is enabled, but release review remains blocked until Apps in Toss finishes, cancels, or rejects the pending app-info review.
 - ChannelTalk blocker follow-up on `2026-06-14 KST`: the initial blocker message incorrectly referenced `20260613-6`; a correction was then sent saying the target is `20260610-4` / deployment `019eaf09-214e-7d28-95f2-8a023568ea63`, that its Console push test was sent, and that its review request is blocked by pending app-info review. The message explicitly asked for replies to `kongncompany@naver.com`.
