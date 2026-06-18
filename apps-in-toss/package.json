@@ -1,0 +1,38 @@
+{
+  "name": "apps-in-toss",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "granite dev",
+    "build": "ait build",
+    "deploy": "ait deploy",
+    "deploy:candidate": "ait deploy --location ./baby-gift-tax-helper.ait -m \"웹앱 UX 보존 정책 반영 후보: 공개 웹앱의 모바일 흐름과 디자인을 복제하고, 금액 입력 계산 화면과 세액을 확정하는 문구를 제거했습니다. 기본공제와 과세표준 50만원 미만 법령 근거, 홈택스 준비 순서, PDF 체크리스트와 증여 약정서/확인서 초안을 제공합니다.\"",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@apps-in-toss/web-framework": "^2.6.1",
+    "@emotion/react": "^11.14.0",
+    "@toss/tds-mobile": "^2.4.1",
+    "@toss/tds-mobile-ait": "^2.4.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.15.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.24.1",
+    "vite": "^6.2.0"
+  }
+}

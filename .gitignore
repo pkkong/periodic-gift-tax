@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.ait
+.DS_Store
+apps-in-toss/node_modules/
+apps-in-toss/dist/
+apps-in-toss/*.ait

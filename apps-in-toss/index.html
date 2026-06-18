@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0064ff" />
+    <title>우리 아기 증여 도우미</title>
+    <link rel="icon" href="/appsintoss-logo.png" type="image/png" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script>
+      window.__PROJECT_TAX_VERSION__ = "apps-in-toss-webapp-clone-20260615";
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar" hidden>
+        <div>
+          <p class="eyebrow">증여 실행부터 신고 준비까지</p>
+          <h1>우리 아기 증여 도우미</h1>
+        </div>
+        <button class="text-button" hidden id="ruleButton" type="button">적용 규정</button>
+      </header>
+
+      <div class="wizard-progress" hidden aria-label="진행 단계">
+        <div class="progress-copy">
+          <span id="stepCount">1 / 5</span>
+          <strong id="stepTitle">증여자 정보</strong>
+        </div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+      </div>
+
+      <div class="baby-mascot" id="babyMascot" hidden aria-live="polite">
+        <div class="baby-face" aria-hidden="true">
+          <svg class="baby-svg" viewBox="0 0 96 96" focusable="false">
+            <defs>
+              <linearGradient id="babySkin" x1="24" y1="20" x2="72" y2="76" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#fff8ef" />
+                <stop offset="1" stop-color="#ffd9bd" />
+              </linearGradient>
+              <linearGradient id="babyWrap" x1="25" y1="58" x2="76" y2="92" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#e8f3ff" />
+                <stop offset="1" stop-color="#b9dcff" />
+              </linearGradient>
+              <linearGradient id="babyGold" x1="70" y1="28" x2="91" y2="49" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#fff0a8" />
+                <stop offset="1" stop-color="#f2b705" />
+              </linearGradient>
+            </defs>
+            <ellipse class="mascot-shadow" cx="48" cy="87" rx="27" ry="5.2" />
+            <path class="mascot-wrap" d="M21.5 66c0-15.5 11.6-25.7 26.7-25.7 15.7 0 26.3 10.4 26.3 25.5v8.7c0 11-10.2 17.7-26.6 17.7-15.8 0-26.4-6.6-26.4-17.4V66Z" />
+            <path class="mascot-wrap-fold" d="M30.5 67.2c10.7 7.6 24.5 7.8 35.2.2" />
+            <path class="mascot-wrap-ribbon" d="M42 75.5h12.2m-6.1-6.2v12.1" />
+            <path class="mascot-ear mascot-ear-left" d="M24.8 31.7c-5.8.6-8.6 4.8-7 9.6 1.4 4.2 5.8 6.1 10.1 3.7" />
+            <path class="mascot-ear mascot-ear-right" d="M71.2 31.7c5.8.6 8.6 4.8 7 9.6-1.4 4.2-5.8 6.1-10.1 3.7" />
+            <path class="mascot-face" d="M48.3 11.8c15.9.2 27.3 11.2 27 26.7-.3 15.9-12.3 27.5-27.8 27.3-15.6-.2-26.7-11.9-26.4-27.8.3-15.3 11.5-26.4 27.2-26.2Z" />
+            <path class="mascot-hair" d="M42.3 14.2c9.2-1.7 14.8 3.3 9.3 9.4 8.5-.8 12.8 7.3 4.2 12.5" />
+            <ellipse class="mascot-blush mascot-blush-left" cx="34.7" cy="45.3" rx="7" ry="5.8" />
+            <ellipse class="mascot-blush mascot-blush-right" cx="61.4" cy="45.4" rx="7" ry="5.8" />
+            <circle class="mascot-cheek-glow mascot-cheek-left" cx="33.2" cy="43.2" r="2.1" />
+            <circle class="mascot-cheek-glow mascot-cheek-right" cx="59.9" cy="43.3" r="2.1" />
+            <path class="mascot-nose" d="M48.2 42.8c-1.5 1.3-1.4 2.7.2 3.5" />
+            <g class="mascot-eye-open">
+              <path class="mascot-eye-dot" d="M35.9 35.9c0-2.5 1.7-4.1 3.9-4 2.1.1 3.5 1.8 3.4 4.1-.1 2.4-1.7 4-3.9 3.9-2.1-.1-3.5-1.8-3.4-4Z" />
+              <path class="mascot-eye-dot" d="M53.8 35.9c0-2.5 1.7-4.1 3.9-4 2.1.1 3.5 1.8 3.4 4.1-.1 2.4-1.7 4-3.9 3.9-2.1-.1-3.5-1.8-3.4-4Z" />
+              <circle class="mascot-eye-light" cx="38.6" cy="34.8" r="1" />
+              <circle class="mascot-eye-light" cx="56.5" cy="34.8" r="1" />
+            </g>
+            <g class="mascot-eye-happy">
+              <path d="M34.6 37.8c2.9-3.5 6.8-3.4 9.1.2" />
+              <path d="M52.6 37.8c2.9-3.5 6.8-3.4 9.1.2" />
+            </g>
+            <path class="mascot-mouth mascot-mouth-cry" d="M40.2 54.2c4.4-5.9 11.4-6 15.6.2" />
+            <path class="mascot-mouth mascot-mouth-calm" d="M42.3 52.7c3.3 1.2 8.1 1.2 11.4 0" />
+            <path class="mascot-mouth mascot-mouth-smile" d="M39.8 50.4c4.5 7.5 13.3 7.6 17.5.1" />
+            <path class="mascot-tear" d="M28.2 43.2c-3.8 4.7-4.7 7.8-1.9 9.9 3 2.2 6.8.1 6.8-3.6 0-2-1.9-4.1-4.9-6.3Z" />
+            <path class="mascot-flex-arm" d="M68.8 53.4c8-9.2 14.2-9.5 19.2-2.3" />
+            <path class="mascot-hand" d="M84.8 48.8c2.7-2.4 7.1-.7 7 3.1-.1 3.4-4.1 5.2-6.8 3.1-1.9-1.5-2-4.4-.2-6.2Z" />
+            <circle class="mascot-ring" cx="80.2" cy="41.4" r="7.3" />
+            <path class="mascot-spark mascot-spark-one" d="M78 18.3l2.3 5.1 5.1 2.2-5.1 2.3-2.3 5.1-2.3-5.1-5.1-2.3 5.1-2.2 2.3-5.1Z" />
+            <path class="mascot-spark mascot-spark-two" d="M89 31.1l1.4 2.8 2.8 1.3-2.8 1.4-1.4 2.8-1.3-2.8-2.8-1.4 2.8-1.3 1.3-2.8Z" />
+          </svg>
+        </div>
+        <div class="baby-mascot-copy">
+          <span id="babyMascotStage">시작했어요</span>
+          <strong id="babyMascotText">하나씩 확인하면 표정이 밝아져요.</strong>
+        </div>
+      </div>
+
+      <main>
+        <form id="giftForm" class="wizard-form" novalidate>
+          <section class="wizard-step landing-step is-active" data-step="intro">
+            <div class="landing-nav">
+              <strong>우리 아기 증여 도우미</strong>
+              <a href="#landingStart">시작</a>
+            </div>
+            <section class="landing-band landing-hero">
+              <div class="hero-copy">
+                <p class="landing-kicker">증여세 확인</p>
+                <h2 class="hero-title">
+                  <span>우리 아기에게 보낼 돈,</span>
+                  <span>기준에 들어오는지 확인해볼게요</span>
+                </h2>
+                <p>
+                  관계와 방식에 맞춰 기준과 신고 준비물을 보여줘요.
+                  입력값은 내 기기에만 남아요.
+                </p>
+                <div class="hero-actions">
+                  <a class="primary-link" href="#landingStart">시작하기</a>
+                  <span>기준 안내부터 신고 준비물까지</span>
+                </div>
+              </div>
+              <div class="hero-visual" aria-label="우리 아기 증여 도우미 이미지">
+                <img src="./assets/baby-gift-hero.png" alt="아기 신발, 선물 봉투, 저금통이 놓인 증여 준비 이미지" fetchpriority="high" />
+                <div class="hero-float-card hero-float-primary">
+                  <span>기본 기준</span>
+                  <strong>2,050만원 미만</strong>
+                </div>
+                <div class="hero-float-card hero-float-secondary">
+                  <span>10년 정기증여</span>
+                  <strong>월 약 196,000원</strong>
+                </div>
+              </div>
+              <div class="hero-proof">
+                <div><strong>20,499,999원</strong><span>기본 기준</span></div>
+                <div><strong>3.0%</strong><span>정기증여 할인율</span></div>
+                <div><strong>PDF팩</strong><span>신고 준비물</span></div>
+              </div>
+            </section>
+
+            <section class="landing-band landing-panel">
+              <div>
+                <p class="landing-kicker">확인할 것</p>
+                <h2>아이에게 돈 보내기 전에 필요한 것만 볼게요</h2>
+              </div>
+              <div class="landing-feature-grid">
+                <article>
+                  <span>01</span>
+                  <strong>누가 누구에게 보내나요?</strong>
+                  <p>관계에 맞춰 공제와 유의사항을 확인해요.</p>
+                </article>
+                <article>
+                  <span>02</span>
+                  <strong>아이 계좌가 있나요?</strong>
+                  <p>아이 명의 계좌로 보내야 기록이 깔끔해요.</p>
+                </article>
+                <article>
+                  <span>03</span>
+                  <strong>한 번에 보낼까요?</strong>
+                  <p>일시증여와 매월 정기증여를 따로 봐요.</p>
+                </article>
+                <article>
+                  <span>04</span>
+                  <strong>신고 준비물을 만들까요?</strong>
+                  <p>홈택스에 옮길 내용과 첨부자료를 정리해요.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="landing-band landing-highlight">
+              <div class="highlight-copy">
+                <p class="landing-kicker">기본 기준</p>
+                <h2>미성년 자녀는 10년 동안 약 2,050만원 미만이 기준이에요</h2>
+                <p>
+                  2,000만원 공제에 과세표준 50만원 미만 부과 제외를 함께 봐요.
+                  최근 증여가 있으면 기준이 낮아질 수 있어요.
+                </p>
+              </div>
+              <div class="limit-card">
+                <div><span>증여재산공제</span><strong>20,000,000원</strong></div>
+                <div><span>과세표준 미만 기준</span><strong>499,999원</strong></div>
+                <div><span>안전 기준</span><strong>20,499,999원</strong></div>
+              </div>
+            </section>
+
+            <section class="landing-band process-band">
+              <p class="landing-kicker">진행 순서</p>
+              <h2>입력하고, 확인하고, 저장하면 끝</h2>
+              <ol class="process-list">
+                <li><span>1</span><strong>보내는 사람과 받는 사람 입력</strong><p>필요한 기본 정보만 받아요.</p></li>
+                <li><span>2</span><strong>아이 계좌 확인</strong><p>이체 기록을 남길 계좌를 확인해요.</p></li>
+                <li><span>3</span><strong>세금 없는 범위 확인</strong><p>공제와 세대생략 여부를 반영해요.</p></li>
+                <li><span>4</span><strong>금액과 방식 선택</strong><p>한 번에 보낼지, 매월 보낼지 정해요.</p></li>
+                <li><span>5</span><strong>PDF로 저장</strong><p>홈택스 입력 전에 준비물을 저장해요.</p></li>
+              </ol>
+            </section>
+
+            <section class="landing-band trust-band">
+              <article>
+                <span>개인정보</span>
+                <strong>내 기기에만 저장</strong>
+                <p>임시저장이나 백업을 누른 경우에만 브라우저에 남아요.</p>
+              </article>
+              <article>
+                <span>역할</span>
+                <strong>신고 준비 도구</strong>
+                <p>홈택스 제출 전 확인할 기준과 준비물을 정리해요.</p>
+              </article>
+              <article>
+                <span>근거</span>
+                <strong>2026.06.06 기준</strong>
+                <p>결과 화면에서 적용 기준을 다시 보여줘요.</p>
+              </article>
+            </section>
+
+            <section class="landing-band landing-final" id="landingStart">
+              <p class="landing-kicker">시작</p>
+              <h2>이제 조건을 입력해볼게요</h2>
+              <p>순서대로 확인하면 기준 안내와 신고 준비물이 나와요.</p>
+              <button class="primary landing-start" id="introStartButton" type="button">증여 도우미 시작하기</button>
+            </section>
+          </section>
+
+          <section class="wizard-step" data-step="donor">
+            <div class="entry-step">
+              <h2>돈을 보내는 분을 알려주세요</h2>
+              <label class="flow-field" data-field="donorName">
+                <span>성명</span>
+                <div class="input-action">
+                  <input autocomplete="name" enterkeyhint="next" name="donorName" required />
+                  <button class="field-next" type="button" data-confirm-field="donorName" aria-label="성명 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field" data-field="donorAddress" data-reveal-after="donorName">
+                <span>주소</span>
+                <div class="input-action">
+                  <input autocomplete="street-address" enterkeyhint="next" name="donorAddress" />
+                  <button class="field-next" type="button" data-confirm-field="donorAddress" aria-label="주소 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field" data-field="donorPhone" data-reveal-after="donorAddress">
+                <span>연락처</span>
+                <div class="input-action">
+                  <input autocomplete="tel" enterkeyhint="next" inputmode="tel" maxlength="13" name="donorPhone" placeholder="010-1234-5678" />
+                  <button class="field-next" type="button" data-confirm-field="donorPhone" aria-label="연락처 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field" data-field="donorId" data-reveal-after="donorPhone">
+                <span>주민등록번호 앞 7자리</span>
+                <div class="input-action">
+                  <input enterkeyhint="next" inputmode="numeric" maxlength="14" name="donorId" placeholder="900101-1••••••" />
+                  <button class="field-next" type="button" data-confirm-field="donorId" aria-label="주민등록번호 확인"></button>
+                </div>
+                <small>생년월일 6자리와 뒤 첫 자리만 입력하세요. 홈택스 제출 때 전체 번호를 확인하세요.</small>
+              </label>
+              <label class="flow-field" data-field="relationshipType" data-reveal-after="donorId">
+                <span>증여 관계</span>
+                <select name="relationshipType">
+                  <option value="parent_minor_child">부모가 미성년 자녀에게</option>
+                  <option value="parent_adult_child">부모가 성년 자녀에게</option>
+                  <option value="adult_child_parent">성년 자녀가 부모에게</option>
+                  <option value="grandparent_minor_grandchild">조부모가 미성년 손자녀에게</option>
+                  <option value="grandparent_adult_grandchild">조부모가 성년 손자녀에게</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="recipient">
+            <div class="entry-step">
+              <h2>돈을 받을 분을 알려주세요</h2>
+              <label class="flow-field" data-field="recipientName">
+                <span>성명</span>
+                <div class="input-action">
+                  <input autocomplete="off" enterkeyhint="next" name="recipientName" required />
+                  <button class="field-next" type="button" data-confirm-field="recipientName" aria-label="성명 확인"></button>
+                </div>
+              </label>
+              <div class="flow-field" data-field="recipientAddress" data-reveal-after="recipientName">
+                <div class="field-card-head">
+                  <span>주소</span>
+                  <label class="same-check">
+                    <input checked name="sameAddressAsDonor" type="checkbox" />
+                    <span>증여자와 같음</span>
+                  </label>
+                </div>
+                <div class="input-action">
+                  <input autocomplete="street-address" enterkeyhint="next" name="recipientAddress" />
+                  <button class="field-next" type="button" data-confirm-field="recipientAddress" aria-label="주소 확인"></button>
+                </div>
+              </div>
+              <label class="flow-field" data-field="guardianName" data-reveal-after="recipientAddress">
+                <span>법정대리인</span>
+                <div class="input-action">
+                  <input autocomplete="name" enterkeyhint="next" name="guardianName" />
+                  <button class="field-next" type="button" data-confirm-field="guardianName" aria-label="법정대리인 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field" data-field="recipientId" data-reveal-after="guardianName">
+                <span>주민등록번호 앞 7자리</span>
+                <div class="input-action">
+                  <input enterkeyhint="next" inputmode="numeric" maxlength="14" name="recipientId" placeholder="240101-3••••••" />
+                  <button class="field-next" type="button" data-confirm-field="recipientId" aria-label="주민등록번호 확인"></button>
+                </div>
+                <small>생년월일 6자리와 뒤 첫 자리만 입력하세요. 홈택스 제출 때 전체 번호를 확인하세요.</small>
+              </label>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="account">
+            <div class="entry-step account-step">
+              <h2>받는 분 명의 계좌가 있나요?</h2>
+              <p>증여금은 받는 분 명의 계좌로 보내야 기록이 깔끔해요.</p>
+              <div class="choice-group" role="radiogroup" aria-label="수증자 계좌 보유 여부">
+                <label class="choice-card">
+                  <input checked name="recipientHasAccount" type="radio" value="yes" />
+                  <span>계좌가 있어요</span>
+                  <small>받는 분 명의 계좌로 보낼 예정이에요.</small>
+                </label>
+                <label class="choice-card">
+                  <input name="recipientHasAccount" type="radio" value="simulate" />
+                  <span>아직 없지만 시뮬레이션 할게요</span>
+                  <small>신고 준비 흐름만 먼저 볼게요.</small>
+                </label>
+              </div>
+              <input name="accountReady" type="checkbox" hidden />
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="history">
+            <div class="entry-step history-step">
+              <h2>최근 10년 안에 같은 분에게 받은 증여가 있나요?</h2>
+              <p>있다면 이번에 세금 없이 보낼 수 있는 금액이 줄어들 수 있어요.</p>
+              <div class="choice-group" role="radiogroup" aria-label="최근 10년 동일인 증여 여부">
+                <label class="choice-card">
+                  <input checked name="priorGiftStatus" type="radio" value="no" />
+                  <span>없어요</span>
+                  <small>기본 공제 기준으로 볼게요.</small>
+                </label>
+                <label class="choice-card">
+                  <input name="priorGiftStatus" type="radio" value="yes" />
+                  <span>있어요</span>
+                  <small>금액을 넣으면 남은 공제 기준을 안내해요.</small>
+                </label>
+              </div>
+              <div class="prior-fields" hidden id="priorGiftFields">
+                <label>
+                  <span>이전 증여 평가액</span>
+                  <input inputmode="numeric" name="priorSameDonorGiftValue" placeholder="예: 10,000,000" type="text" value="0" />
+                </label>
+                <label>
+                  <span>이미 사용한 공제액</span>
+                  <input inputmode="numeric" name="priorDeductionUsed" placeholder="예: 5,000,000" type="text" value="0" />
+                </label>
+                <label>
+                  <span>이미 낸 증여세</span>
+                  <input inputmode="numeric" name="priorGiftTaxPaid" placeholder="예: 100,000" type="text" value="0" />
+                </label>
+              </div>
+              <p class="mode-hint" id="priorGiftHint">없다면 다음 단계에서 기본 공제 기준으로 보여드려요.</p>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="safe">
+            <div class="entry-step safe-step">
+              <h2 id="safeTitle">세금 없이 보낼 수 있는 금액을 볼게요</h2>
+              <div class="safe-number" id="safeLimitText">기준 확인 중</div>
+              <div class="safe-breakdown" id="safeBreakdown"></div>
+              <p id="safeNote"></p>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="giftMode">
+            <div class="entry-step">
+              <h2>어떻게 보낼까요?</h2>
+              <div class="choice-group gift-mode-group" role="radiogroup" aria-label="증여 방식">
+                <label class="choice-card">
+                  <input name="giftMode" type="radio" value="lump_sum" />
+                  <span>한 번에 보내기</span>
+                  <small>현금을 한 번에 보내요.</small>
+                </label>
+                <label class="choice-card">
+                  <input checked name="giftMode" type="radio" value="periodic" />
+                  <span>매월 보내기</span>
+                  <small>10년 동안 같은 금액을 보내요.</small>
+                </label>
+              </div>
+              <p class="mode-hint" id="modeHint"></p>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="amount">
+            <div class="entry-step">
+              <h2 id="amountTitle">증여 조건을 입력하세요</h2>
+              <p class="mode-hint" id="amountHint"></p>
+              <label class="flow-field" data-field="giftDate">
+                <span>증여일</span>
+                <div class="input-action date-action">
+                  <input enterkeyhint="next" name="giftDate" type="date" required />
+                  <button class="field-next" type="button" data-confirm-field="giftDate" aria-label="증여일 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field periodic-only" data-field="firstPaymentDate" data-reveal-after="giftDate">
+                <span>첫 이체일</span>
+                <div class="input-action date-action">
+                  <input enterkeyhint="next" name="firstPaymentDate" type="date" required />
+                  <button class="field-next" type="button" data-confirm-field="firstPaymentDate" aria-label="첫 이체일 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field lump-only" data-field="lumpSumAmount" data-reveal-after="giftDate">
+                <span>증여금액</span>
+                <div class="input-action">
+                  <input enterkeyhint="next" inputmode="numeric" name="lumpSumAmount" type="text" />
+                  <button class="field-next" type="button" data-confirm-field="lumpSumAmount" aria-label="증여금액 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field periodic-only" data-field="monthlyAmount" data-reveal-after="firstPaymentDate">
+                <span>월 납입액</span>
+                <div class="input-action">
+                  <input enterkeyhint="next" inputmode="numeric" name="monthlyAmount" required type="text" />
+                  <button class="field-next" type="button" data-confirm-field="monthlyAmount" aria-label="월 납입액 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field periodic-only" data-field="totalMonths" data-reveal-after="monthlyAmount">
+                <span>총 납입개월</span>
+                <div class="input-action">
+                  <input enterkeyhint="next" inputmode="numeric" min="1" name="totalMonths" required type="number" value="120" />
+                  <button class="field-next" type="button" data-confirm-field="totalMonths" aria-label="총 납입개월 확인"></button>
+                </div>
+              </label>
+              <label class="flow-field" data-field="taxOffice" data-reveal-after="amountComplete">
+                <span>관할세무서</span>
+                <div class="input-action">
+                  <input enterkeyhint="next" name="taxOffice" placeholder="예: 강남세무서" />
+                  <button class="field-next" type="button" data-confirm-field="taxOffice" aria-label="관할세무서 확인"></button>
+                </div>
+              </label>
+            </div>
+            <div class="inline-alert" hidden id="amountGuard"></div>
+          </section>
+
+          <section class="wizard-step" data-step="result">
+            <div class="result-summary" id="resultStatus">
+              <div>
+                <p id="resultStatusLabel">신고 준비 기준 확인</p>
+                <h2 id="resultTaxAmount">공제 기준을 확인해요</h2>
+                <span id="deadlineSummary">신고기한 산정 전</span>
+              </div>
+              <p id="resultLead"></p>
+            </div>
+            <div class="result-grid compact" id="resultCards"></div>
+            <section class="result-action-card">
+              <div>
+                <h3>다음에 할 일</h3>
+                <p>세 가지만 챙기면 돼요.</p>
+              </div>
+              <ol id="resultNextSteps"></ol>
+            </section>
+            <section class="pdf-card">
+              <div>
+                <h3>신고 준비 PDF 저장</h3>
+                <p id="resultDocsSummary">홈택스 입력 전에 저장하세요.</p>
+              </div>
+              <div class="document-actions">
+                <button class="primary" type="button" id="printButton">PDF 저장</button>
+                <button type="button" id="printButtonDocuments">인쇄</button>
+              </div>
+            </section>
+            <details class="result-disclosure result-detail-disclosure">
+              <summary>신고 기준 자세히 보기</summary>
+              <div class="result-basis" id="resultBasis" aria-label="신고 기준"></div>
+              <section class="result-meta-grid" id="resultFilingMeta" aria-label="신고 요약"></section>
+              <div class="notice-list" id="validationList"></div>
+            </details>
+            <details class="result-disclosure">
+              <summary id="scheduleSummary">기준 내역 보기</summary>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>수령연도</th>
+                      <th>수령기간</th>
+                      <th>개월</th>
+                      <th>수령액</th>
+                      <th>경과연수</th>
+                      <th>현재가치</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scheduleRows"></tbody>
+                </table>
+              </div>
+            </details>
+            <div id="documentPreview" class="document-preview" aria-label="인쇄용 신고 서류팩"></div>
+          </section>
+
+          <section class="wizard-step" data-step="execute">
+            <div class="entry-step execution-step">
+              <h2 id="executeTransferTitle">아이 계좌로 보내세요</h2>
+              <p id="executeSummary">받는 분 명의 계좌로 송금하고 이체내역을 저장하세요.</p>
+              <section class="execution-card">
+                <span>송금 실행</span>
+                <strong id="executeTransferNote">이체내역은 홈택스 첨부자료로 필요해요.</strong>
+                <label class="same-check transfer-check">
+                  <input name="transferDone" type="checkbox" />
+                  <span id="transferCheckText">아이 계좌로 이체를 완료했어요</span>
+                </label>
+              </section>
+              <section class="account-product execute-account-card">
+                <div>
+                  <span>아직 아이 계좌가 없다면</span>
+                  <strong>아이 명의 계좌부터 준비하세요</strong>
+                  <p>실제 신고에는 수증자 명의 계좌 이체내역이 가장 깔끔해요.</p>
+                </div>
+                <button class="primary" type="button" id="executeAccountButton">계좌 준비 완료</button>
+              </section>
+            </div>
+          </section>
+
+          <section class="wizard-step" data-step="hometaxFlow">
+            <div class="entry-step hometax-flow-step">
+              <h2>자동 신고는 아직 미지원이에요</h2>
+              <p id="hometaxFlowSummary">PDF와 이체내역을 보면서 하나씩 따라 해보세요.</p>
+              <section class="hometax-card">
+                <div class="hometax-main">
+                  <div>
+                    <span>따라하기</span>
+                    <h3>홈택스에 신고하러 가기</h3>
+                    <p>홈택스를 열고 아래 순서대로 입력하세요. 자동 입력이나 제출은 하지 않아요.</p>
+                  </div>
+                  <button class="primary" type="button" id="hometaxButton">홈택스 열기</button>
+                </div>
+                <ol class="action-timeline">
+                  <li>
+                    <span>1</span>
+                    <div>
+                      <strong>회원가입 또는 로그인</strong>
+                      <p>공동인증서나 간편인증을 준비하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>2</span>
+                    <div>
+                      <strong>증여세 신고 메뉴 열기</strong>
+                      <p>신고/납부 메뉴에서 세금신고, 증여세 순서로 들어가세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>3</span>
+                    <div>
+                      <strong>기본정보와 증여재산 입력</strong>
+                      <p id="hometaxAssetGuide">증여재산 종류와 실제 이체내역을 확인하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>4</span>
+                    <div>
+                      <strong>증빙서류 첨부</strong>
+                      <p>PDF, 이체내역, 가족관계 자료를 업로드하세요.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span>5</span>
+                    <div>
+                      <strong>제출하고 납부 확인</strong>
+                      <p>제출 전 공제 기준과 홈택스 산출 결과를 다시 대조하세요.</p>
+                    </div>
+                  </li>
+                </ol>
+                <details class="hometax-guide prep-guide">
+                  <summary>준비물 자세히 보기</summary>
+                  <div class="prep-split">
+                    <article class="prep-box prepared">
+                      <span>이 앱에서 준비</span>
+                      <strong>PDF로 저장할 자료</strong>
+                      <p id="preparedSummary">자동 작성할 자료를 정리하고 있어요.</p>
+                      <ul id="preparedList"></ul>
+                    </article>
+                    <article class="prep-box needed">
+                      <span>직접 챙길 것</span>
+                      <strong>발급하거나 확인할 자료</strong>
+                      <p id="neededSummary">따로 준비할 자료를 정리하고 있어요.</p>
+                      <ul id="neededList"></ul>
+                    </article>
+                  </div>
+                </details>
+                <details class="hometax-guide">
+                  <summary>신고 방법 더 자세히 보기</summary>
+                  <div class="screen-guide">
+                    <article>
+                      <span>화면 1</span>
+                      <strong>신고 메뉴</strong>
+                      <p>신고/납부 메뉴에서 세금신고, 증여세 선택</p>
+                    </article>
+                    <article>
+                      <span>화면 2</span>
+                      <strong>신고 유형</strong>
+                      <p>기본세율 적용 증여재산 신고</p>
+                    </article>
+                    <article>
+                      <span>화면 3</span>
+                      <strong>첨부자료</strong>
+                      <p>PDF, 이체내역, 가족관계 자료 업로드</p>
+                    </article>
+                  </div>
+                  <p class="guide-note">실제 화면 캡처는 홈택스 로그인 후 화면 기준으로 추가할 예정입니다.</p>
+                </details>
+              </section>
+            </div>
+          </section>
+        </form>
+
+        <div class="wizard-nav" aria-label="단계 이동">
+          <button type="button" id="backButton">이전</button>
+          <button class="primary" type="button" id="nextButton">다음</button>
+        </div>
+
+        <div class="utility-actions" aria-label="데이터 작업">
+          <button type="button" id="saveButton">임시저장</button>
+          <button type="button" id="loadButton">저장본</button>
+          <button type="button" id="dataButton">백업</button>
+          <button class="danger" type="button" id="clearButton">초기화</button>
+          <strong id="storageStatus">저장 안 됨</strong>
+          <input accept="application/json" hidden id="importFile" type="file" />
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div class="overlay" hidden id="ruleOverlay" role="dialog" aria-modal="true" aria-labelledby="ruleOverlayTitle">
+      <div class="overlay-card">
+        <div class="overlay-header">
+          <h2 id="ruleOverlayTitle">적용 규정</h2>
+          <button class="text-button" type="button" data-close-overlay="ruleOverlay">닫기</button>
+        </div>
+        <div class="rule-list">
+          <article>
+            <strong>상증세법 시행령 제62조</strong>
+            <p>유기정기금은 수령연도별 금액을 경과연수로 할인하되, 1년 미만 경과기간의 금액은 할인하지 않고 1년분 정기금액의 20배 상한을 비교합니다.</p>
+          </article>
+          <article>
+            <strong>상증세법 시행규칙 제19조의2</strong>
+            <p>정기금 평가에 적용하는 이자율은 3.0%로 반영했습니다.</p>
+          </article>
+          <article>
+            <strong>국세청 신고납부기한</strong>
+            <p>증여받은 달의 말일부터 3개월 이내 신고를 기준으로 신고기한을 산정합니다.</p>
+          </article>
+          <article>
+            <strong>국세청 증여세 기준</strong>
+            <p>관계별 증여재산공제, 과세최저한, 세대생략 유의사항을 안내 기준으로 반영했습니다.</p>
+          </article>
+          <article>
+            <strong>국세청 주요서식 안내</strong>
+            <p>신고서 초안, 평가명세, 약정서 또는 확인서를 PDF 저장용으로 만듭니다. 홈택스 신고 방법은 결과 화면에서 안내합니다.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" hidden id="dataOverlay" role="dialog" aria-modal="true" aria-labelledby="dataOverlayTitle">
+      <div class="overlay-card">
+        <div class="overlay-header">
+          <h2 id="dataOverlayTitle">백업</h2>
+          <button class="text-button" type="button" data-close-overlay="dataOverlay">닫기</button>
+        </div>
+        <p class="overlay-copy">
+          백업 파일 저장은 현재 입력값을 JSON 파일로 저장하는 기능입니다. 백업 파일 불러오기는 그 파일을 다시 읽어 입력칸을 채웁니다.
+        </p>
+        <div class="sheet-actions">
+          <button class="primary" type="button" id="exportButton">백업 파일 저장</button>
+          <button type="button" id="importButton">백업 파일 불러오기</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>
