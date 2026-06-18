@@ -111,8 +111,8 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Source commit: `c60518f`
 - Upload memo: not displayed in the Console row after upload; intended memo was `웹앱 UX 보존 정책 반영 후보: 공개 웹앱의 모바일 흐름과 디자인을 복제하고, 금액 입력 계산 화면과 세액을 확정하는 문구를 제거했습니다. 기본공제와 과세표준 50만원 미만 법령 근거, 홈택스 준비 순서, PDF 체크리스트와 증여 약정서/확인서 초안을 제공합니다.`
 - Console push test: sent.
-- App info: re-submitted on `2026-06-16 KST` after updating the subtitle to `아이 증여 신고 준비` and making the description explicitly say that amount-entry tax calculation, confirmed tax guidance, tax agency, HomeTax auto submission, and server storage are not provided. Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
-- Release review: attempted after app-info re-submission, but still blocked by the app-info gate: `앱 정보 검토를 먼저 완료해 주세요` / `앱 정보가 승인되어야 앱을 출시할 수 있어요.`
+- App info: re-submitted on `2026-06-16 KST` after updating the subtitle to `아이 증여 신고 준비` and making the description explicitly say that amount-entry tax calculation, confirmed tax guidance, tax agency, HomeTax auto submission, and server storage are not provided. Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.` The user reported app info approval on `2026-06-18 KST`.
+- Release review: not submitted yet. On `2026-06-18 KST`, the existing logged-in Console tab was still locked by an earlier Chrome automation session, while a fresh Console tab redirected to Toss Business sign-in. The Apps in Toss CLI does not expose a release-review command, so the next executable action is to open a fresh logged-in Console session and click `검토 요청` on the `20260616-9` row.
 
 ## Console Build Registry
 
@@ -122,7 +122,7 @@ Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.githu
 
 | Build | Created | SDK | Console status | Deployment ID | Rollback note |
 | --- | --- | --- | --- | --- | --- |
-| `20260616-9` | `2026. 06. 16` | `2.6.1` | `검토 필요` | `019ecbaa-5aad-7b43-89e0-9bb270391877` | Current review target. Uploaded webapp-clone policy candidate from commit `c60518f`; Console push test sent; app info re-submitted and release review remains blocked until app info is approved. |
+| `20260616-9` | `2026. 06. 16` | `2.6.1` | `검토 필요` | `019ecbaa-5aad-7b43-89e0-9bb270391877` | Current review target. Uploaded webapp-clone policy candidate from commit `c60518f`; Console push test sent. User reported app info approval on `2026-06-18 KST`, but release review was not submitted because Console login/session access was unavailable in the agent browser. |
 | `20260615-8` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb91-f473-7225-9436-254474e225ae` | Uploaded simplified React policy candidate from commit `1b69417`; superseded by local webapp-clone candidate unless explicitly reselected. Console push test sent; review request blocked by pending app-info review. |
 | `20260615-7` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb88-ac50-7f9a-8359-a5afc0571d86` | Uploaded simplified React policy candidate from commit `e3d5183`; superseded by local webapp-clone candidate unless explicitly reselected. Console push test sent; review request blocked by pending app-info review. |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
@@ -157,10 +157,9 @@ Future uploads must be versioned in this order:
 - First logo correction on `2026-06-11 KST`: `console-assets/app-icon-600.png` was changed from a rounded white-card background to a full square white background and uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted. This was still invalid because the logo background cannot be white or transparent.
 - Current logo correction completed on `2026-06-11 KST`: `console-assets/app-icon-source.svg` now renders the in-app baby mascot on a solid brand-blue `#3182f6` background, and `console-assets/app-icon-600.png` is the generated 600 x 600 PNG. The PNG was uploaded to both `앱 로고` and `다크모드 앱 로고`, then app info was re-submitted again. The Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.`
 - Asset upload preflight for future Console edits: check the official Apps in Toss console registration guide and linked asset guides before upload, then verify dimensions, format, background color, corner shape, and brand/resource restrictions against the current guide.
-- Current release candidate on `2026-06-15 KST`: commit `1b69417`, Console build `20260615-8`, deploymentId `019ecb91-f473-7225-9436-254474e225ae`. The `.ait` was uploaded through the logged-in Apps in Toss Console after Playwright file upload failed with `Not allowed`; native Chrome file picker upload worked.
+- Current release candidate on `2026-06-18 KST`: commit `c60518f`, Console build `20260616-9`, deploymentId `019ecbaa-5aad-7b43-89e0-9bb270391877`.
 - Previous active target build: `20260610-4`.
-- Build review for `20260615-8` is not submitted yet. The Console push test was sent, then `검토 요청` was clicked. The Console blocked review with `앱 정보 검토를 먼저 완료해 주세요`.
-- Current local webapp-clone candidate has not been uploaded yet. Upload it only after committing/tagging this exact source state or if the user explicitly asks to upload immediately from the working tree.
+- Build review for `20260616-9` is not submitted yet. The Console push test was sent. The user reported app info approval on `2026-06-18 KST`, but the existing Console tab was locked to an earlier Chrome automation session and a fresh Console tab redirected to Toss Business sign-in. A login attempt with `kongncompany@naver.com` showed `INVALID_ACCOUNT`; do not keep guessing credentials.
 - Superseded calculation restore on `2026-06-13 KST`: a later local `.ait` candidate was uploaded as build `20260613-6`, but the user clarified on `2026-06-14 KST` that this should not be the review target. Do not continue against `20260613-6` unless the user explicitly reselects it.
 - Console state on `2026-06-14 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with the prior information-only copy visible and no edit/cancel action. Build `20260610-4` is visible and its `검토 요청` button is enabled, but release review remains blocked until Apps in Toss finishes, cancels, or rejects the pending app-info review.
 - Console state on `2026-06-15 KST`: the app info page still showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` with no edit/cancel action visible. ChannelTalk unread items were promotional webinar/challenge notices, not review feedback.
@@ -168,8 +167,8 @@ Future uploads must be versioned in this order:
 - Mac/device test environment on `2026-06-13 KST`: official sandbox testing was checked. This Mac has only Command Line Tools, not full Xcode/Simulator (`xcrun simctl` unavailable), and Android `adb` is not installed. Opening the `intoss-private://` scheme on macOS fails because no Toss protocol handler is installed. Therefore the remaining real Toss app/sandbox execution needs a logged-in mobile Toss app, iOS Simulator with the sandbox app installed, or Android device/emulator with `adb`.
 - Local automated WebView QA passed on `2026-06-13 KST` against `http://127.0.0.1:5173/` in headless Chrome at 390px: one-time 10,000,000 KRW sample showed `예상 납부세액 0원`, one-time 50,000,000 KRW sample showed `2,910,000원`, no horizontal overflow was detected, PDF preview contained `증여세 신고 준비`, PDF save fallback showed `PDF 저장을 열었어요.`, and no browser console errors were captured.
 - Local automated WebView QA passed on `2026-06-15 KST` against `http://127.0.0.1:5173/` in headless Chrome at 360px, 390px, and 430px: amount inputs and estimated-tax result text were absent, `2,050만원 미만`, `월 19만 6천원대`, `준비 요약`, and `PDF 저장` were present, no horizontal overflow was detected, and PDF preview contained checklist content without calculation-table fields.
-- Challenge application form submitted on `2026-06-11 KST`. The success page showed `답변을 제출했어요`.
-- Challenge submitter: `공평근`, `kongncompany@naver.com`; phone was submitted as digits only, as required by the form.
+- 6월 Vibe Coding Challenge application submitted on `2026-06-18 KST` through the official form `https://toss.im/_m/JTkiSRsh`. The success page showed `답변을 제출했어요`.
+- Challenge submitter: `공평근`, `kongncompany@naver.com`; phone was submitted as digits only, as required by the form. App fields submitted: Korean app name `우리 아기 증여 도우미`, appName `baby-gift-tax-helper`, one-line description `아이 증여 신고 준비를 체크리스트와 PDF로 정리해주는 미니앱`, and theme relation about reducing repeated deadline, transfer-record, HomeTax-order, and document-prep checks.
 
 ChannelTalk message sent:
 
