@@ -52,6 +52,16 @@ describe("문서 출력", () => {
     assert.match(html, /<tr><th>평가방법<\/th><td>유기정기금 현재가치 평가<\/td><\/tr>/);
   });
 
+  it("서류팩은 핵심 초안과 선택 보관용 확인서 수준으로만 만든다", () => {
+    const html = buildDocumentPack();
+    const pageCount = html.match(/class="print-page/g)?.length ?? 0;
+
+    assert.equal(pageCount, 4);
+    assert.match(html, /증여재산 및 평가명세서 초안/);
+    assert.match(html, /증여세 과세표준신고 및 자진납부계산서 초안/);
+    assert.match(html, /선택 보관용 유기정기금 증여약정서/);
+  });
+
   it("출력용 서류팩에는 홈택스 입력 체크리스트를 포함하지 않는다", () => {
     const html = buildDocumentPack();
 

@@ -6,12 +6,13 @@
     <meta name="theme-color" content="#0064ff" />
     <title>우리 아기 증여 도우미</title>
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <link rel="stylesheet" href="./styles.css?v=40" />
+    <link rel="stylesheet" href="./styles.css?v=43" />
     <script>
-      window.__PROJECT_TAX_VERSION__ = "40";
+      window.__PROJECT_TAX_VERSION__ = "43";
       window.__PROJECT_TAX_PUBLIC_URL__ = "https://pkkong.github.io/periodic-gift-tax/";
       if ("caches" in window) {
         caches.keys().then((keys) => keys.filter((key) => key.startsWith("periodic-gift-tax")).forEach((key) => caches.delete(key)));
@@ -134,12 +135,12 @@
                   <span>세금이 나오는지 확인해볼게요</span>
                 </h2>
                 <p>
-                  금액과 기간을 입력하면 예상 세금과 신고 준비물을 보여줘요.
+                  금액과 기간을 입력하면 예상 납부세액과 신고 준비물을 보여줘요.
                   입력값은 내 기기에만 남아요.
                 </p>
                 <div class="hero-actions">
                   <a class="primary-link" href="#landingStart">시작하기</a>
-                  <span>예상 세금부터 신고 준비물까지</span>
+                  <span>예상 납부세액부터 신고 준비물까지</span>
                 </div>
               </div>
               <div class="hero-visual" aria-label="우리 아기 증여 도우미 이미지">
@@ -211,7 +212,7 @@
               <ol class="process-list">
                 <li><span>1</span><strong>보내는 사람과 받는 사람 입력</strong><p>필요한 기본 정보만 받아요.</p></li>
                 <li><span>2</span><strong>아이 계좌 확인</strong><p>이체 기록을 남길 계좌를 확인해요.</p></li>
-                <li><span>3</span><strong>세금 없는 범위 확인</strong><p>공제와 세대생략 여부를 반영해요.</p></li>
+                <li><span>3</span><strong>예상 0원 범위 확인</strong><p>공제와 세대생략 여부를 반영해요.</p></li>
                 <li><span>4</span><strong>금액과 방식 선택</strong><p>한 번에 보낼지, 매월 보낼지 정해요.</p></li>
                 <li><span>5</span><strong>PDF로 저장</strong><p>홈택스 입력 전에 준비물을 저장해요.</p></li>
               </ol>
@@ -230,7 +231,7 @@
               </article>
               <article>
                 <span>근거</span>
-                <strong>2026.06.06 기준</strong>
+                <strong>2026.06.21 기준</strong>
                 <p>결과 화면에서 적용 기준을 다시 보여줘요.</p>
               </article>
             </section>
@@ -238,7 +239,7 @@
             <section class="landing-band landing-final" id="landingStart">
               <p class="landing-kicker">시작</p>
               <h2>이제 조건을 입력해볼게요</h2>
-              <p>순서대로 확인하면 예상 세금과 신고 준비물이 나와요.</p>
+              <p>순서대로 확인하면 예상 납부세액과 신고 준비물이 나와요.</p>
               <button class="primary landing-start" id="introStartButton" type="button">증여 도우미 시작하기</button>
             </section>
           </section>
@@ -352,7 +353,7 @@
           <section class="wizard-step" data-step="history">
             <div class="entry-step history-step">
               <h2>최근 10년 안에 같은 분에게 받은 증여가 있나요?</h2>
-              <p>있다면 이번에 세금 없이 보낼 수 있는 금액이 줄어들 수 있어요.</p>
+              <p>있다면 이번에 예상 납부세액 0원으로 볼 수 있는 금액이 줄어들 수 있어요.</p>
               <div class="choice-group" role="radiogroup" aria-label="최근 10년 동일인 증여 여부">
                 <label class="choice-card">
                   <input checked name="priorGiftStatus" type="radio" value="no" />
@@ -385,7 +386,7 @@
 
           <section class="wizard-step" data-step="safe">
             <div class="entry-step safe-step">
-              <h2 id="safeTitle">세금 없이 보낼 수 있는 금액을 볼게요</h2>
+              <h2 id="safeTitle">예상 납부세액 0원 범위를 볼게요</h2>
               <div class="safe-number" id="safeLimitText">계산 준비 중</div>
               <div class="safe-breakdown" id="safeBreakdown"></div>
               <p id="safeNote"></p>
@@ -451,11 +452,12 @@
                 </div>
               </label>
               <label class="flow-field" data-field="taxOffice" data-reveal-after="amountComplete">
-                <span>관할세무서</span>
+                <span>관할세무서 선택</span>
                 <div class="input-action">
-                  <input enterkeyhint="next" name="taxOffice" placeholder="예: 강남세무서" />
+                  <input enterkeyhint="next" name="taxOffice" placeholder="예: 용산세무서" />
                   <button class="field-next" type="button" data-confirm-field="taxOffice" aria-label="관할세무서 확인"></button>
                 </div>
+                <small>모르면 비워도 돼요. 홈택스 신고 전 주소지 기준으로 다시 확인하세요.</small>
               </label>
             </div>
             <div class="inline-alert" hidden id="amountGuard"></div>
@@ -609,22 +611,47 @@
                   <summary>신고 방법 더 자세히 보기</summary>
                   <div class="screen-guide">
                     <article>
-                      <span>화면 1</span>
-                      <strong>신고 메뉴</strong>
-                      <p>신고/납부 메뉴에서 세금신고, 증여세 선택</p>
+                      <div class="screen-shot-mock" aria-hidden="true">
+                        <span></span><strong></strong><em></em>
+                      </div>
+                      <span>1</span>
+                      <strong>로그인</strong>
+                      <p>홈택스를 열고 공동인증서 또는 간편인증으로 로그인하세요.</p>
                     </article>
                     <article>
-                      <span>화면 2</span>
-                      <strong>신고 유형</strong>
-                      <p>기본세율 적용 증여재산 신고</p>
+                      <div class="screen-shot-mock" aria-hidden="true">
+                        <span></span><strong></strong><em></em>
+                      </div>
+                      <span>2</span>
+                      <strong>증여세 메뉴</strong>
+                      <p>신고/납부, 세금신고, 증여세 순서로 이동하세요.</p>
                     </article>
                     <article>
-                      <span>화면 3</span>
-                      <strong>첨부자료</strong>
-                      <p>PDF, 이체내역, 가족관계 자료 업로드</p>
+                      <div class="screen-shot-mock" aria-hidden="true">
+                        <span></span><strong></strong><em></em>
+                      </div>
+                      <span>3</span>
+                      <strong>기본정보</strong>
+                      <p>증여자, 수증자, 증여일, 관계를 PDF 내용과 맞춰 입력하세요.</p>
+                    </article>
+                    <article>
+                      <div class="screen-shot-mock" aria-hidden="true">
+                        <span></span><strong></strong><em></em>
+                      </div>
+                      <span>4</span>
+                      <strong>재산 입력</strong>
+                      <p>현금 또는 유기정기금 수급권과 평가액을 입력하세요.</p>
+                    </article>
+                    <article>
+                      <div class="screen-shot-mock" aria-hidden="true">
+                        <span></span><strong></strong><em></em>
+                      </div>
+                      <span>5</span>
+                      <strong>첨부와 제출</strong>
+                      <p>PDF, 이체내역, 가족관계 자료를 올리고 제출 전 금액을 대조하세요.</p>
                     </article>
                   </div>
-                  <p class="guide-note">실제 화면 캡처는 홈택스 로그인 후 화면 기준으로 추가할 예정입니다.</p>
+                  <p class="guide-note">실제 홈택스 화면 캡처는 로그인 세션과 개인정보가 포함될 수 있어, 지금은 화면 위치를 따라갈 수 있는 예시 카드로 안내합니다.</p>
                 </details>
               </section>
             </div>
@@ -674,7 +701,7 @@
           </article>
           <article>
             <strong>국세청 주요서식 안내</strong>
-            <p>신고서 초안, 평가명세, 약정서 또는 확인서를 PDF 저장용으로 만듭니다. 홈택스 신고 방법은 결과 화면에서 안내합니다.</p>
+            <p>신고서 초안과 평가명세를 중심으로 PDF를 만듭니다. 약정서 또는 확인서는 선택 보관용이며 홈택스 신고 방법은 결과 화면에서 안내합니다.</p>
           </article>
         </div>
       </div>
@@ -696,6 +723,6 @@
       </div>
     </div>
 
-    <script type="module" src="./src/app.js?v=40"></script>
+    <script type="module" src="./src/app.js?v=43"></script>
   </body>
 </html>

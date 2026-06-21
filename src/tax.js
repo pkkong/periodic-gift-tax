@@ -20,6 +20,7 @@
  * @property {number} priorGiftTaxPaid
  * @property {string} recipientHasAccount
  * @property {boolean} accountReady
+ * @property {boolean} sameAddressAsDonor
  * @property {string} relationshipType
  */
 
@@ -51,6 +52,8 @@
  * @typedef {Object} TaxResult
  * @property {number} currentGiftValue
  * @property {number} aggregatedPriorGiftValue
+ * @property {number} effectivePriorDeductionUsed
+ * @property {number} deductionBaseValue
  * @property {number} taxableGiftValue
  * @property {number} availableDeduction
  * @property {number} deductionApplied
@@ -70,7 +73,7 @@
  * @property {string} filingDeadline
  */
 
-export const LAW_BASIS_DATE = "2026-06-06";
+export const LAW_BASIS_DATE = "2026-06-21";
 export const ANNUAL_DISCOUNT_RATE = 0.03;
 export const MINOR_CHILD_DEDUCTION = 20_000_000;
 export const LINEAL_RELATIVE_DEDUCTION = 50_000_000;
@@ -143,6 +146,7 @@ export function normalizeInput(raw = {}) {
     priorGiftTaxPaid: nonNegativeInteger(raw.priorGiftTaxPaid),
     recipientHasAccount: stringValue(raw.recipientHasAccount) || "yes",
     accountReady: raw.accountReady === true || stringValue(raw.accountReady) === "true" || stringValue(raw.accountReady) === "on",
+    sameAddressAsDonor: raw.sameAddressAsDonor !== false && stringValue(raw.sameAddressAsDonor) !== "false",
     relationshipType: RELATIONSHIP_TYPES[stringValue(raw.relationshipType)] ? stringValue(raw.relationshipType) : "parent_minor_child"
   };
 }
@@ -171,11 +175,13 @@ export function validateGiftInput(input) {
     if (normalized.totalMonths <= 0) errors.push("총 납입개월은 1개월 이상이어야 합니다.");
   }
   if (normalized.totalMonths > 600) warnings.push("총 납입기간이 50년을 초과합니다. 약정 기간을 다시 확인하세요.");
-  if (normalized.priorDeductionUsed > MINOR_CHILD_DEDUCTION) warnings.push("이미 사용한 공제액이 미성년 자녀 공제한도 2천만원을 초과합니다.");
-  if (normalized.priorSameDonorGiftValue > 0 && normalized.priorSameDonorGiftValue < PRIOR_GIFT_AGGREGATION_THRESHOLD) {
-    warnings.push("최근 10년 동일인 증여가산액이 1천만원 미만이면 합산 대상에서 제외됩니다.");
+  const relationship = getRelationshipConfig(normalized.relationshipType);
+  if (normalized.priorDeductionUsed > relationship.deduction) {
+    warnings.push(`이미 사용한 공제액이 ${relationship.label} 공제한도 ${formatWon(relationship.deduction)}을 초과합니다.`);
   }
-
+  if (normalized.priorSameDonorGiftValue > 0 && normalized.priorSameDonorGiftValue < PRIOR_GIFT_AGGREGATION_THRESHOLD) {
+    warnings.push("최근 10년 동일인 증여가 1천만원 미만이면 증여재산가산액에는 넣지 않지만, 남은 공제 안내에는 반영합니다.");
+  }
   return { input: normalized, errors, warnings };
 }
 
@@ -276,10 +282,12 @@ export function calculateGiftTax(rawInput, valuation = calculateValuation(rawInp
     input.priorSameDonorGiftValue >= PRIOR_GIFT_AGGREGATION_THRESHOLD
       ? input.priorSameDonorGiftValue
       : 0;
+  const effectivePriorDeductionUsed = getEffectivePriorDeductionUsed(input, relationship);
   const taxableGiftValue = valuation.assessedValue + aggregatedPriorGiftValue;
-  const availableDeduction = Math.max(0, relationship.deduction - input.priorDeductionUsed);
-  const deductionApplied = Math.min(taxableGiftValue, availableDeduction);
-  const taxBase = Math.max(0, taxableGiftValue - deductionApplied);
+  const deductionBaseValue = valuation.assessedValue + Math.max(aggregatedPriorGiftValue, effectivePriorDeductionUsed);
+  const availableDeduction = Math.max(0, relationship.deduction - effectivePriorDeductionUsed);
+  const deductionApplied = Math.min(deductionBaseValue, relationship.deduction);
+  const taxBase = Math.max(0, deductionBaseValue - deductionApplied);
   const bracket = findBracket(taxBase);
   const taxBeforeMinimumRule = Math.max(0, Math.floor(taxBase * bracket.rate - bracket.deduction));
   const minimumRuleApplied = taxBase < TAXABLE_MINIMUM;
@@ -297,6 +305,8 @@ export function calculateGiftTax(rawInput, valuation = calculateValuation(rawInp
   return {
     currentGiftValue: valuation.assessedValue,
     aggregatedPriorGiftValue,
+    effectivePriorDeductionUsed,
+    deductionBaseValue,
     taxableGiftValue,
     availableDeduction,
     deductionApplied,
@@ -324,7 +334,13 @@ export function getRelationshipConfig(relationshipType) {
 export function getSafeAssessmentLimit(rawInput) {
   const input = normalizeInput(rawInput);
   const relationship = getRelationshipConfig(input.relationshipType);
-  return Math.max(0, relationship.deduction - input.priorDeductionUsed) + TAXABLE_MINIMUM - 1;
+  const effectivePriorDeductionUsed = getEffectivePriorDeductionUsed(input, relationship);
+  return Math.max(0, relationship.deduction - effectivePriorDeductionUsed) + TAXABLE_MINIMUM - 1;
+}
+
+function getEffectivePriorDeductionUsed(input, relationship) {
+  const inferredDeductionUsed = Math.min(input.priorSameDonorGiftValue, relationship.deduction);
+  return Math.min(relationship.deduction, Math.max(input.priorDeductionUsed, inferredDeductionUsed));
 }
 
 function getGenerationSkippingRate(relationship, taxableGiftValue) {
