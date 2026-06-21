@@ -48,7 +48,7 @@ This app should feel like a Toss mobile service, not like a form demo.
 - `src/documents.js`: printable HomeTax prep document pack.
 - `tests/tax.test.js`: Node test suite for valuation, tax calculation, filing deadline, validation.
 - `assets/baby-gift-hero.png`: landing visual asset.
-- `manifest.webmanifest`, `sw.js`, `icon.svg`: PWA/static hosting assets.
+- `manifest.webmanifest`, `sw.js`, `icon.svg`, `apple-touch-icon.png`: PWA/static hosting assets.
 - `AGENTS.md`: living handoff manual. Update it when decisions or gotchas change.
 
 ## Calculation Rules
@@ -61,7 +61,9 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Apply the annual periodic amount times 20 cap.
 - One-time cash gift is valued at the cash amount on gift date.
 - Gift tax calculation includes relationship deduction, 10-year same-donor aggregation input, gift tax brackets, taxable minimum under 500,000 KRW, filing credit, and generation-skipping surcharge.
-- Safe no-tax display limit is `available deduction + 499,999`.
+- Same-donor prior gifts need careful handling. Prior gifts of at least 10,000,000 KRW are added as `증여재산가산액`, but any entered prior same-donor gift also reduces the safe-limit/remaining-deduction guidance by inferring used deduction up to the relationship deduction limit. Do not subtract prior deduction twice when calculating the tax base; the calculation should reflect the NTS flow of prior-gift addback, taxable gift value, cumulative relationship deduction, then tax base.
+- Marriage/birth gift deduction is out of scope for the public baby-recipient flow. It applies to an adult child or adult grandchild receiving from a direct ascendant because of marriage, childbirth, or adoption; it does not apply to money given directly to the baby, including grandparent-to-baby gifts. Do not add it back to this flow unless the product becomes a separate "money to the parent because of childbirth" scenario.
+- Safe expected-zero-tax display limit is `available deduction + 499,999`.
 - Filing deadline is gift-month end plus three months, adjusted forward if it lands on a weekend.
 
 ## UX Flow Rules
@@ -70,10 +72,11 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Donor step: name, address, phone, first seven resident ID digits, relationship.
 - Recipient step: name, address, guardian, first seven resident ID digits.
 - Recipient address defaults to donor address when `sameAddressAsDonor` is checked.
+- Preserve `sameAddressAsDonor` through local save, JSON backup, import, and reset. FormData omits unchecked checkboxes, so `readForm()` must explicitly read the checkbox state instead of relying only on FormData entries.
 - Guardian defaults to donor name but must remain editable.
 - Account step is strategically important but must not look like a Toss or securities affiliate integration until one is real. Current choices are `계좌가 있어요` and `아직 없지만 시뮬레이션할게요`; do not show a Toss Securities child-account CTA in production copy.
 - History step asks whether the same donor gave anything in the last 10 years. It feeds `priorSameDonorGiftValue`, `priorDeductionUsed`, and `priorGiftTaxPaid` into the existing tax engine.
-- Safe step explains the no-tax range before asking the gift mode.
+- Safe step explains the expected-zero-tax range before asking the gift mode.
 - Gift mode branches one-time gift and monthly periodic gift.
 - Amount step must show the tax-warning override if assessed value exceeds the safe limit.
 - Amount step should prefill recommended amounts when fields are empty or still hold the app-provided recommendation. Do not overwrite user-edited amounts.
@@ -83,7 +86,7 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - HomeTax guided filing step should say automatic filing is not supported yet, then lead with concrete actions such as login/signup, gift tax menu, basic information, asset entry, evidence upload, and submission.
 - HomeTax guide belongs on the result screen, not inside the printable PDF pack. Keep auto filing clearly labeled as preparing/not available until a real submission integration exists.
 - HomeTax guidance must separate `prepared by this service` from `must be obtained or verified separately`. Do not merge generated draft documents with external evidence such as family certificates, full resident IDs, transfer records, or prior gift records.
-- Printable document pack should contain filing-prep documents only: cover, valuation/cash statement, gift tax draft, property statement draft, and agreement/confirmation. Do not print the HomeTax input checklist.
+- Printable document pack should contain filing-prep documents only and should not be bloated. Current public webapp pack is four pages: cover, combined gift-property/evaluation statement, gift tax draft, and optional recordkeeping agreement/confirmation. Do not print the HomeTax input checklist. Do not present the agreement/confirmation as a universally required HomeTax attachment.
 
 ## Visual Decisions
 
@@ -93,6 +96,10 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Resident ID fields collect only the first seven digits and display the remaining six hidden digits as mask dots.
 - The baby mascot is inline SVG styled by CSS. It should remain rounded and cute at small mobile sizes, with cheeks/ears/swaddle visible and soft, slightly organic curves instead of mechanical circles. Mood states are currently `cry`, `calm`, `smile`, `happy`, `proud`, and `flex`; final HomeTax guidance uses the flex visual state with ring/arm/sparkles visible. Mascot copy should not describe the mascot mood, e.g. avoid labels like `처음엔 울상`; use short natural helper copy such as `괜찮아요` or `조금만 더`.
 - Account CTA cards use a left pseudo-element icon. Any specialized account card, especially `execute-account-card`, must preserve enough left padding or an explicit icon column so the icon never overlaps the headline or helper text.
+- Mobile result valuation rows should read as stacked row cards, not a cramped horizontal table. Keep `data-label` attributes on schedule cells so CSS can render label/value rows below 520px.
+- Keep CSS token names consistent. The public webapp uses `--accent`, not `--primary`; introducing undefined variables silently weakens the Toss-like blue accents.
+- Custom radio and checkbox indicators must explicitly reset browser input styling: fixed width, min-width, height, min-height, padding `0`, margin `0`, `appearance: none`, and `-webkit-appearance: none`. Otherwise Safari/Chrome can inherit the global text-input padding/min-height and render oval, off-center, or oversized checks.
+- HomeTax step-by-step guidance should use clean screen-example cards unless privacy-safe official screenshots are available. Do not add logged-in HomeTax captures that contain session state, personal data, or unstable UI details.
 
 ## Browser And Mobile Gotchas
 
@@ -149,12 +156,14 @@ Good:
 - `이대로 결과 보기`
 - `받는 분 명의 계좌가 있나요?`
 - `10년 동안 약 2,050만원 미만이 기준이에요`
+- `예상 납부세액 0원`
 
 Avoid:
 
 - `신고 준비팩을 생성합니다`
 - `증여 실행 전에 결정해야 할 것만 순서대로 정리합니다`
 - `보수적으로 설계합니다`
+- Definitive copy like `세금 없이 보낼 수 있어요` when the UI really means an estimate based on user-entered facts.
 - Long paragraphs in primary screens.
 
 Legal or tax caveats belong in the result, document pack, or rule overlay, not on every page.

@@ -6,6 +6,7 @@ import {
   calculateValuation,
   getValuationYearOffset,
   getSafeAssessmentLimit,
+  normalizeInput,
   validateGiftInput
 } from "../src/tax.js";
 
@@ -196,6 +197,46 @@ describe("증여세 계산", () => {
     assert.equal(aggregatedPrior.aggregatedPriorGiftValue, 10_000_000);
   });
 
+  it("최근 10년 동일인 증여는 공제 사용액을 이중으로 불리하게 반영하지 않는다", () => {
+    const tax = calculateGiftTax(
+      {
+        giftDate: "2026-06-01",
+        firstPaymentDate: "2026-06-01",
+        monthlyAmount: 1,
+        totalMonths: 1,
+        priorSameDonorGiftValue: 10_000_000,
+        priorDeductionUsed: 10_000_000
+      },
+      { assessedValue: 10_400_000 },
+      fixedToday
+    );
+
+    assert.equal(tax.aggregatedPriorGiftValue, 10_000_000);
+    assert.equal(tax.effectivePriorDeductionUsed, 10_000_000);
+    assert.equal(tax.availableDeduction, 10_000_000);
+    assert.equal(tax.taxBase, 400_000);
+    assert.equal(tax.payableTax, 0);
+  });
+
+  it("1천만원 미만 이전 증여도 남은 공제 안내에는 반영한다", () => {
+    const input = {
+      relationshipType: "parent_minor_child",
+      giftDate: "2026-06-01",
+      firstPaymentDate: "2026-06-01",
+      monthlyAmount: 1,
+      totalMonths: 1,
+      priorSameDonorGiftValue: 5_000_000
+    };
+    const tax = calculateGiftTax(input, { assessedValue: 15_400_000 }, fixedToday);
+
+    assert.equal(tax.aggregatedPriorGiftValue, 0);
+    assert.equal(tax.effectivePriorDeductionUsed, 5_000_000);
+    assert.equal(tax.availableDeduction, 15_000_000);
+    assert.equal(tax.taxBase, 400_000);
+    assert.equal(tax.payableTax, 0);
+    assert.equal(getSafeAssessmentLimit(input), 15_499_999);
+  });
+
   it("성년 자녀가 부모에게 증여하면 직계존속 공제 5천만원을 적용한다", () => {
     const tax = calculateGiftTax(
       {
@@ -236,6 +277,32 @@ describe("증여세 계산", () => {
   it("관계별 안전 기준 금액을 계산한다", () => {
     assert.equal(getSafeAssessmentLimit({ relationshipType: "parent_minor_child" }), 20_499_999);
     assert.equal(getSafeAssessmentLimit({ relationshipType: "adult_child_parent" }), 50_499_999);
+  });
+
+  it("이미 사용한 공제액 경고는 선택한 관계의 공제한도를 기준으로 한다", () => {
+    const adultChildValidation = validateGiftInput({
+      relationshipType: "parent_adult_child",
+      giftDate: "2026-06-01",
+      firstPaymentDate: "2026-06-01",
+      monthlyAmount: 200_000,
+      totalMonths: 120,
+      donorName: "증여자",
+      recipientName: "수증자",
+      priorDeductionUsed: 30_000_000
+    });
+    const minorChildValidation = validateGiftInput({
+      relationshipType: "parent_minor_child",
+      giftDate: "2026-06-01",
+      firstPaymentDate: "2026-06-01",
+      monthlyAmount: 200_000,
+      totalMonths: 120,
+      donorName: "증여자",
+      recipientName: "수증자",
+      priorDeductionUsed: 30_000_000
+    });
+
+    assert.equal(adultChildValidation.warnings.length, 0);
+    assert.equal(minorChildValidation.warnings.some((warning) => warning.includes("공제한도 20,000,000원")), true);
   });
 });
 
@@ -283,5 +350,12 @@ describe("신고기한과 검증", () => {
 
     assert.equal(validation.errors.includes("한번에 증여할 금액은 1원 이상이어야 합니다."), true);
     assert.equal(validation.errors.includes("월 납입액은 1원 이상이어야 합니다."), false);
+  });
+
+  it("수증자 주소 동일 여부를 정규화한다", () => {
+    assert.equal(normalizeInput({}).sameAddressAsDonor, true);
+    assert.equal(normalizeInput({ sameAddressAsDonor: false }).sameAddressAsDonor, false);
+    assert.equal(normalizeInput({ sameAddressAsDonor: "false" }).sameAddressAsDonor, false);
+    assert.equal(normalizeInput({ sameAddressAsDonor: "on" }).sameAddressAsDonor, true);
   });
 });

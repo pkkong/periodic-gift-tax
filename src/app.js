@@ -5,10 +5,11 @@ import {
   formatKoreanDate,
   formatWon,
   getSafeAssessmentLimit,
+  LAW_BASIS_DATE,
   normalizeInput,
   validateGiftInput
-} from "./tax.js?v=40";
-import { renderDocumentPack } from "./documents.js?v=40";
+} from "./tax.js?v=43";
+import { renderDocumentPack } from "./documents.js?v=43";
 
 const STORAGE_KEY = "periodic-gift-tax-input-v1";
 const RESIDENT_ID_MASK = "••••••";
@@ -80,7 +81,7 @@ const STEPS = [
   { key: "recipient", title: "수증자 정보" },
   { key: "account", title: "수증자 계좌가 있나요?" },
   { key: "history", title: "이전 증여" },
-  { key: "safe", title: "무세금 범위" },
+  { key: "safe", title: "예상 0원 범위" },
   { key: "giftMode", title: "증여 방식" },
   { key: "amount", title: "얼마를 증여할까요?" },
   { key: "result", title: "계산 결과" },
@@ -616,14 +617,20 @@ function recalculate() {
 function renderSafeBriefing(input, tax) {
   const safeLimit = getSafeAssessmentLimit(input);
   safeTitle.textContent = `${tax.relationshipLabel} 기준으로 확인해볼게요`;
-  safeLimitText.textContent = `10년 동안 ${formatLimit(safeLimit)}까지는 세금 없이 보낼 수 있어요.`;
-  safeBreakdown.innerHTML = `
-    <div><span>기본 공제</span><strong>${formatWon(tax.availableDeduction)}</strong></div>
-    <div><span>과세표준 50만원 미만</span><strong>부과 제외</strong></div>
-  `;
-  safeNote.textContent = tax.generationSkippingRate > 0
-    ? "조부모가 손자녀에게 보내면 세대생략 할증이 붙을 수 있어요."
-    : "최근 10년 안에 같은 분에게 받은 증여가 있으면 기준이 낮아질 수 있어요.";
+  safeLimitText.textContent = `입력 기준으로 ${formatLimit(safeLimit)}까지는 예상 납부세액이 0원이에요.`;
+  const deductionLabel = tax.effectivePriorDeductionUsed > 0 ? "남은 공제" : "기본 공제";
+  const breakdownItems = [[deductionLabel, formatWon(tax.availableDeduction)]];
+  breakdownItems.push(["과세표준 50만원 미만", "부과 제외"]);
+  safeBreakdown.innerHTML = breakdownItems
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+  if (tax.effectivePriorDeductionUsed > 0) {
+    safeNote.textContent = `최근 10년 이내 같은 분에게 받은 증여를 반영해 공제 ${formatWon(tax.effectivePriorDeductionUsed)}을 이미 사용한 것으로 봤어요.`;
+  } else if (tax.generationSkippingRate > 0) {
+    safeNote.textContent = "조부모가 손자녀에게 보내면 세대생략 할증이 붙을 수 있어요.";
+  } else {
+    safeNote.textContent = "최근 10년 안에 같은 분에게 받은 증여가 있으면 기준이 낮아질 수 있어요.";
+  }
 }
 
 function renderModeHints(input) {
@@ -648,13 +655,13 @@ function renderResults(input, valuation, tax, errors, warnings) {
 
   resultStatus.classList.toggle("has-tax", hasTax);
   resultStatus.classList.toggle("has-error", hasErrors);
-  resultStatusLabel.textContent = hasErrors ? "입력 확인 필요" : hasTax ? "낼 세금이 있어요" : "낼 세금이 없어요";
-  resultTaxAmount.textContent = hasErrors ? "다시 확인해주세요" : hasTax ? `예상 세금 ${formatWon(tax.payableTax)}` : "예상 세금 0원";
+  resultStatusLabel.textContent = hasErrors ? "입력 확인 필요" : hasTax ? "예상 납부세액이 있어요" : "예상 납부세액 0원";
+  resultTaxAmount.textContent = hasErrors ? "다시 확인해주세요" : hasTax ? `예상 ${formatWon(tax.payableTax)}` : "0원";
   resultLead.textContent = hasErrors
     ? "빠진 정보를 채우고 다시 확인해주세요."
     : hasTax
       ? "세금이 나오는 조건이에요. 그래도 신고 준비를 계속할 수 있어요."
-      : "지금 조건으로는 예상 납부세액이 0원이에요.";
+      : "입력한 조건으로는 예상 납부세액이 0원이에요. 그래도 이체기록과 신고자료는 남겨두는 흐름으로 안내할게요.";
   deadlineSummary.textContent = tax.filingDeadline
     ? `신고는 ${formatKoreanDate(tax.filingDeadline)}까지`
     : "신고기한 산정 전";
@@ -670,7 +677,7 @@ function renderResults(input, valuation, tax, errors, warnings) {
         : "현금 일시증여"
     },
     {
-      label: "세금 없는 기준",
+      label: "예상 0원 기준",
       value: formatWon(safeLimit),
       sub: `사용 가능 공제 ${formatWon(tax.availableDeduction)}`
     },
@@ -708,26 +715,27 @@ function renderResults(input, valuation, tax, errors, warnings) {
   resultFilingMeta.innerHTML = [
     ["증여 관계", tax.relationshipLabel],
     ["평가 방식", input.giftMode === "periodic" ? "유기정기금 현재가치 평가" : "현금 일시증여 평가"],
+    ["이전 공제 반영", tax.effectivePriorDeductionUsed > 0 ? formatWon(tax.effectivePriorDeductionUsed) : "없음"],
     ["세대생략 할증", tax.generationSkippingRate > 0 ? `${(tax.generationSkippingRate * 100).toFixed(0)}% 반영` : "해당 없음"],
-    ["신고 기준일", "2026.06.06 확인 기준"]
+    ["신고 기준일", `${formatBasisDate(LAW_BASIS_DATE)} 확인 기준`]
   ]
     .map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`)
     .join("");
 
   resultDocsSummary.textContent = input.giftMode === "periodic"
-    ? "평가명세서, 신고서 초안, 약정서를 저장해요."
-    : "신고서 초안과 현금 증여 확인서를 저장해요.";
+    ? "신고서 초안, 평가명세서, 선택 보관용 약정서를 저장해요."
+    : "신고서 초안, 평가명세서, 선택 보관용 확인서를 저장해요.";
 
   scheduleRows.innerHTML = valuation.schedule
     .map(
       (row) => `
         <tr>
-          <td>${row.paymentYear}년</td>
-          <td>${formatKoreanDate(row.periodStartDate)} ~ ${formatKoreanDate(row.periodEndDate)}</td>
-          <td>${row.months.toLocaleString("ko-KR")}</td>
-          <td>${formatWon(row.periodPayment)}</td>
-          <td>${formatDiscount(row)}</td>
-          <td>${formatWon(row.presentValue)}</td>
+          <td data-label="수령연도">${row.paymentYear}년</td>
+          <td data-label="수령기간">${formatKoreanDate(row.periodStartDate)} ~ ${formatKoreanDate(row.periodEndDate)}</td>
+          <td data-label="개월">${row.months.toLocaleString("ko-KR")}</td>
+          <td data-label="수령액">${formatWon(row.periodPayment)}</td>
+          <td data-label="경과연수">${formatDiscount(row)}</td>
+          <td data-label="현재가치">${formatWon(row.presentValue)}</td>
         </tr>
       `
     )
@@ -793,8 +801,8 @@ function renderHometaxGuide(input, valuation, tax) {
   if (input.recipientHasAccount !== "yes" && !input.accountReady) {
     neededItems.unshift("실제 송금 전 수증자 명의 계좌");
   }
-  if (input.priorSameDonorGiftValue > 0) {
-    preparedItems.push("입력한 10년 내 동일인 증여가산액 반영");
+  if (input.priorSameDonorGiftValue > 0 || tax.effectivePriorDeductionUsed > 0) {
+    preparedItems.push("입력한 10년 내 동일인 증여와 공제 사용 반영");
     neededItems.push("이전 증여 신고서 또는 홈택스 결정정보 대조");
   }
   if (tax.generationSkippingRate > 0) {
@@ -819,8 +827,8 @@ function renderHometaxGuide(input, valuation, tax) {
 
 function renderResultBasis(input) {
   const items = input.giftMode === "lump_sum"
-    ? ["현금", "일시증여", "홈택스 신고 준비", "2026.06.06 기준"]
-    : ["현금", "매월 고정액", "유기정기금", "2026.06.06 기준"];
+    ? ["현금", "일시증여", "홈택스 신고 준비", `${formatBasisDate(LAW_BASIS_DATE)} 기준`]
+    : ["현금", "매월 고정액", "유기정기금", `${formatBasisDate(LAW_BASIS_DATE)} 기준`];
   if (input.priorSameDonorGiftValue > 0 || input.priorDeductionUsed > 0 || input.priorGiftTaxPaid > 0) {
     items.push("이전 증여 반영");
   }
@@ -869,6 +877,8 @@ function readForm() {
   for (const [key, value] of data.entries()) {
     input[key] = value;
   }
+  input.sameAddressAsDonor = Boolean(form.elements.sameAddressAsDonor?.checked);
+  input.accountReady = Boolean(form.elements.accountReady?.checked);
   return normalizeInput(input);
 }
 
@@ -989,7 +999,7 @@ function renderBabyMascot(stepKey, progressIndex, progressTotal) {
     recipient: ["calm", "좋아요", "받는 분도 이어서 확인해요."],
     account: ["calm", "계좌 확인", "받는 분 명의 계좌가 있으면 좋아요."],
     history: ["smile", "조금만 더", "최근 10년 기록만 보면 돼요."],
-    safe: ["smile", "기준 확인", "세금 없는 범위를 찾았어요."],
+    safe: ["smile", "기준 확인", "예상 0원 범위를 찾았어요."],
     giftMode: ["happy", "고르면 돼요", "한 번에, 또는 매월 보낼 수 있어요."],
     amount: ["happy", "거의 끝", "금액만 넣으면 계산돼요."],
     result: ["proud", "계산 끝", "이제 할 일만 챙기면 돼요."],
@@ -1370,7 +1380,7 @@ function renderAmountGuard(valuation) {
   amountGuard.innerHTML = `
     <strong>${amountTaxOverrideApproved ? "확인했어요" : "세금이 나올 수 있어요"}</strong>
     <p>현재 평가액은 ${formatWon(valuation.assessedValue)}이에요. 이 관계의 기준 ${formatLimit(safeLimit)}을 넘었어요.</p>
-    ${amountTaxOverrideApproved ? "<p>결과 화면에서 예상 세금과 준비물을 볼게요.</p>" : '<button class="guard-action" type="button" data-continue-tax>이대로 결과 보기</button>'}
+    ${amountTaxOverrideApproved ? "<p>결과 화면에서 예상 납부세액과 준비물을 볼게요.</p>" : '<button class="guard-action" type="button" data-continue-tax>이대로 결과 보기</button>'}
   `;
   updateWizardNavState();
 }
@@ -1387,6 +1397,10 @@ function formatLimit(value) {
   if (value % 10_000 === 9_999) return `약 ${Math.ceil(value / 10_000).toLocaleString("ko-KR")}만원 미만`;
   if (value % 10_000 === 0) return `${(value / 10_000).toLocaleString("ko-KR")}만원`;
   return formatWon(value);
+}
+
+function formatBasisDate(dateString) {
+  return String(dateString).replaceAll("-", ".");
 }
 
 function saveLocal() {
