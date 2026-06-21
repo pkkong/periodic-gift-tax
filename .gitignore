@@ -1,0 +1,34 @@
+.DS_Store
+
+# Local secrets. Keep .env.example committed as documentation only.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+*.ait
+
+# Browser/session exports can contain login cookies or local storage.
+*.har
+cookies*.json
+storage-state*.json
+playwright/.auth/
+.auth/
+
+# Package manager / build outputs
+node_modules/
+dist/
+coverage/
+
+# Apps in Toss local artifacts and dependencies
+apps-in-toss/node_modules/
+apps-in-toss/dist/
+apps-in-toss/*.ait
+
+# Local browser and test artifacts
+*.log
+*.tmp
+*.bak

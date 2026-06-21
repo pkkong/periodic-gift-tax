@@ -112,6 +112,15 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Validation toasts must stay above the mobile keyboard and bottom browser bar. `syncViewportInset` updates `--visual-viewport-bottom`; do not replace it with a hardcoded bottom value.
 - When changing CSS/JS, bump the query version in `index.html`, `src/app.js`, and `src/documents.js` imports so GitHub Pages and mobile browsers do not serve stale assets.
 
+## Secrets Management
+
+- The public GitHub Pages PWA must not require runtime secrets. Do not introduce client-side API keys for HomeTax, analytics, ads, or affiliates without a backend/proxy decision.
+- Keep `.env.example` committed and keep `.env`, `.env.*`, browser session exports, `.ait` artifacts, `node_modules`, and `dist` ignored. Do not commit generated Apps in Toss bundles.
+- GitHub Pages deploy currently uses GitHub-provided `GITHUB_TOKEN` and OIDC only. As of the latest audit, repository Actions secrets, `github-pages` environment secrets, and repository variables are empty.
+- Apps in Toss deploy keys belong in the local CLI profile via `ait token add`, not in source. If `.env.local` is used to bootstrap `APPS_IN_TOSS_API_KEY`, delete the key after registration.
+- Use `npm run check:secrets` or `bash scripts/check-secrets.sh` before pushing meaningful changes. It scans the repo and local `.ait` artifact with redacted output. Use `npm run audit:github-secrets` to re-check GitHub-side secret and variable inventory.
+- See `docs/secrets.md` for the inventory and local deploy workflow.
+
 ## Verification Checklist
 
 Run this before committing:
@@ -120,8 +129,11 @@ Run this before committing:
 node --check src/app.js
 node --check src/documents.js
 node --test
+npm run check:secrets
 git diff --check
 ```
+
+If the local shell has no `npm` or `node`, use `bash scripts/check-secrets.sh` for the secret scan because it falls back to the bundled Codex Node runtime.
 
 Manual browser checks:
 
