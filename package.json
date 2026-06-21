@@ -5,6 +5,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "serve": "python3 -m http.server 4173"
+    "serve": "python3 -m http.server 4173",
+    "check:secrets": "bash scripts/check-secrets.sh",
+    "audit:github-secrets": "bash scripts/audit-github-secrets.sh",
+    "ait": "bash scripts/ait.sh",
+    "ait:token:add": "bash scripts/ait.sh token add",
+    "ait:token:remove": "bash scripts/ait.sh token remove",
+    "ait:deploy": "bash scripts/ait.sh deploy"
   }
 }

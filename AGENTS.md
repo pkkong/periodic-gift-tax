@@ -136,6 +136,15 @@ Keep calculation changes in `src/tax.js` and add or update tests before touching
 - Official Apps in Toss sandbox testing supports iOS Simulator, iOS real device, Android emulator, or Android real device. The current Mac check on `2026-06-13 KST` found no full Xcode/Simulator (`xcrun simctl` unavailable) and no Android `adb`. Opening `intoss-private://baby-gift-tax-helper?_deploymentId=019eaf09-214e-7d28-95f2-8a023568ea63` directly on macOS fails because no Toss protocol handler is installed. Real Toss app/sandbox verification therefore needs a configured simulator, Android tooling, or a logged-in mobile Toss app.
 - Chrome login was restored by the user on `2026-06-15 KST`, and the Codex Chrome Extension connected successfully after Chrome was reopened. Playwright file upload was blocked with `Not allowed`, but native Chrome file picker automation worked for the `.ait` upload. Console browser automation can continue from the logged-in Chrome tab if Chrome stays open.
 
+## Secrets Management
+
+- The public GitHub Pages PWA must not require runtime secrets. Do not introduce client-side API keys for HomeTax, analytics, ads, or affiliates without a backend/proxy decision.
+- Keep `.env.example` committed and keep `.env`, `.env.*`, browser session exports, `.ait` artifacts, `node_modules`, and `dist` ignored. Do not commit generated Apps in Toss bundles.
+- GitHub Pages deploy currently uses GitHub-provided `GITHUB_TOKEN` and OIDC only. As of the latest audit, repository Actions secrets, `github-pages` environment secrets, and repository variables are empty.
+- Apps in Toss deploy keys belong in the local CLI profile via `ait token add`, not in source. If `.env.local` is used to bootstrap `APPS_IN_TOSS_API_KEY`, delete the key after registration.
+- Use `npm run check:secrets` or `bash scripts/check-secrets.sh` before pushing meaningful changes. It scans the repo and local `.ait` artifact with redacted output. Use `npm run audit:github-secrets` to re-check GitHub-side secret and variable inventory.
+- See `docs/secrets.md` for the inventory and local deploy workflow.
+
 ## Verification Checklist
 
 Run this before committing:
@@ -144,6 +153,7 @@ Run this before committing:
 node --check src/app.js
 node --check src/documents.js
 node --test
+npm run check:secrets
 git diff --check
 ```
 
@@ -237,6 +247,7 @@ Apps in Toss Console state as of `2026-06-15 KST`:
 - ChannelTalk correction message sent on `2026-06-14 KST`:
   `정정드립니다. 위 메시지의 검토 요청 대상 빌드는 20260613-6이 아니라 기존 후보 20260610-4입니다. 검토 대상은 20260610-4 / intoss-private://baby-gift-tax-helper?_deploymentId=019eaf09-214e-7d28-95f2-8a023568ea63 입니다. 방금 이 버전으로 콘솔 푸시 테스트를 다시 발송했고, 20260610-4 행의 검토 요청을 눌렀지만 동일하게 '앱 정보 검토를 먼저 완료해 주세요' 모달로 막혔습니다. 따라서 현재 요청은 20260610-4 빌드 검토 요청이 가능하도록 앱 정보 검토를 완료/취소/반려 처리해 주시거나 수정 가능 상태로 열어달라는 내용입니다. 회신은 kongncompany@naver.com 로 부탁드립니다.`
 - 6월 Apps in Toss Vibe Coding Challenge application form was submitted again on `2026-06-18 KST` from the official form `https://toss.im/_m/JTkiSRsh`. Submitted fields: submitter `공평근`, email `kongncompany@naver.com`, phone digits only, Korean app name `우리 아기 증여 도우미`, appName `baby-gift-tax-helper`, one-line description `아이 증여 신고 준비를 체크리스트와 PDF로 정리해주는 미니앱`, and theme relation about reducing repeated deadline, transfer-record, HomeTax-order, and document-prep checks. The success page showed `답변을 제출했어요`.
+If the local shell has no `npm` or `node`, use `bash scripts/check-secrets.sh` for the secret scan because it falls back to the bundled Codex Node runtime.
 
 Manual browser checks:
 
