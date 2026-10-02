@@ -107,6 +107,7 @@ const defaultInput = normalizeInput({
 
 let toastTimer = 0;
 let currentStepIndex = 0;
+let pdfBusy = false;
 let guardianNameEdited = false;
 let amountTaxOverrideApproved = false;
 let lastEnterActionAt = 0;
@@ -926,6 +927,9 @@ function fillForm(input) {
 }
 
 async function printDocuments(event) {
+  if (pdfBusy) return;
+  pdfBusy = true;
+  setPdfButtonsDisabled(true);
   currentStepIndex = getStepIndex("result");
   renderStep();
   setPdfStatus("PDF를 만들고 있어요.", "progress");
@@ -941,6 +945,9 @@ async function printDocuments(event) {
     console.error("PDF 처리에 실패했습니다.", error);
     setPdfStatus("PDF를 처리하지 못했어요. 잠시 후 다시 시도해주세요.", "error");
     showToast("PDF를 처리하지 못했어요.");
+  } finally {
+    pdfBusy = false;
+    setPdfButtonsDisabled(false);
   }
 }
 
@@ -1558,7 +1565,12 @@ async function savePdfAndPreview(data) {
 
   if (supportsNativePdfViewer()) {
     setPdfStatus("PDF를 저장했어요. 열린 미리보기에서 내용을 확인하세요.", "success");
-    await openPDFViewer({ data, filename: PDF_FILE_NAME });
+    try {
+      await openPDFViewer({ data, filename: PDF_FILE_NAME });
+    } catch (error) {
+      console.warn("저장된 PDF 미리보기를 열지 못했습니다.", error);
+      setPdfStatus("PDF를 저장했어요. 기기의 파일 앱에서 확인하세요.", "success");
+    }
   } else {
     setPdfStatus("PDF를 저장했어요. 기기의 파일 앱에서 확인하세요.", "success");
   }
@@ -1615,6 +1627,11 @@ function downloadPdf(data) {
 function setPdfStatus(message, state = "") {
   pdfStatus.textContent = message;
   pdfStatus.dataset.state = state;
+}
+
+function setPdfButtonsDisabled(disabled) {
+  document.querySelector("#printButton").disabled = disabled;
+  document.querySelector("#printButtonDocuments").disabled = disabled;
 }
 
 function openOverlay(overlay) {
