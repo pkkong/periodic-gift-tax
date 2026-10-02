@@ -9,7 +9,7 @@ import {
   validateGiftInput
 } from "./tax.js";
 import { renderDocumentPack } from "./documents.js";
-import { openPDFViewer, saveBase64Data } from "@apps-in-toss/web-framework";
+import { isMinVersionSupported, openPDFViewer, saveBase64Data } from "@apps-in-toss/web-framework";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
@@ -39,6 +39,7 @@ const scheduleDisclosure = scheduleSummary?.closest(".result-disclosure");
 const validationList = document.querySelector("#validationList");
 const deadlineSummary = document.querySelector("#deadlineSummary");
 const documentPreview = document.querySelector("#documentPreview");
+const pdfStatus = document.querySelector("#pdfStatus");
 const toast = document.querySelector("#toast");
 const importFile = document.querySelector("#importFile");
 const ruleOverlay = document.querySelector("#ruleOverlay");
@@ -927,19 +928,19 @@ function fillForm(input) {
 async function printDocuments(event) {
   currentStepIndex = getStepIndex("result");
   renderStep();
+  setPdfStatus("PDF를 만들고 있어요.", "progress");
   showToast("PDF를 만들고 있어요.");
   try {
     const base64Data = await createPdfBase64();
     if (event?.currentTarget?.id === "printButtonDocuments") {
       await openPdfOrDownload(base64Data);
-      showToast("PDF 미리보기를 열었어요.");
       return;
     }
-    await savePdfOrDownload(base64Data);
-    showToast("PDF 저장을 열었어요.");
-  } catch {
-    window.print();
-    showToast("브라우저 인쇄 화면을 열었어요.");
+    await savePdfAndPreview(base64Data);
+  } catch (error) {
+    console.error("PDF 처리에 실패했습니다.", error);
+    setPdfStatus("PDF를 처리하지 못했어요. 잠시 후 다시 시도해주세요.", "error");
+    showToast("PDF를 처리하지 못했어요.");
   }
 }
 
@@ -1535,27 +1536,63 @@ async function createPdfBase64() {
   }
 }
 
-async function savePdfOrDownload(data) {
-  try {
-    await saveBase64Data({
-      data,
-      fileName: PDF_FILE_NAME,
-      mimeType: "application/pdf"
-    });
-  } catch {
+async function savePdfAndPreview(data) {
+  if (!isTossWebView()) {
     downloadPdf(data);
+    setPdfStatus("PDF 파일을 다운로드했어요.", "success");
+    showToast("PDF 파일을 다운로드했어요.");
+    return;
   }
+
+  if (!supportsNativePdfSave()) {
+    setPdfStatus("PDF 저장을 사용하려면 토스 앱을 최신 버전으로 업데이트해주세요.", "error");
+    showToast("토스 앱 업데이트가 필요해요.");
+    return;
+  }
+
+  await saveBase64Data({
+    data,
+    fileName: PDF_FILE_NAME,
+    mimeType: "application/pdf"
+  });
+
+  if (supportsNativePdfViewer()) {
+    setPdfStatus("PDF를 저장했어요. 열린 미리보기에서 내용을 확인하세요.", "success");
+    await openPDFViewer({ data, filename: PDF_FILE_NAME });
+  } else {
+    setPdfStatus("PDF를 저장했어요. 기기의 파일 앱에서 확인하세요.", "success");
+  }
+  showToast("PDF를 저장했어요.");
 }
 
 async function openPdfOrDownload(data) {
-  try {
-    await openPDFViewer({
-      data,
-      filename: PDF_FILE_NAME
-    });
-  } catch {
+  if (!isTossWebView()) {
     downloadPdf(data);
+    setPdfStatus("PDF 파일을 다운로드했어요.", "success");
+    showToast("PDF 파일을 다운로드했어요.");
+    return;
   }
+
+  if (!supportsNativePdfViewer()) {
+    setPdfStatus("PDF 미리보기를 사용하려면 토스 앱을 최신 버전으로 업데이트해주세요.", "error");
+    showToast("토스 앱 업데이트가 필요해요.");
+    return;
+  }
+
+  setPdfStatus("PDF 미리보기를 열었어요.", "success");
+  await openPDFViewer({ data, filename: PDF_FILE_NAME });
+}
+
+function isTossWebView() {
+  return Boolean(window.ReactNativeWebView?.postMessage);
+}
+
+function supportsNativePdfSave() {
+  return isMinVersionSupported({ android: "5.218.0", ios: "5.216.0" });
+}
+
+function supportsNativePdfViewer() {
+  return isMinVersionSupported({ android: "5.261.0", ios: "5.261.0" });
 }
 
 function downloadPdf(data) {
@@ -1569,8 +1606,15 @@ function downloadPdf(data) {
   const link = document.createElement("a");
   link.href = url;
   link.download = PDF_FILE_NAME;
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function setPdfStatus(message, state = "") {
+  pdfStatus.textContent = message;
+  pdfStatus.dataset.state = state;
 }
 
 function openOverlay(overlay) {

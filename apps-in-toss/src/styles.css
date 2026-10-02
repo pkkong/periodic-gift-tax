@@ -1697,6 +1697,26 @@ th {
   font-weight: 700;
 }
 
+.pdf-card .pdf-status {
+  min-height: 20px;
+  margin-top: 8px;
+  color: #4e5968;
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.pdf-card .pdf-status:empty {
+  display: none;
+}
+
+.pdf-card .pdf-status[data-state="success"] {
+  color: #067647;
+}
+
+.pdf-card .pdf-status[data-state="error"] {
+  color: #d92d20;
+}
+
 .result-action-card ol {
   display: grid;
   gap: 8px;

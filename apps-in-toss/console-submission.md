@@ -207,6 +207,7 @@ ChannelTalk correction message sent on `2026-06-14 KST`:
 - The default state is memory only.
 - Device storage is used only when the user taps `임시저장`.
 - PDF generation runs on-device from the in-app document preview.
+- PDF support fix prepared on `2026-10-02 KST`: the save action now checks the native save minimum version, saves the Base64 PDF, opens the native PDF viewer when supported so the result is visible, and keeps a persistent success/error message. Browser QA downloads the generated PDF instead. This replaces the misleading `PDF 저장을 열었어요.` toast that could appear even when an older Toss app silently skipped the native save bridge.
 - The final candidate requests no Apps in Toss permissions.
 - No Toss Login, payment, analytics SDK, server storage, or external ad network is used.
 - HomeTax guidance is provided inside the app. The feature does not depend on an external link to complete the calculation and document-prep flow.
