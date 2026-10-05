@@ -73,25 +73,25 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 ## Current Local Release Candidate
 
 - Source status: committed and uploaded.
-- Source commit: `c60518f` (`Clone webapp UX for Apps in Toss policy candidate`)
-- Source tag: `apps-in-toss/webapp-clone-policy-20260615`
-- Built at: `2026-06-15 KST`
+- Source commit: `94fe7a87e` (`Harden PDF save completion handling`)
+- Source tag: `apps-in-toss/20261005-10`
+- Built at: `2026-10-02 KST`
 - Local `.ait`: `baby-gift-tax-helper.ait`
-- AIT build deploymentId: `019ecbaa-5aad-7b43-89e0-9bb270391877`
-- Upload status: uploaded to Apps in Toss Console as build `20260616-9` on `2026-06-16 KST`.
-- Candidate note: public-webapp UX clone for Apps in Toss. Keeps the landing, progressive wizard, mascot, result, execution, HomeTax, and PDF flow; removes the visible amount-entry page after gift mode; removes `예상 세금 0원` / `예상 납부세액이 0원이에요`; adds law-basis copy for 상속세 및 증여세법 제53조 and 제55조 제2항; PDF contains checklist, law memo, HomeTax prep checklist, and blank optional 증여 약정서/확인서 초안.
-- Local QA: `tsc -b`, `eslint .`, `vite build`, and `ait build` passed. In-app browser QA at 360px/390px/430px found no horizontal overflow on landing/result, verified `giftMode` skips the amount page, verified safe-limit law copy, and verified PDF save generated four pages with no console errors.
+- AIT build deploymentId: `01a0fa81-6577-750f-8561-b13564917837`
+- Upload status: uploaded to Apps in Toss Console as build `20261005-10` on `2026-10-05 KST`.
+- Candidate note: PDF save reliability patch on top of the currently released `20260616-9` product flow. It detects Apps in Toss native capability support, saves the generated PDF, opens the native PDF viewer when supported, shows persistent success/error status, and gives explicit Toss app update guidance when native save is unavailable.
+- Local QA: `tsc -b`, `eslint .`, `vite build`, `ait build`, root `node --test` (26/26), secret scan, and `git diff --check` passed. Browser end-to-end QA generated and downloaded a valid four-page A4 PDF (PDF 1.3, 502,564 bytes) and showed persistent completion feedback.
 
 ## Current Uploaded Release Candidate
 
-- Source commit: `c60518f` (`Clone webapp UX for Apps in Toss policy candidate`)
-- Source tag: `apps-in-toss/webapp-clone-policy-20260615`
-- Built at: `2026-06-15 KST`
+- Source commit: `94fe7a87e` (`Harden PDF save completion handling`)
+- Source tag: `apps-in-toss/20261005-10`
+- Built at: `2026-10-02 KST`
 - Local `.ait`: `baby-gift-tax-helper.ait`
-- Console build: `20260616-9`
-- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecbaa-5aad-7b43-89e0-9bb270391877`
-- Upload status: uploaded through the logged-in Apps in Toss Console on `2026-06-16 KST`.
-- Candidate note: public-webapp UX clone with policy changes only. This supersedes simplified React builds `20260615-7` and `20260615-8` unless explicitly reselected.
+- Console build: `20261005-10`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=01a0fa81-6577-750f-8561-b13564917837`
+- Upload status: uploaded through the logged-in Apps in Toss Console on `2026-10-05 KST`.
+- Candidate note: fixes the production PDF-save failure report without changing the approved information-only product scope or calculation policy.
 
 ## Historical Console Review Target
 
@@ -105,25 +105,25 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 
 ## Current Console Review Target
 
-- Target build: `20260616-9`
-- Uploaded at: `2026-06-16 KST`
-- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=019ecbaa-5aad-7b43-89e0-9bb270391877`
-- Source commit: `c60518f`
-- Upload memo: not displayed in the Console row after upload; intended memo was `웹앱 UX 보존 정책 반영 후보: 공개 웹앱의 모바일 흐름과 디자인을 복제하고, 금액 입력 계산 화면과 세액을 확정하는 문구를 제거했습니다. 기본공제와 과세표준 50만원 미만 법령 근거, 홈택스 준비 순서, PDF 체크리스트와 증여 약정서/확인서 초안을 제공합니다.`
+- Target build: `20261005-10`
+- Uploaded at: `2026-10-05 KST`
+- Deployment scheme: `intoss-private://baby-gift-tax-helper?_deploymentId=01a0fa81-6577-750f-8561-b13564917837`
+- Source commit: `94fe7a87e`
+- Upload memo: `PDF 저장 오류 수정: 저장 후 네이티브 PDF 미리보기를 열어 결과를 확인할 수 있게 했습니다. 미지원 토스 앱은 업데이트를 안내합니다.`
 - Console push test: sent.
-- App info: re-submitted on `2026-06-16 KST` after updating the subtitle to `아이 증여 신고 준비` and making the description explicitly say that amount-entry tax calculation, confirmed tax guidance, tax agency, HomeTax auto submission, and server storage are not provided. Console showed `검토 중이에요. 결과는 영업일 기준 2일 내 이메일로 알려드릴게요.` and `검토를 요청했어요.` The user reported app info approval on `2026-06-18 KST`.
-- Release review: submitted on `2026-06-18 KST`. Console showed `요청이 완료되었어요. 검토 후 이메일로 알려드릴게요. (20260616-9)`, the build row changed to `검토 중`, and the page alert said `검토 중이에요. 결과는 영업일 7일 내 이메일로 알려드릴게요.`
-- Release modal values: release note described the public-webapp UX candidate with amount-entry tax calculation and confirmed tax guidance removed, plus law-basis guidance, filing deadline guidance, post-transfer checklist, HomeTax input order, PDF checklist, and blank gift agreement/confirmation drafts. In-app feature was registered as Korean `증여 신고 준비하기`, English `Gift Prep`, URL `/`.
+- Release review: submitted on `2026-10-05 KST`. The build row changed to `검토 중`, its action changed to `요청 취소`, and the page alert said `검토 중이에요. 결과는 영업일 기준 3~7일 내 이메일로 알려드릴게요.`
+- Release note: PDF save previously showed only a message with no visible result; the patch opens the generated PDF in the native viewer after saving and guides unsupported Toss versions to update.
 
 ## Console Build Registry
 
-Captured from the Apps in Toss Console on `2026-06-16 KST`. These rows are Console-uploaded bundles, so the Console bundle/deployment is the source of truth for rollback. Earlier uploads were not committed and tagged at the exact upload moment, so do not claim source-level reproducibility for those builds.
+Captured from the Apps in Toss Console on `2026-10-05 KST`. These rows are Console-uploaded bundles, so the Console bundle/deployment is the source of truth for rollback. Earlier uploads were not committed and tagged at the exact upload moment, so do not claim source-level reproducibility for those builds.
 
 Public GitHub Pages baseline captured on `2026-06-14 KST`: `https://pkkong.github.io/periodic-gift-tax/` served `window.__PROJECT_TAX_VERSION__ = "40"` from `origin/main` commit `1879898ee49332853935471b24480d12762b3522`. Preserve this source baseline as tags `webapp/v40-public-20260614` and `apps-in-toss/20260610-4-webapp-baseline`. Build `20260610-4` is the closest Apps in Toss Console bundle to this public webapp UX, but it remains a Console bundle reference, not a proven source-rebuildable artifact.
 
 | Build | Created | SDK | Console status | Deployment ID | Rollback note |
 | --- | --- | --- | --- | --- | --- |
-| `20260616-9` | `2026. 06. 16` | `2.6.1` | `검토 중` | `019ecbaa-5aad-7b43-89e0-9bb270391877` | Current review target. Uploaded webapp-clone policy candidate from commit `c60518f`; Console push test sent; release review submitted on `2026-06-18 KST`. |
+| `20261005-10` | `2026. 10. 05` | `2.6.1` | `검토 중` | `01a0fa81-6577-750f-8561-b13564917837` | Current review target. PDF save reliability patch from commit `94fe7a87e`; Console push test sent; release review submitted on `2026-10-05 KST`. |
+| `20260616-9` | `2026. 06. 16` | `2.6.1` | `현재 출시됨` | `019ecbaa-5aad-7b43-89e0-9bb270391877` | Current production rollback version, released on `2026-07-02 KST`. Uploaded webapp-clone policy candidate from commit `c60518f`. |
 | `20260615-8` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb91-f473-7225-9436-254474e225ae` | Uploaded simplified React policy candidate from commit `1b69417`; superseded by local webapp-clone candidate unless explicitly reselected. Console push test sent; review request blocked by pending app-info review. |
 | `20260615-7` | `2026. 06. 15` | `2.6.1` | `검토 필요` | `019ecb88-ac50-7f9a-8359-a5afc0571d86` | Uploaded simplified React policy candidate from commit `e3d5183`; superseded by local webapp-clone candidate unless explicitly reselected. Console push test sent; review request blocked by pending app-info review. |
 | `20260613-6` | `2026. 06. 13` | `2.6.1` | `검토 필요` | `019ec152-19e3-76a8-bc3c-39ae750a7583` | Superseded calculator-restore candidate. Do not use unless the user explicitly reselects it. |
