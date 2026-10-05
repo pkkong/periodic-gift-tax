@@ -81,6 +81,7 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 - Upload status: uploaded to Apps in Toss Console as build `20261005-10` on `2026-10-05 KST`.
 - Candidate note: PDF save reliability patch on top of the currently released `20260616-9` product flow. It detects Apps in Toss native capability support, saves the generated PDF, opens the native PDF viewer when supported, shows persistent success/error status, and gives explicit Toss app update guidance when native save is unavailable.
 - Local QA: `tsc -b`, `eslint .`, `vite build`, `ait build`, root `node --test` (26/26), secret scan, and `git diff --check` passed. Browser end-to-end QA generated and downloaded a valid four-page A4 PDF (PDF 1.3, 502,564 bytes) and showed persistent completion feedback.
+- Repeated regression QA on `2026-10-05 KST`: two consecutive browser saves each produced a valid four-page A4 PDF (PDF 1.3, 502,737 bytes) and restored the enabled buttons after completion. A production-bundled Toss WebView harness verified four native outcomes: save and viewer success, unsupported Toss version, viewer failure after save, and native save failure. Every outcome displayed an accurate persistent status; none reproduced the old `PDF 저장을 열었어요.`-only behavior.
 
 ## Current Uploaded Release Candidate
 
