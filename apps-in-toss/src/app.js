@@ -9,7 +9,7 @@ import {
   validateGiftInput
 } from "./tax.js";
 import { renderDocumentPack } from "./documents.js";
-import { closeView, graniteEvent, isMinVersionSupported, openPDFViewer, saveBase64Data } from "@apps-in-toss/web-framework";
+import { File, Screen, graniteEvent, isMinVersionSupported } from "@apps-in-toss/web-framework";
 import { navigateBack } from "./navigation.js";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -1005,12 +1005,12 @@ function bindNativeNavigation() {
       stepIndex: currentStepIndex,
       closeOverlay,
       previousStep,
-      closeView
+      closeView: () => Screen.close()
     }).catch(onError),
     onError
   });
   graniteEvent.addEventListener("homeEvent", {
-    onEvent: () => closeView().catch(onError),
+    onEvent: () => Screen.close().catch(onError),
     onError
   });
 }
@@ -1584,7 +1584,7 @@ async function savePdfAndPreview(data) {
     return;
   }
 
-  await saveBase64Data({
+  await File.saveBase64({
     data,
     fileName: PDF_FILE_NAME,
     mimeType: "application/pdf"
@@ -1593,7 +1593,7 @@ async function savePdfAndPreview(data) {
   if (supportsNativePdfViewer()) {
     setPdfStatus("PDF를 저장했어요. 열린 미리보기에서 내용을 확인하세요.", "success");
     try {
-      await openPDFViewer({ data, filename: PDF_FILE_NAME });
+      await File.openPDFViewer({ data, filename: PDF_FILE_NAME });
     } catch (error) {
       console.warn("저장된 PDF 미리보기를 열지 못했습니다.", error);
       setPdfStatus("PDF를 저장했어요. 기기의 파일 앱에서 확인하세요.", "success");
@@ -1619,7 +1619,7 @@ async function openPdfOrDownload(data) {
   }
 
   setPdfStatus("PDF 미리보기를 열었어요.", "success");
-  await openPDFViewer({ data, filename: PDF_FILE_NAME });
+  await File.openPDFViewer({ data, filename: PDF_FILE_NAME });
 }
 
 function isTossWebView() {

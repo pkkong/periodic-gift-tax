@@ -73,6 +73,7 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 ## Current Local Release Candidate
 
 - `2026-10-07 KST`: `20261005-10` was rejected: `1. 내비게이션 바의 뒤로가기 버튼과 미니앱 자체 헤더 및 뒤로가기 버튼이 함께 노출돼요. 중복된 버튼을 제거해 주세요.` The replacement removes the app title header and custom previous button inside Toss, routes native back through overlays/wizard/landing exit, keeps standalone browser back navigation, and preserves the PDF reliability fixes. Exact replacement build/source/deployment will be recorded after upload.
+- Console also rejected the attempted replacement upload with `웹뷰 미니앱은 SDK 버전 3.0.0 이상이 필요해요. 현재 버전: 2.6.1`. It was not registered as a Console build. The replacement now uses pinned SDK `3.7.0`, official `ait migrate v3` configuration/scripts, and development-only AIT Devtools. SDK 3.x cannot be rolled back to 2.x after release; 3.7.0 preserves the 2.x origin/localStorage (per SDK 3.1.1 release note).
 - Source status: committed and uploaded.
 - Source commit: `94fe7a87e` (`Harden PDF save completion handling`)
 - Source tag: `apps-in-toss/20261005-10`
