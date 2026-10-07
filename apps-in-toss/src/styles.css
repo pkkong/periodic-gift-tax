@@ -1474,6 +1474,29 @@ input::placeholder {
   display: none;
 }
 
+.wizard-nav.has-native-back {
+  grid-template-columns: 1fr;
+}
+
+.toss-webview .landing-nav {
+  display: none;
+}
+
+.wizard-nav.has-native-back.is-pending {
+  display: none;
+}
+
+.reference-actions {
+  width: min(440px, 100%);
+  margin: 14px auto 0;
+  padding-inline: 18px;
+  text-align: right;
+}
+
+.reference-actions[hidden] {
+  display: none;
+}
+
 .utility-actions {
   width: min(440px, 100%);
   margin-inline: auto;

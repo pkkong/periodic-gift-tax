@@ -9,7 +9,8 @@ import {
   validateGiftInput
 } from "./tax.js";
 import { renderDocumentPack } from "./documents.js";
-import { isMinVersionSupported, openPDFViewer, saveBase64Data } from "@apps-in-toss/web-framework";
+import { closeView, graniteEvent, isMinVersionSupported, openPDFViewer, saveBase64Data } from "@apps-in-toss/web-framework";
+import { navigateBack } from "./navigation.js";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
@@ -45,7 +46,7 @@ const importFile = document.querySelector("#importFile");
 const ruleOverlay = document.querySelector("#ruleOverlay");
 const dataOverlay = document.querySelector("#dataOverlay");
 const ruleButton = document.querySelector("#ruleButton");
-const topbar = document.querySelector(".topbar");
+const referenceActions = document.querySelector("#referenceActions");
 const stepElements = Array.from(document.querySelectorAll(".wizard-step"));
 const progressiveFields = Array.from(document.querySelectorAll("[data-reveal-after]"));
 const fieldConfirmButtons = Array.from(document.querySelectorAll("[data-confirm-field]"));
@@ -152,8 +153,10 @@ const flowDependencies = {
 bootstrap();
 
 function bootstrap() {
+  document.body.classList.toggle("toss-webview", isTossWebView());
   fillForm(defaultInput);
   bindEvents();
+  bindNativeNavigation();
   recalculate();
   updateModeUi();
   updatePriorGiftUi();
@@ -928,6 +931,7 @@ function fillForm(input) {
 
 async function printDocuments(event) {
   if (pdfBusy) return;
+  const previewOnly = event?.currentTarget?.id === "printButtonDocuments";
   pdfBusy = true;
   setPdfButtonsDisabled(true);
   currentStepIndex = getStepIndex("result");
@@ -936,7 +940,7 @@ async function printDocuments(event) {
   showToast("PDF를 만들고 있어요.");
   try {
     const base64Data = await createPdfBase64();
-    if (event?.currentTarget?.id === "printButtonDocuments") {
+    if (previewOnly) {
       await openPdfOrDownload(base64Data);
       return;
     }
@@ -989,6 +993,28 @@ function previousStep() {
   scrollToTop();
 }
 
+function bindNativeNavigation() {
+  if (!isTossWebView()) return;
+  const onError = (error) => {
+    console.error("토스 내비게이션 처리에 실패했습니다.", error);
+    showToast("화면을 이동하지 못했어요. 다시 눌러주세요.");
+  };
+  graniteEvent.addEventListener("backEvent", {
+    onEvent: () => navigateBack({
+      overlays: [ruleOverlay, dataOverlay],
+      stepIndex: currentStepIndex,
+      closeOverlay,
+      previousStep,
+      closeView
+    }).catch(onError),
+    onError
+  });
+  graniteEvent.addEventListener("homeEvent", {
+    onEvent: () => closeView().catch(onError),
+    onError
+  });
+}
+
 function renderStep() {
   const step = currentStep();
   stepElements.forEach((element) => {
@@ -999,17 +1025,18 @@ function renderStep() {
   const isIntro = step.key === "intro";
   const isResult = step.key === "result";
   const isPostResult = step.key === "result" || step.key === "execute" || step.key === "hometaxFlow";
-  topbar.hidden = !isPostResult;
+  referenceActions.hidden = !isPostResult;
   wizardProgress.hidden = true;
   utilityActions.hidden = isIntro || isPostResult;
   ruleButton.hidden = !isPostResult;
   wizardNav.classList.toggle("is-intro", isIntro);
+  wizardNav.classList.toggle("has-native-back", isTossWebView());
   wizardNav.hidden = isIntro;
   stepCount.textContent = `${progressIndex} / ${progressTotal}`;
   stepTitle.textContent = step.title;
   progressBar.style.width = `${(progressIndex / progressTotal) * 100}%`;
   renderBabyMascot(step.key, progressIndex, progressTotal);
-  backButton.hidden = isIntro;
+  backButton.hidden = isIntro || isTossWebView();
   backButton.disabled = isIntro;
   nextButton.textContent = getNextButtonText(step.key);
   if (step.key === "recipient") syncRecipientDefaults();

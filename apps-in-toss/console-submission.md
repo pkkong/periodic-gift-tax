@@ -72,6 +72,7 @@ Use a one-time Console API key or a locally registered profile. Do not commit or
 
 ## Current Local Release Candidate
 
+- `2026-10-07 KST`: `20261005-10` was rejected: `1. 내비게이션 바의 뒤로가기 버튼과 미니앱 자체 헤더 및 뒤로가기 버튼이 함께 노출돼요. 중복된 버튼을 제거해 주세요.` The replacement removes the app title header and custom previous button inside Toss, routes native back through overlays/wizard/landing exit, keeps standalone browser back navigation, and preserves the PDF reliability fixes. Exact replacement build/source/deployment will be recorded after upload.
 - Source status: committed and uploaded.
 - Source commit: `94fe7a87e` (`Harden PDF save completion handling`)
 - Source tag: `apps-in-toss/20261005-10`
